@@ -19,10 +19,11 @@ TODO: None available yet.
 - Calculate the inventory worth (relative to Steam Market prices) using another system I am currently working on.
 
 ## Set-up:
-- git clone https://github.com/Undeadkillz/node_steam_bot
-- node install
-- node index.js
-
+~~~
+git clone https://github.com/Undeadkillz/node_steam_bot
+node install
+node index.js
+~~~
 ---
 ### Registering a Bot:
 - Choose 'register' option from main menu (use arrow keys to navigate the menu)
@@ -32,8 +33,8 @@ TODO: None available yet.
 - Use arrow keys to choose the bot you just registered and you will be presented with more management tools.
 
 ### Management tools:
- - Chat (1-to-1 chats | or you may program your own handling)
- - Send trade (1-to-1 trades | or you may program your own handling)
+ - Chat (1-to-1 chats | or you may program your own handlers)
+ - Send trade (1-to-1 trades | or you may program your own handlers)
  - Calculate Inventory (quick run-through of inventory worth - not yet completed)
  - Logout (logout of chat - Working on fixing some functionality)
  - Manage
