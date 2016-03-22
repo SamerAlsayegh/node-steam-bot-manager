@@ -14,8 +14,8 @@ TODO: None available yet.
 - Talk to people on the Bot's friends list
 - Trade with people on the Bot's friends list.
 - Set-up 2-factor-authentication (including the phone-number if not yet on account)
-- Handle API sign-up process (ez, ik)
-- Run multiple bot at once
+- Handle API sign-up process*
+- Manage multiple bots at once
 - Calculate the inventory worth (relative to Steam Market prices) using another system I am currently working on.
 
 ## Set-up:
@@ -58,3 +58,7 @@ The scope of this project is to be like a SteamBot alternative for NodeJS.
 ## Credits:
 - [Undeadkillz](https://github.com/Undeadkillz)
 - All authors and helpers of the libraries listed above (with their respective library urls)
+
+
+
+\* Using this feature means you agree to Steam's API terms found at: [Steam API Terms](http://steamcommunity.com/dev/apiterms)
