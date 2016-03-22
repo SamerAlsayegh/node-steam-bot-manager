@@ -1,5 +1,5 @@
 # NodeJS Bot Management Tool
-A bot management tool for [Steam Community](www.steamcommunity.com) which uses NodeJS.
+A bot management tool for [Steam Community](http://www.steamcommunity.com) which uses NodeJS.
 
 
 
