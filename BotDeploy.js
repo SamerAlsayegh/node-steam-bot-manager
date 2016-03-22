@@ -1,8 +1,7 @@
 /**
- * All the require statements...
+ * Documentation and comments will be done later...
  */
 
-/*                  START                     */
 var SteamTotp = require('steam-totp');
 var fs = require('fs');
 var inquirer = require("inquirer");
@@ -10,7 +9,6 @@ var colors = require('colors');
 var SteamCommunity = require('steamcommunity');
 var SteamStore = require('steamstore');
 var TradeOfferManager = require('steam-tradeoffer-manager');
-/*                  END                     */
 
 
 var accountList = [];
@@ -31,8 +29,6 @@ getSavedAccounts("config/accounts.json", function (err, response) {
     if (err) {
         console.log(err);
         console.log(response);
-        //errorDebug(err);
-        //errorDebug(response);
     } else {
         accountList = response;
         initBots();
@@ -50,10 +46,8 @@ function initBots() {
         if (accountList.hasOwnProperty(accountIndex)) {
             var activeAccount = accountList[accountIndex];
 
-
             botInstances.push({
                 community: new SteamCommunity(), trade: new TradeOfferManager({
-                    "domain": "pvp.kz", // Our domain is example.com
                     "language": "en", // We want English item descriptions
                     "pollInterval": 5000 // We want to poll every 5 seconds since we don't have Steam notifying us of offers
                 }), store: new SteamStore()
