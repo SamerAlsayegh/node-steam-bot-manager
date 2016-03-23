@@ -19,7 +19,7 @@ TODO: None available yet.
 - Calculate the inventory worth (relative to Steam Market prices) using another system I am currently working on.
 
 ## TODO:
-- Add 1-to-1 chats and trades
+- Add 1-to-1 trades
 - Add auto-confirming trades (Checks will be made in place to avoid getting ripped off.)
 - Add registration account checking
 -
@@ -27,7 +27,7 @@ TODO: None available yet.
 ~~~
 git clone https://github.com/Undeadkillz/node-steam-bot-manager
 node install
-node index.js # May soon be changed
+node index.js
 ~~~
 ---
 ### Registering a Bot:

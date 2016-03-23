@@ -2,7 +2,7 @@
   "name": "node-steam-bot-manager",
   "version": "1.0.0",
   "description": "A NodeJS Steam Community Bot Management tool. ",
-  "main": "BotDeploy.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
