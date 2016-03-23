@@ -18,19 +18,24 @@ TODO: None available yet.
 - Manage multiple bots at once
 - Calculate the inventory worth (relative to Steam Market prices) using another system I am currently working on.
 
+## TODO:
+- Add 1-to-1 chats and trades
+- Add auto-confirming trades (Checks will be made in place to avoid getting ripped off.)
+- Add registration account checking
+-
 ## Set-up:
 ~~~
-git clone https://github.com/Undeadkillz/node_steam_bot
+git clone https://github.com/Undeadkillz/node-steam-bot-manager
 node install
-node index.js
+node index.js # May soon be changed
 ~~~
 ---
 ### Registering a Bot:
 - Choose 'register' option from main menu (use arrow keys to navigate the menu)
 - Enter the username of the bot [The credentials are not yet checked, so be sure of the credentials.]
-- Enter the password of the bot
+- Enter the password of the bot [The credentials are not yet checked, so be sure of the credentials.]
 - You will then be shown the main menu but the bot is now added.
-- Use arrow keys to choose the bot you just registered and you will be presented with more management tools.
+- Use arrow keys to choose the bot you want to manage.
 
 ### Management tools:
  - Chat (1-to-1 chats | or you may program your own handlers)
@@ -55,6 +60,17 @@ The scope of this project is to be like a SteamBot alternative for NodeJS.
 - [node-steam-totp](https://github.com/DoctorMcKay/node-steam-totp)
 - [node-steam-tradeoffer-manager](https://github.com/DoctorMcKay/node-steam-tradeoffer-manager)
 - [node-steamcommunity](https://github.com/DoctorMcKay/node-steamcommunity)
+- [jsdoc](https://github.com/jsdoc3/jsdoc)
+
+## How to contribute:
+~~~
+git clone https://github.com/Undeadkillz/node-steam-bot-manager # Clone project files locally
+node install # To install the tool and dependancies
+~~~
+Submit a pull-request with the desired changes and I (Samer A.) will check your changes before accepting/declining them. Sometime, I will write up more informative 'How to contribute' section.
+
+---
+
 
 ## Credits:
 - [Undeadkillz](https://github.com/Undeadkillz)
