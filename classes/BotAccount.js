@@ -48,7 +48,7 @@ function BotAccount(accountDetails) {
 
 
     self.client.on('friendOrChatMessage', function (senderID, message, room) {
-        if (senderID == self.currentChatting.sid) {
+        if (self.currentChatting != null && senderID == self.currentChatting.sid) {
             console.log(("\n" + self.currentChatting.accountName + ": " + message).green);
         }
     });
