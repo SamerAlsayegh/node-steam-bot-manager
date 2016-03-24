@@ -6,6 +6,7 @@ var inquirer = require("inquirer");
 var colors = require('colors');
 var BotAccount = require('./classes/BotAccount.js');
 var DataControl = require('./components/dataControl.js');
+// Import events module
 
 var botAccounts = [];
 var dataControl = new DataControl("config");
@@ -21,16 +22,39 @@ dataControl.getSavedAccounts(function (err, response) {
     }
 });
 
+function addBot(accountInfo) {
+    var activeAccount = new BotAccount(accountInfo);
 
+    if (activeAccount.getAccount().shared_secret) {
+        activeAccount.loginAccount();
+    }
+
+    activeAccount.on('displayBotMenu', function () {
+        displayBotMenu();
+    });
+    activeAccount.on('loggedIn', function (activeAccount) {
+        // User just logged in
+    });
+    activeAccount.on('updatedAccountDetails', function () {
+        dataControl.saveAccounts(botAccounts, function (err) {
+            if (err) {
+                errorDebug(err);
+            }
+        });
+    });
+
+    activeAccount.on('incorrectCredentials', function (accountDetails) {
+        // We must ask user for new details...
+        errorDebug("The following details are incorrect: \nusername: {0}\npassword: {1}".format(accountDetails.accountName, accountDetails.password));
+    });
+
+
+    botAccounts.push(activeAccount);
+}
 function initBots(accountsList, callback) {
     for (var accountIndex in accountsList) {
         if (accountsList.hasOwnProperty(accountIndex)) {
-            var activeAccount = new BotAccount(accountsList[accountIndex]);
-
-            if (activeAccount.getAccount().shared_secret) {
-                activeAccount.loginAccount();
-            }
-            botAccounts.push(activeAccount);
+            addBot(accountsList[accountIndex]);
         }
     }
     callback(null);
@@ -73,15 +97,8 @@ function displayBotMenu() {
                 ];
 
                 inquirer.prompt(questions, function (result) {
-                    var newAccount = new BotAccount({accountName: result.accountName, password: result.password});
-                    botAccounts.push(newAccount);
-                    dataControl.saveAccounts(botAccounts, function (err) {
-                        if (err) {
-                            errorDebug(err);
-                        } else {
-                            successDebug("Successfully added.");
-                        }
-                    });
+                    addBot({accountName: result.accountName, password: result.password});
+                    displayBotMenu();
                 });
 
                 break;
@@ -110,8 +127,10 @@ function botLookup(keyData, callback) {
             callback(null, botAccounts[parseInt(keyData)]);
         else
             for (var botAccount in botAccounts) {
-                if (botAccounts[botAccount].getAccountName().toLowerCase() == keyData.toLowerCase()) {
-                    callback(null, botAccounts[botAccount]);
+                if (botAccounts.hasOwnProperty(botAccount)) {
+                    if (botAccounts[botAccount].getAccountName().toLowerCase() == keyData.toLowerCase()) {
+                        callback(null, botAccounts[botAccount]);
+                    }
                 }
             }
     } catch (e) {
@@ -164,7 +183,7 @@ function displayMenu(activeAccount) {
             switch (menuEntry) {
                 case 0:
                     activeAccount.getFriends(function (err, friendsList) {
-                        friendsList[0].accountName = "Back";
+                        friendsList.unshift({accountName: "Back"});
                         var nameList = [];
                         for (var friendId in friendsList) {
                             nameList.push(friendsList[friendId].accountName);
@@ -181,16 +200,18 @@ function displayMenu(activeAccount) {
                         inquirer.prompt(chatMenu, function (result) {
                             var menuEntry = nameList.indexOf(result.chatOption);
                             // We will open chat with...
-                            if (menuEntry != 0) {
-                                // User wants to actually chat with someone...
-                                activeAccount.setChatting({
-                                    accountName: friendsList[menuEntry].accountName,
-                                    sid: friendsList[menuEntry].accountSid
-                                });
-                                processChat(activeAccount, friendsList[menuEntry].accountSid);
-                            }
-                            else {
-                                displayMenu(activeAccount);
+                            switch (menuEntry) {
+                                case 0:
+                                    displayMenu(activeAccount);
+                                    break;
+                                default:
+                                    // User wants to actually chat with someone...
+                                    activeAccount.setChatting({
+                                        accountName: friendsList[menuEntry].accountName,
+                                        sid: friendsList[menuEntry].accountSid
+                                    });
+                                    processChat(activeAccount, friendsList[menuEntry].accountSid);
+                                    break;
                             }
                         });
                     });
@@ -198,16 +219,87 @@ function displayMenu(activeAccount) {
 
                     break;
                 case 1:
-                    var tradeMenu = [
-                        {
-                            type: 'list',
-                            name: 'tradeOption',
-                            message: 'Who would you like to trade with?',
-                            choices: ["None"]
+                    activeAccount.getFriends(function (err, friendsList) {
+                        friendsList.unshift({accountName: "Other SID/Name"});// Add to second pos
+                        friendsList.unshift({accountName: "Back"});// Add to first pos
+                        var nameList = [];
+                        for (var friendId in friendsList) {
+                            nameList.push(friendsList[friendId].accountName);
                         }
-                    ];
-                    inquirer.prompt(tradeMenu, function (result) {
-                        displayMenu(activeAccount);
+
+                        var tradeMenu = [
+                            {
+                                type: 'list',
+                                name: 'tradeOption',
+                                message: 'Who would you like to trade with?',
+                                choices: nameList
+                            }
+                        ];
+                        inquirer.prompt(tradeMenu, function (result) {
+                            var menuEntry = nameList.indexOf(result.tradeOption);
+                            // We will open chat with...
+                            switch (menuEntry) {
+                                case 0:
+                                    // Go back
+                                    displayMenu(activeAccount);
+                                    break;
+                                case 1:
+                                    // Trade with custom steam id.
+                                    // TODO: add trade to steam id
+                                    displayMenu(activeAccount);
+                                    break;
+                                default:
+                                    // Trade with user selected.
+                                    var currentOffer = activeAccount.createOffer(friendsList[menuEntry].accountSid);
+                                    activeAccount.getInventory(730, 2, true, function (err, inventory, currencies) {
+                                        var nameList = [];
+                                        for (var id in inventory) {
+                                            nameList.push(inventory[id].name);
+                                            if (id > 30)
+                                                break;
+                                        }
+
+
+                                        var tradeMenu = [
+                                            {
+                                                type: 'list',
+                                                name: 'tradeOption',
+                                                message: 'What would you like to offer?',
+                                                choices: nameList
+                                            }
+                                        ];
+                                        inquirer.prompt(tradeMenu, function (result) {
+                                            var menuEntry = nameList.indexOf(result.tradeOption);
+                                            var added = currentOffer.addMyItem(inventory[menuEntry]);
+                                            currentOffer.send("Testing...", null, function (err, status) {
+                                                console.log(err);// if 50, then too many trades to this user currently...
+                                                console.log(status);
+                                                var time = activeAccount.getUnixTime();
+                                                activeAccount.getConfirmations(time, activeAccount.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
+                                                    console.log("Trying to confirm...");
+
+
+                                                    if (err) {
+                                                        console.log(err);
+                                                    }
+                                                    else {
+                                                        for (var confirmId in confirmations) {
+                                                            console.log("Confirming trade with title: " + confirmations[confirmId].title);
+                                                            confirmations[confirmId].respond(time, activeAccount.generateMobileConfirmationCode(time, "allow"), true, function (err) {
+                                                                if (err) {
+                                                                    console.log("Trade failed to confirm");
+                                                                }
+                                                            });
+                                                        }
+                                                    }
+                                                });
+                                            });
+                                            console.log(added);
+                                        });
+                                    });
+                                    break;
+                            }
+                        });
                     });
                     break;
                 case 2:
@@ -219,6 +311,7 @@ function displayMenu(activeAccount) {
                     if (!loggedIn) {
                         successDebug("Trying to authenticate into {0}".format(activeAccount.getAccountName()));
                         activeAccount.loginAccount(null);
+                        displayBotMenu();
                     } else {
                         // TODO: Add logoff system.
                         displayMenu(activeAccount);
@@ -228,8 +321,7 @@ function displayMenu(activeAccount) {
 
                     var authOptions = [];
                     authOptions.push((activeAccount.has_shared_secret() ? "[ON]" : "[OFF]") + " Two Factor Authentication");
-                    authOptions.push("Retrieve Auth Code");
-                    authOptions.push("Retrieve API Key");
+                    authOptions.push("Generate 2-factor-authentication code");
                     authOptions.push("Back");
 
                     var authMenu = [
@@ -246,17 +338,7 @@ function displayMenu(activeAccount) {
                             case 0:
                                 if (!activeAccount.shared_secret) {
                                     // Enable 2FA
-                                    activeAccount.enable2FactorAuthentication(activeAccount, function (err, authDetails) {
-                                        if (err) {
-                                            errorDebug(err);
-                                        }
-                                        else {
-                                            successDebug(authDetails);
-                                            dataControl.saveAccounts(botAccounts, function (err) {
-                                                successDebug("Saved accounts data.");
-                                            });
-                                        }
-                                    });
+                                    enableTwoFactor(activeAccount);
                                 } else {
                                     // Disable 2FA
                                     // TODO: Move to BotAccount class
@@ -273,24 +355,6 @@ function displayMenu(activeAccount) {
                                     // Authn not enabled?
                                     errorDebug("2-factor-authentication is not enabled. Check your email.");
                                 }
-                                displayMenu(activeAccount);
-                                break;
-                            case 2:
-                                // TODO: Add API key retrieval to BotAccount class.
-                                //if (activeAccount.cookies) {
-                                //    // Get the API key
-                                //    getInstance(activeAccount).trade.setCookies(activeAccount.cookies, function (err) {
-                                //        if (err) {
-                                //            errorDebug(err);
-                                //        }
-                                //        else {
-                                //            successDebug("\nSuccessfully found the API key");
-                                //        }
-                                //    })
-                                //} else {
-                                //    // Auth not enabled?
-                                //    errorDebug("Account must have valid credentials.");
-                                //}
                                 displayMenu(activeAccount);
                                 break;
                             default:
@@ -336,7 +400,108 @@ function displayMenu(activeAccount) {
     });
 }
 
+function enableTwoFactor(activeAccount) {
+    activeAccount.hasPhone(function (err, hasPhone, lastDigits) {
+        if (hasPhone) {
+            activeAccount.enableTwoFactor(function (response) {
+                successDebug("Make sure to save the following code saved somewhere secure: {0}".format(response.revocation_code));
+                var questions = [
+                    {
+                        type: 'input',
+                        name: 'code',
+                        message: "Enter the code texted to the phone number associated (-{0}) to the account: ".format(lastDigits)
+                    }
+                ];
 
+                inquirer.prompt(questions, function (result) {
+                    if (result.code) {
+                        var steamCode = result.code;
+                        activeAccount.finalizeTwoFactor(response.shared_secret, steamCode, function (err, keyInformation) {
+                            if (err) {
+                                errorDebug(err);
+                                displayMenu(activeAccount);
+                            }
+                            else {
+                                dataControl.saveAccounts(botAccounts, function (err) {
+                                    if (err) {
+                                        errorDebug(err);
+                                    }
+                                    displayMenu(activeAccount);
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+        }
+        else {
+            var questions = [
+                {
+                    type: 'confirm',
+                    name: 'confirmAddition',
+                    message: "A phone number is required to activate 2-factor-authentication. Would you like to set your phone number?",
+                    default: false
+                }
+            ];
+
+            inquirer.prompt(questions, function (result) {
+                if (result.confirmAddition) {
+
+                    var questions = [
+                        {
+                            type: 'input',
+                            name: 'phoneNumber',
+                            message: "Enter the number you would like to link to the account ()",
+                            validate: function (value) {
+                                var pass = value.match(/\+(9[976]\d|8[987530]\d|6[987]\d|5[90]\d|42\d|3[875]\d|2[98654321]\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)\d{1,14}$/i);
+                                if (pass) {
+                                    return true;
+                                }
+                                return 'Please enter a valid phone number (ex. +18885550123)';
+                            }
+                        }
+                    ];
+
+                    inquirer.prompt(questions, function (result) {
+                        activeAccount.addPhoneNumber(result.phoneNumber, function (err) {
+                            if (err) {
+                                errorDebug(err);
+                                displayMenu(activeAccount);
+                            }
+                            else {
+                                var questions = [
+                                    {
+                                        type: 'input',
+                                        name: 'code',
+                                        message: "Enter the code sent to your phone number at " + result.phoneNumber
+                                    }
+                                ];
+
+                                inquirer.prompt(questions, function (result) {
+                                    activeAccount.verifyPhoneNumber(result.code, function (err) {
+                                        if (err) {
+                                            errorDebug(err);
+                                            displayMenu(activeAccount);
+                                        }
+                                        else {
+                                            // Verified phone number...
+                                            enableTwoFactor(activeAccount);
+                                        }
+                                    });
+                                });
+                            }
+                        });
+                    });
+                }
+                else {
+                    // Take back to main menu.
+                    errorDebug("Declined addition of phone number.");
+                    displayMenu(activeAccount);
+                }
+            });
+        }
+    });
+}
 function unregisterAccount(accountDetails, callback) {
     botAccounts.splice(botAccounts.indexOf(accountDetails), botAccounts.indexOf(accountDetails) + 1);
     dataControl.saveAccounts(botAccounts, function (err) {

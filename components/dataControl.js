@@ -23,7 +23,9 @@ dataControl.prototype.saveAccounts = function (botAccounts, callback) {
     // Ensure of some this before saving the accountList
     var botAccountList = [];
     for (var botAccount in botAccounts) {
-        botAccountList.push(botAccounts[botAccount].getAccount());
+        if (botAccounts.hasOwnProperty(botAccount)) {
+            botAccountList.push(botAccounts[botAccount].getAccount());
+        }
     }
     fs.writeFile(this.localURI + "/accounts.json", JSON.stringify(botAccountList), callback);
 };
