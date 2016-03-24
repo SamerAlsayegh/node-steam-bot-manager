@@ -148,6 +148,7 @@ function processChat(activeAccount, target) {
     ];
     inquirer.prompt(chatMessage, function (result) {
         if (result.message.toLowerCase() == "quit" || result.message.toLowerCase() == "exit") {
+            activeAccount.setChatting(null);
             displayMenu(activeAccount);
         }
         else {
