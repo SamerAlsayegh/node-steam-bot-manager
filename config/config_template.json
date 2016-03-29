@@ -1,2 +1,6 @@
 {
+  "marketInfo": {
+    "marketAPIURL": "_URL_FOR_MARKET_API_"
+  },
+  "botPrefix": "[YOUR_BOT_PREFIX] "
 }

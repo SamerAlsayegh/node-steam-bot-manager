@@ -3,6 +3,7 @@
  */
 
 var inquirer = require("inquirer");
+var request = require('request');
 var colors = require('colors');
 var BotAccount = require('./classes/BotAccount.js');
 var DataControl = require('./components/dataControl.js');
@@ -10,6 +11,20 @@ var DataControl = require('./components/dataControl.js');
 
 var botAccounts = [];
 var dataControl = new DataControl("config");
+var config = {};
+
+
+dataControl.getConfig(function (err, response) {
+    if (err) {
+        console.log(err);
+    } else {
+        infoDebug("Loaded config...");
+        config = response;
+        infoDebug("Ensuring all values are set, otherwise assigning default values");
+        if (!config.hasOwnProperty("botPrefix"))
+            config.botPrefix = "";
+    }
+});
 
 
 dataControl.getSavedAccounts(function (err, response) {
@@ -21,6 +36,7 @@ dataControl.getSavedAccounts(function (err, response) {
         });
     }
 });
+
 
 function addBot(accountInfo) {
     var activeAccount = new BotAccount(accountInfo);
@@ -34,6 +50,14 @@ function addBot(accountInfo) {
     });
     activeAccount.on('loggedIn', function (activeAccount) {
         // User just logged in
+        if (activeAccount.getDisplayName() != null) {
+            activeAccount.changeName(activeAccount.getDisplayName(), config.botPrefix, function (err) {
+                if (err) {
+                    errorDebug("Failed to change name. Error: ", err);
+                }
+            })
+        }
+
     });
     activeAccount.on('updatedAccountDetails', function () {
         dataControl.saveAccounts(botAccounts, function (err) {
@@ -290,6 +314,10 @@ function displayMenu(activeAccount) {
                                                                 if (err) {
                                                                     console.log("Trade failed to confirm");
                                                                 }
+                                                                else {
+                                                                    console.log("Confirmed trade.");
+
+                                                                }
                                                             });
                                                         }
                                                     }
@@ -304,8 +332,37 @@ function displayMenu(activeAccount) {
                     });
                     break;
                 case 2:
-                    // TODO
+                    // TODO calculate inventory
+                    //appid, contextid, tradeableOnly, callback
+                    infoDebug("Loading inventory...");
+                    activeAccount.getInventory(730, 2, true, function (err, inventory, currencies) {
+                        infoDebug("Loaded inventory...");
 
+                        var itemNameList = [];
+                        for (var econItemIndex in inventory) {
+                            var econItem = inventory[econItemIndex];
+                            itemNameList.push(econItem.name);
+                        }
+                        request({
+                            url: config.marketInfo.marketAPIURL + '/api/v1/precise/batch/item',
+                            method: "POST",
+                            json: true,   // <--Very important!!!
+                            body: {itemNameList: JSON.stringify(itemNameList)}
+                        }, function (error, response, body) {
+                            var itemsInfo = {};
+                            itemsInfo.totalWorth = 0;
+                            for (var itemInfo in body) {
+                                if (body.hasOwnProperty(itemInfo)) {
+                                    if (body[itemInfo].value != null) {
+                                        itemsInfo.totalWorth += parseFloat(body[itemInfo].value);
+                                    }
+                                }
+                            }
+                            infoDebug("Worth of inventory is ${0}".format(itemsInfo.totalWorth / 100));
+                            displayMenu(activeAccount);
+
+                        });
+                    });
                     break;
                 case 4:
                     // Handle logout/login logic and return to menu.
@@ -314,13 +371,15 @@ function displayMenu(activeAccount) {
                         activeAccount.loginAccount(null);
                         displayBotMenu();
                     } else {
-                        // TODO: Add logoff system.
-                        displayMenu(activeAccount);
+                        activeAccount.logoutAccount();
+                        displayBotMenu();
                     }
                     break;
                 case 6:
 
                     var authOptions = [];
+                    authOptions.push("Edit Display name");
+                    authOptions.push(new inquirer.Separator());
                     authOptions.push((activeAccount.has_shared_secret() ? "[ON]" : "[OFF]") + " Two Factor Authentication");
                     authOptions.push("Generate 2-factor-authentication code");
                     authOptions.push("Back");
@@ -337,18 +396,45 @@ function displayMenu(activeAccount) {
                         var optionIndex = authOptions.indexOf(result.authOption);
                         switch (optionIndex) {
                             case 0:
+                                var questions = [
+                                    {
+                                        type: 'input',
+                                        name: 'newName',
+                                        message: "Enter the new name of the bot: "
+                                    },
+                                    {
+                                        type: 'confirm',
+                                        name: 'prefix',
+                                        default: true,
+                                        message: "Give default prefix of '{0}'?".format(config.botPrefix)
+                                    }
+                                ];
+
+                                inquirer.prompt(questions, function (result) {
+                                    activeAccount.changeName(result.newName, config.botPrefix, function (err) {
+                                        if (err) {
+                                            errorDebug("Failed to change name. Error: ", err);
+                                        }
+                                        else {
+                                            infoDebug("Successfully changed display name");
+                                        }
+                                        displayMenu(activeAccount);
+                                    })
+                                });
+
+
+                                break;
+                            case 2:
                                 if (!activeAccount.shared_secret) {
                                     // Enable 2FA
                                     enableTwoFactor(activeAccount);
                                 } else {
-                                    // Disable 2FA
                                     // TODO: Move to BotAccount class
-
                                     //disable2FA(activeAccount);
 
                                 }
                                 break;
-                            case 1:
+                            case 3:
                                 if (activeAccount.has_shared_secret()) {
                                     // Send the auth key.
                                     successDebug("Your authentication code for {0} is {1}".format(activeAccount.getAccountName(), activeAccount.generateMobileAuthenticationCode()));
