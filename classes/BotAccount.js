@@ -18,6 +18,11 @@ function BotAccount(accountDetails) {
     self.client = new SteamUser();
     self.trade = new TradeOfferManager({
         "steam": self.client,
+        "community": self.community,
+        "cancelTime": 1000 * 60 * 60 * 24 * 10, // Keep offers upto 1 hour, and then just cancel them.
+        "pendingCancelTime": 1000 * 60 * 30, // Keep offers upto 30 mins, and then cancel them if they still need confirmation
+        "cancelOfferCount": 30,// Cancel offers once we hit 7 day threshold
+        "cancelOfferCountMinAge": 1000 * 60 * 60 * 24 * 7,// Keep offers until 7 days old
         "language": "en", // We want English item descriptions
         "pollInterval": 5000 // We want to poll every 5 seconds since we don't have Steam notifying us of offers
     });
@@ -43,7 +48,7 @@ function BotAccount(accountDetails) {
             self.store.setCookies(cookies);
             self.trade.setCookies(cookies);
         }
-        self.emit('loggedIn');
+        self.emit('loggedIn', self);
     });
 
 
@@ -152,6 +157,20 @@ BotAccount.prototype.setChatting = function (chattingUserInfo) {
     self.currentChatting = chattingUserInfo;
 };
 
+BotAccount.prototype.getDisplayName = function () {
+    var self = this;
+    return (self.accountDetails.hasOwnProperty("displayName") ? self.accountDetails.displayName : null);
+};
+
+BotAccount.prototype.changeName = function (newName, namePrefix, callback) {
+    var self = this;
+    self.community.editProfile({name: namePrefix + newName}, function (err) {
+        callback(err);
+        self.accountDetails.displayName = newName;
+        self.emit('updatedAccountDetails');
+    });
+};
+
 BotAccount.prototype.getInventory = function (appid, contextid, tradeableOnly, callback) {
     var self = this;
     self.trade.loadInventory(appid, contextid, tradeableOnly, callback);
@@ -246,4 +265,11 @@ BotAccount.prototype.enableTwoFactor = function (callback) {
 
     });
 };
+
+BotAccount.prototype.logoutAccount = function () {
+    var self = this;
+    self.client.logOff();
+};
+
+
 module.exports = BotAccount;

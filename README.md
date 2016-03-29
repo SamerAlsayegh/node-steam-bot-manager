@@ -28,6 +28,7 @@ TODO: None available yet.
 git clone https://github.com/Undeadkillz/node-steam-bot-manager
 node install
 node index.js
+Inside the 'config' folder, rename 'config_template.json' to 'config.json' and configure the settings as desired.
 ~~~
 ---
 ### Registering a Bot:

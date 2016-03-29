@@ -18,6 +18,14 @@ dataControl.prototype.getSavedAccounts = function (callback) {
     }
 };
 
+dataControl.prototype.getConfig = function (callback) {
+    try {
+        var content = fs.readFileSync(this.localURI + "/config.json");
+        callback(null, JSON.parse(content));
+    } catch (e) {
+        callback(e, []);
+    }
+};
 
 dataControl.prototype.saveAccounts = function (botAccounts, callback) {
     // Ensure of some this before saving the accountList
