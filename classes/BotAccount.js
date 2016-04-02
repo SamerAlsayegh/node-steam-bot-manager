@@ -9,6 +9,9 @@ var SteamTotp = require('steam-totp');
 BotAccount.prototype.__proto__ = require('events').EventEmitter.prototype;
 
 
+var SteamID = TradeOfferManager.SteamID;
+
+
 function BotAccount(accountDetails) {
     // Ensure account values are valid
 
@@ -48,18 +51,50 @@ function BotAccount(accountDetails) {
             self.store.setCookies(cookies);
             self.trade.setCookies(cookies);
         }
+
+        self.client.on('friendOrChatMessage', function (senderID, message, room) {
+            if (self.currentChatting != null && senderID == self.currentChatting.sid) {
+                console.log(("\n" + self.currentChatting.accountName + ": " + message).green);
+            }
+        });
+
+        self.trade.on('sentOfferChanged', function (offer, oldState) {
+            self.emit('sentOfferChanged', offer, oldState);
+
+        });
+        self.trade.on('receivedOfferChanged', function (offer, oldState) {
+            console.log("Someone changed offer state when they initiated the trade.... Idk?");
+        });
+
+
+        self.client.on('friendsList', function () {
+            //console.log("Friends list loaded");
+        });
+
+        self.trade.on('newOffer', function (offer) {
+            //console.log("Friends list loaded");
+            console.log("New offer...");
+            self.emit('newOffer', offer);
+        });
+
+        self.client.on('tradeResponse', function (steamid, response, restrictions) {
+            console.log(response);
+            console.log(restrictions);
+        });
+
+        self.client.on('tradeRequest', function (steamID, respond) {
+            console.log("Incoming trade request from " + steamID.getSteam3RenderedID() + ", accepting");
+            respond(true);
+        });
+
+        self.client.on('tradeOffers', function (count) {
+            if (count != 0) {
+                console.log("Offers outstanding: " + count);
+                self.confirmOutstandingTrades();
+            }
+        });
+
         self.emit('loggedIn', self);
-    });
-
-
-    self.client.on('friendOrChatMessage', function (senderID, message, room) {
-        if (self.currentChatting != null && senderID == self.currentChatting.sid) {
-            console.log(("\n" + self.currentChatting.accountName + ": " + message).green);
-        }
-    });
-
-    self.client.on('friendsList', function () {
-        //console.log("Friends list loaded");
     });
 
 
@@ -84,22 +119,7 @@ function BotAccount(accountDetails) {
         }
         self.emit('displayBotMenu');
     });
-    self.client.on('tradeResponse', function (steamid, response, restrictions) {
-        console.log(response);
-        console.log(restrictions);
-    });
 
-    self.client.on('tradeRequest', function (steamID, respond) {
-        console.log("Incoming trade request from " + steamID.getSteam3RenderedID() + ", accepting");
-        respond(true);
-    });
-
-    self.client.on('tradeOffers', function (count) {
-        if (count != 0) {
-            console.log("Offers outstanding: " + count);
-        }
-
-    });
 }
 
 
@@ -175,6 +195,12 @@ BotAccount.prototype.getInventory = function (appid, contextid, tradeableOnly, c
     var self = this;
     self.trade.loadInventory(appid, contextid, tradeableOnly, callback);
 };
+
+
+BotAccount.prototype.getUserInventory = function (steamID, appid, contextid, tradableOnly, callback) {
+    var self = this;
+    self.trade.loadUserInventory(steamID, appid, contextid, tradableOnly, callback);
+};
 BotAccount.prototype.addPhoneNumber = function (phoneNumber, callback) {
     var self = this;
     self.store.addPhoneNumber(phoneNumber, true, function (err) {
@@ -186,6 +212,62 @@ BotAccount.prototype.addPhoneNumber = function (phoneNumber, callback) {
         }
     });
 };
+BotAccount.prototype.confirmTradesFromUser = function (SteamID, callback) {
+    var self = this;
+
+    self.trade.getOffers(1, null, function (err, sent, received) {
+        var acceptedTrades = [];
+        for (var sentOfferIndex in sent) {
+            if (sent.hasOwnProperty(sentOfferIndex)) {
+                var sentOfferInfo = sent[sentOfferIndex];
+                if (sentOfferInfo.partner.getSteamID64() == SteamID.getSteamID64) {
+                    sentOfferInfo.accept();
+                    acceptedTrades.push(sentOfferInfo);
+                }
+            }
+        }
+
+        for (var receivedOfferIndex in received) {
+            if (received.hasOwnProperty(receivedOfferIndex)) {
+                var receievedOfferInfo = received[receivedOfferIndex];
+                if (receievedOfferInfo.partner.getSteamID64() == SteamID.getSteamID64) {
+                    receievedOfferInfo.accept();
+                    acceptedTrades.push(receievedOfferInfo);
+                }
+            }
+        }
+        self.confirmOutstandingTrades();
+
+        callback(err, acceptedTrades);
+    });
+    // Old confirmation code - removed due to not providing enought info.
+};
+
+BotAccount.prototype.confirmOutstandingTrades = function () {
+    var self = this;
+    var time = self.getUnixTime();
+    self.getConfirmations(time, self.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
+        if (err) {
+            console.log("Error: " + err);
+        }
+        else {
+            for (var confirmId in confirmations) {
+                if (confirmations.hasOwnProperty(confirmId)) {
+                    confirmations[confirmId].respond(time, self.generateMobileConfirmationCode(time, "allow"), true, function (err) {
+                        if (err) {
+                            console.log("Trade failed to confirm");
+                            console.log(err);
+                        }
+                        else {
+                            console.log("Confirmed trade.");
+                        }
+                    });
+                }
+            }
+        }
+    });
+};
+
 
 BotAccount.prototype.verifyPhoneNumber = function (code, callback) {
     var self = this;
