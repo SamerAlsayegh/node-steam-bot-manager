@@ -12,7 +12,6 @@ The scope of this project is to be a SteamBot alternative for NodeJS.
 ## Demo:
 TODO: None available yet.
 
-
 ## Examples:
 You can check examples of bots you can build by navigating to the 'examples' folder in the root of the project.
 
@@ -29,19 +28,36 @@ You can check examples of bots you can build by navigating to the 'examples' fol
 ## TODO:
 - Add registration account checking
 
+## Set-up
+### Prerequisites:
+ - NodeJS
+ - npm
 
-## Set-up:
+### Install and run:
 ~~~
 git clone https://github.com/Undeadkillz/node-steam-bot-manager # Clone the repo
 cd node-steam-bot-manager # Change directory to the cloned repo
-npm install # Installs all libraries requires
+npm install # Installs all libraries required
 chmod -R 777 examples/config # Make the config folder accessible for edits
 cd examples # Change directory to examples folder
 node InventoryBot.js # Run the example bot
 ~~~
+
+### How to run 24/7 (Linux)
+
+- 'yum install screen' or 'apt-get install screen' (Use based on your distro)
+- Create a 'server.sh' file wherever the bot you would like to run is (ex. InventoryBot.js) and paste the following:
+~~~
+#!/bin/bash
+screen -dmLS BotManager node InventoryBot.js
+~~~
+- Finally, just run the script with 'node server.sh'
+- You may then access it, by typing 'screen -x BotManager'
+
 ## Configuration:
-Inside the 'config' folder, rename 'config_template.json' to 'config.json' and configure the settings as desired.
-More detailed configuration will be provided once I near completion.
+On first run, a config file will be be generated using the template file. Simply close the bot and edit the config.json
+
+Once completed, you may run the bot again with the changes taking effect.
 
 ---
 ### Registering a Bot:
@@ -50,18 +66,6 @@ More detailed configuration will be provided once I near completion.
 - Enter the password of the bot [The credentials are not yet checked, so be sure of the credentials.]
 - Main menu will appear with new bot.
 - Use arrow keys to choose the bot you want to manage.
-
-### Management tools:
- - Chat (1-to-1 chats | or you may program your own handlers)
- - Send trade (1-to-1 trades | or you may program your own handlers)
- - Calculate Inventory (quick run-through of inventory worth - not yet completed)
- - Logout (logout of chat - Working on fixing some functionality)
- - Manage
-    - Enable/Disable 2-factor-authentication
-    - Generate the auth-code (for 2-factor-authentication)
-    - Retrieve API key
- - Delete (delete account - but does not unregister the 2-factor-authentication if enabled.)
-
 
 
 
