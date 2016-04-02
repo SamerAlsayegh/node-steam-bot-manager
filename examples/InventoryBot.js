@@ -1,13 +1,17 @@
 /**
- * This is an example bot that will hook into the API and provide Jackpot functionality for the bots.
+ * This is a simple example of a bot that will hook into the API and provide an Inventory system
+ * In which a bot will accept any trades in-which people offer something and he offers nothing.
+ * and
+ * bot will accept any trades done by an admin in-which the bot offers something and the admin offers nothing.
+ *
+ * SteamID used: 76561198042954517 | My SteamID - You may change this to yours and test it out.
+ *
  */
-require('request');// Used for sending requests to the jackpot website.
 var BotManager = require('../index.js');// We will require the BotManager
 
 
 function InventoryBot() {
-    var botsManager = new BotManager();
-
+    var botsManager = new BotManager();// Create new instanceof the BotManager
 
     // Once we receive an offer from someone (Using trade offers not live trades)
     botsManager.on('newOffer', function (activeAccount, offer) {
@@ -46,14 +50,15 @@ function InventoryBot() {
         else {
             // The trade requires deposit from both traders, so just decline.
             offer.cancel(function (err) {
-                console.log("Cancelled: " + err);
-            })
+                if (err)
+                    console.log(err);
+            });
         }
     });
 
-    botsManager.startManager();
+    botsManager.startManager();// You must start the manager at the end so that all the hooks above it, are registered.
 }
 
-new InventoryBot();
+new InventoryBot();// Run the code above.
 
 module.exports = InventoryBot;

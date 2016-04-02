@@ -17,6 +17,7 @@ TODO: None available yet.
 You can check examples of bots you can build by navigating to the 'examples' folder in the root of the project.
 
 ## Features:
+- GUI-based
 - Talk to people on the Bot's friends list
 - Trade with people on the Bot's friends list.
 - Set-up 2-factor-authentication (including the phone-number if not yet on account)

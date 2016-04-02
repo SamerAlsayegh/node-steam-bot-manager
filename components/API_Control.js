@@ -23,7 +23,7 @@ function APIControl(config) {
 APIControl.prototype.startAPI = function () {
     var self = this;
     if (self.server == null)
-        self.server = self.app.listen(self.config.apiPort);
+        self.server = self.app.listen(self.config.api_port);
     self.emit('apiLoaded');
 };
 
@@ -50,7 +50,7 @@ APIControl.prototype.restartAPI = function () {
     for (var endpoint in self.endPoints)
         if (self.endPoints.hasOwnProperty(endpoint))
             self.apiEndpoint(self.endPoints[endpoint].method, self.endPoints[endpoint].url, self.endPoints[endpoint].callback);
-    self.server = self.app.listen(self.config.apiPort);
+    self.server = self.app.listen(self.config.api_port);
 };
 
 
