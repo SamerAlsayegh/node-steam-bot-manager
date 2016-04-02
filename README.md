@@ -33,9 +33,11 @@ You can check examples of bots you can build by navigating to the 'examples' fol
 ## Set-up:
 ~~~
 git clone https://github.com/Undeadkillz/node-steam-bot-manager # Clone the repo
-cd node-steam-bot-manager # Change directory into the cloned repo
+cd node-steam-bot-manager # Change directory to the cloned repo
 npm install # Installs all libraries requires
-node index.js
+chmod -R 777 examples/config # Make the config folder accessible for edits
+cd examples # Change directory to examples folder
+node InventoryBot.js # Run the example bot
 ~~~
 ## Configuration:
 Inside the 'config' folder, rename 'config_template.json' to 'config.json' and configure the settings as desired.

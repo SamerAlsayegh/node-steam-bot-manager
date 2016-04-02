@@ -44,7 +44,7 @@ BotManager.prototype.startManager = function () {
 
 
     self.dataControl.on('debug', function (msg) {
-        self.infoDebug(msg);
+        //self.infoDebug(msg);
     });
 
 
