@@ -36,6 +36,7 @@ function BotAccount(accountDetails) {
     // Sometimes this fails(Does not run) if logging-in/out really quickly.
     self.client.on('loggedOn', function (details) {
         self.client.setPersona(SteamUser.Steam.EPersonaState.Online);
+        self.emit('loggedOn', details);
     });
 
     self.client.on('webSession', function (sessionID, cookies) {
@@ -56,42 +57,40 @@ function BotAccount(accountDetails) {
             if (self.currentChatting != null && senderID == self.currentChatting.sid) {
                 console.log(("\n" + self.currentChatting.accountName + ": " + message).green);
             }
+            self.emit('friendOrChatMessage', senderID, message, room);
         });
 
         self.trade.on('sentOfferChanged', function (offer, oldState) {
             self.emit('sentOfferChanged', offer, oldState);
 
         });
+
         self.trade.on('receivedOfferChanged', function (offer, oldState) {
-            console.log("Someone changed offer state when they initiated the trade.... Idk?");
+            self.emit('receivedOfferChanged', offer, oldState);
         });
 
-
-        self.client.on('friendsList', function () {
-            //console.log("Friends list loaded");
-        });
+        // Useless right now
+        //self.client.on('friendsList', function () {
+        //    self.emit('friendsList');
+        //});
 
         self.trade.on('newOffer', function (offer) {
-            //console.log("Friends list loaded");
-            console.log("New offer...");
             self.emit('newOffer', offer);
         });
 
-        self.client.on('tradeResponse', function (steamid, response, restrictions) {
-            console.log(response);
-            console.log(restrictions);
-        });
 
-        self.client.on('tradeRequest', function (steamID, respond) {
-            console.log("Incoming trade request from " + steamID.getSteam3RenderedID() + ", accepting");
-            respond(true);
-        });
+        // Really glitchy trade system... So just ignore it for now.
+        //self.client.on('tradeResponse', function (steamid, response, restrictions) {
+        //    self.emit('tradeResponse', steamid, response, restrictions);
+        //});
+
+        // Really glitchy trade system... So just ignore it for now.
+        //self.client.on('tradeRequest', function (steamID, respond) {
+        //    respond(false);
+        //});
 
         self.client.on('tradeOffers', function (count) {
-            if (count != 0) {
-                console.log("Offers outstanding: " + count);
-                self.confirmOutstandingTrades();
-            }
+            self.emit('tradeOffers', count);
         });
 
         self.emit('loggedIn', self);
@@ -121,12 +120,6 @@ function BotAccount(accountDetails) {
     });
 
 }
-
-
-BotAccount.prototype.getStore = function () {
-    var self = this;
-    return self.store;
-};
 
 BotAccount.prototype.getAccountName = function () {
     var self = this;
@@ -212,6 +205,8 @@ BotAccount.prototype.addPhoneNumber = function (phoneNumber, callback) {
         }
     });
 };
+
+
 BotAccount.prototype.confirmTradesFromUser = function (SteamID, callback) {
     var self = this;
 
@@ -293,9 +288,10 @@ BotAccount.prototype.getFriends = function (callback) {
             break;// Only show 30 - so menu loads fast.
         }
     }
-    self.onlineFriendsList.splice(0, 1);
+    self.onlineFriendsList.splice(0, 1);//First entry is usually the bot's name. So just delete it
     callback({Error: new Error("Failed to find all friends?")}, self.onlineFriendsList);
 };
+
 BotAccount.prototype.createOffer = function (sid) {
     var self = this;
     return self.trade.createOffer(sid);

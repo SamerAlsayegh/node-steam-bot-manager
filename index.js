@@ -33,11 +33,13 @@ BotManager.prototype.startManager = function () {
 
     self.dataControl.on('loadedConfig', function (configResponse) {
         config = configResponse;
-        self.APIControl = new APIControl(self.dataControl.getConfig());
-        self.APIControl.on('apiLoaded', function () {
-            self.emit('loadedAPI');
-        });
-        self.APIControl.startAPI();
+        if (self.dataControl.getConfig().hasOwnProperty("api_port")) {
+            self.APIControl = new APIControl(self.dataControl.getConfig());
+            self.APIControl.on('apiLoaded', function () {
+                self.emit('loadedAPI');
+            });
+            self.APIControl.startAPI();
+        }
     });
 
 
@@ -65,7 +67,7 @@ BotManager.prototype.startManager = function () {
         activeAccount.on('loggedIn', function (activeAccount) {
             // User just logged in
             if (activeAccount.getDisplayName() != null) {
-                activeAccount.changeName(activeAccount.getDisplayName(), config.botPrefix, function (err) {
+                activeAccount.changeName(activeAccount.getDisplayName(), config.bot_prefix, function (err) {
                     if (err) {
                         self.errorDebug("Failed to change name. Error: " + err);
                     }
@@ -440,12 +442,12 @@ BotManager.prototype.displayMenu = function (activeAccount) {
                                         type: 'confirm',
                                         name: 'prefix',
                                         default: true,
-                                        message: "Give default prefix of '{0}'?".format(config.botPrefix)
+                                        message: "Give default prefix of '{0}'?".format(config.bot_prefix)
                                     }
                                 ];
 
                                 inquirer.prompt(questions, function (result) {
-                                    activeAccount.changeName(result.newName, config.botPrefix, function (err) {
+                                    activeAccount.changeName(result.newName, config.bot_prefix, function (err) {
                                         if (err) {
                                             self.errorDebug("Failed to change name. Error: ", err);
                                         }
