@@ -32,8 +32,9 @@ You can check examples of bots you can build by navigating to the 'examples' fol
 
 ## Set-up:
 ~~~
-git clone https://github.com/Undeadkillz/node-steam-bot-manager
-node install
+git clone https://github.com/Undeadkillz/node-steam-bot-manager # Clone the repo
+cd node-steam-bot-manager # Change directory into the cloned repo
+npm install # Installs all libraries requires
 node index.js
 ~~~
 ## Configuration:

@@ -367,39 +367,6 @@ BotManager.prototype.displayMenu = function (activeAccount) {
                         });
                     });
                     break;
-                //case 2:
-                //// TODO calculate inventory
-                ////appid, contextid, tradeableOnly, callback
-                //self.infoDebug("Loading inventory...");
-                //activeAccount.getInventory(730, 2, true, function (err, inventory, currencies) {
-                //    self.infoDebug("Loaded inventory...");
-                //
-                //    var itemNameList = [];
-                //    for (var econItemIndex in inventory) {
-                //        var econItem = inventory[econItemIndex];
-                //        itemNameList.push(econItem.name);
-                //    }
-                //    request({
-                //        url: config.marketInfo.marketAPIURL + '/api/v1/precise/batch/item',
-                //        method: "POST",
-                //        json: true,   // <--Very important!!!
-                //        body: {itemNameList: JSON.stringify(itemNameList)}
-                //    }, function (error, response, body) {
-                //        var itemsInfo = {};
-                //        itemsInfo.totalWorth = 0;
-                //        for (var itemInfo in body) {
-                //            if (body.hasOwnProperty(itemInfo)) {
-                //                if (body[itemInfo].value != null) {
-                //                    itemsInfo.totalWorth += parseFloat(body[itemInfo].value);
-                //                }
-                //            }
-                //        }
-                //        self.infoDebug("Worth of inventory is ${0}".format(itemsInfo.totalWorth / 100));
-                //        self.displayMenu(activeAccount);
-                //
-                //    });
-                //});
-                //break;
                 case 3:
                     // Handle logout/login logic and return to menu.
                     if (!loggedIn) {
