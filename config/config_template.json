@@ -1,4 +1,3 @@
 {
-  "botPrefix": "__PREFIX_TO_GIVE_THE_BOTS__",
-  "api_port": "__PORT_OF_API__"
+  "botPrefix": "__PREFIX_TO_GIVE_THE_BOTS__"
 }

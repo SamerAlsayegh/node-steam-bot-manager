@@ -42,10 +42,10 @@ DataControl.prototype.initData = function (callback) {
 
 
 DataControl.prototype.validateConfig = function (config, callback) {
-    if (!config.hasOwnProperty("botPrefix"))
-        config.botPrefix = "";
-    if (!config.hasOwnProperty("apiPort"))
-        config.apiPort = 1338;
+    if (!config.hasOwnProperty("bot_prefix"))
+        config.bot_prefix = "";// Default bot prefix
+    //if (!config.hasOwnProperty("api_port")) // Removed = disable api system
+    //    config.api_port = 1338;// Default api port
 
     callback(null, config);
 };
@@ -55,32 +55,68 @@ DataControl.prototype.registerAccount = function (accountDetails) {
     self.emit('loadedAccount', accountDetails);
 };
 
-DataControl.prototype.loadAccounts = function (callback) {
+
+DataControl.prototype.getFile = function (filePath, expectedForm, callback) {
     var self = this;
     try {
-        var rawAccounts = fs.readFileSync(this.localURI + "/accounts.json");
-        var accountsJSON = JSON.parse(rawAccounts);
-        for (var accountIndex in accountsJSON) {
-            if (accountsJSON.hasOwnProperty(accountIndex)) {
-                self.emit('loadedAccount', accountsJSON[accountIndex]);
-            }
-        }
-        callback(null, accountsJSON);
+        var rawContents = fs.readFileSync(filePath);
+        callback(null, rawContents);
     } catch (e) {
-        callback(e, []);
+        try {
+            if (typeof expectedForm == "string") {
+                var stream = fs.createReadStream(expectedForm).pipe(fs.createWriteStream(filePath));
+                stream.on('finish', function () {
+                    self.getFile(filePath, expectedForm, callback);
+                });
+            }
+            else {
+                fs.writeFile(filePath, JSON.stringify(expectedForm), function (err) {
+                    self.getFile(filePath, expectedForm, callback);
+                });
+            }
+        } catch (e) {
+            callback(e, null);
+        }
     }
+};
+
+
+DataControl.prototype.loadAccounts = function (callback) {
+    var self = this;
+    var accountList = [];
+    self.getFile(this.localURI + "/accounts.json", [], function (err, rawAccounts) {
+
+        try {
+            var accountsJSON = JSON.parse(rawAccounts);
+            for (var accountIndex in accountsJSON) {
+                if (accountsJSON.hasOwnProperty(accountIndex)) {
+                    self.emit('loadedAccount', accountsJSON[accountIndex]);
+                    accountList.push(accountsJSON[accountIndex]);
+                }
+            }
+            callback(null, accountList);
+        } catch (e) {
+            callback(e, null);
+        }
+    });
 };
 
 
 DataControl.prototype.loadConfig = function (callback) {
     var self = this;
-    try {
-        var rawConfig = fs.readFileSync(this.localURI + "/config.json");
-        var configJSON = JSON.parse(rawConfig);
-        self.validateConfig(configJSON, callback)
-    } catch (e) {
-        callback(e, {});
-    }
+
+    self.getFile(this.localURI + "/config.json", this.localURI + "/config_template.json", function (err, rawConfig) {
+
+        try {
+            var configJSON = JSON.parse(rawConfig);
+            self.validateConfig(configJSON, callback)
+        } catch (e) {
+            callback(e, null);
+        }
+    });
+
+
+
 };
 DataControl.prototype.getConfig = function () {
     var self = this;
@@ -88,9 +124,6 @@ DataControl.prototype.getConfig = function () {
 };
 
 
-//DataControl.prototype.getCustomConfig = function(optionTree){
-//  self.config.custom
-//};
 /**
  * Save all accounts using a list of the BotAccounts class.
  * @param botAccounts
