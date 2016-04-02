@@ -373,6 +373,7 @@ BotManager.prototype.displayMenu = function (activeAccount) {
                     // Handle logout/login logic and return to menu.
                     if (!loggedIn) {
                         self.successDebug("Trying to authenticate into {0}".format(activeAccount.getAccountName()));
+                        activeAccount.setTempSetting('displayBotMenu', true);
                         activeAccount.loginAccount(null);
                     } else {
                         activeAccount.logoutAccount();
@@ -496,33 +497,46 @@ BotManager.prototype.enableTwoFactor = function (activeAccount) {
     activeAccount.hasPhone(function (err, hasPhone, lastDigits) {
         if (hasPhone) {
             activeAccount.enableTwoFactor(function (response) {
-                self.successDebug("Make sure to save the following code saved somewhere secure: {0}".format(response.revocation_code));
-                var questions = [
-                    {
-                        type: 'input',
-                        name: 'code',
-                        message: "Enter the code texted to the phone number associated (-{0}) to the account: ".format(lastDigits)
-                    }
-                ];
+                if (response.result == 84) {
+                    // Rate limit exceeded. So delay the next request
+                    self.successDebug("Please wait 2 seconds to continue...");
+                    setTimeout(function () {
+                        self.enableTwoFactor(activeAccount);
+                    }, 2000);
+                }
+                else if (response.result == 1) {
+                    self.successDebug("Make sure to save the following code saved somewhere secure: {0}".format(response.revocation_code));
+                    var questions = [
+                        {
+                            type: 'input',
+                            name: 'code',
+                            message: "Enter the code texted to the phone number associated (-{0}) to the account: ".format(lastDigits)
+                        }
+                    ];
 
-                inquirer.prompt(questions, function (result) {
-                    if (result.code) {
-                        var steamCode = result.code;
-                        activeAccount.finalizeTwoFactor(response.shared_secret, steamCode, function (err, keyInformation) {
-                            if (err) {
-                                self.errorDebug(err);
-                            }
-                            else {
-                                self.saveAccounts(function (err) {
-                                    if (err) {
-                                        self.errorDebug(err);
-                                    }
-                                    self.displayBotMenu();
-                                });
-                            }
-                        });
-                    }
-                });
+                    inquirer.prompt(questions, function (result) {
+                        if (result.code) {
+                            var steamCode = result.code;
+                            activeAccount.finalizeTwoFactor(response.shared_secret, steamCode, function (err, keyInformation) {
+                                if (err) {
+                                    self.errorDebug(err);
+                                }
+                                else {
+                                    self.saveAccounts(function (err) {
+                                        if (err) {
+                                            self.errorDebug(err);
+                                        }
+                                        self.displayBotMenu();
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+                else {
+                    self.errorDebug("Error encountered while trying to enable two-factor-authentication, error code: " + response.result);
+                    self.displayBotMenu();
+                }
             });
         }
         else {
@@ -622,7 +636,6 @@ BotManager.prototype.infoDebug = function (message) {
     console.log((message + " ").grey);
 };
 BotManager.prototype.errorDebug = function (message) {
-    console.log(message);
     console.log((message + " ").red);
 };
 BotManager.prototype.successDebug = function (message) {

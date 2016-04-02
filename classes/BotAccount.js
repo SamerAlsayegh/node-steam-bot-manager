@@ -14,9 +14,9 @@ var SteamID = TradeOfferManager.SteamID;
 
 function BotAccount(accountDetails) {
     // Ensure account values are valid
-
     var self = this;
     // Init all required variables
+    self.tempSettings = {};
     self.community = new SteamCommunity();
     self.client = new SteamUser();
     self.trade = new TradeOfferManager({
@@ -37,6 +37,10 @@ function BotAccount(accountDetails) {
     self.client.on('loggedOn', function (details) {
         self.client.setPersona(SteamUser.Steam.EPersonaState.Online);
         self.emit('loggedOn', details);
+        if (self.getTempSetting('displayBotMenu') != null) {
+            self.emit('displayBotMenu');
+            self.deleteTempSetting('displayBotMenu');
+        }
     });
 
     self.client.on('webSession', function (sessionID, cookies) {
@@ -342,6 +346,22 @@ BotAccount.prototype.enableTwoFactor = function (callback) {
         callback(response);
 
     });
+};
+
+BotAccount.prototype.setTempSetting = function (tempSetting, tempSettingValue) {
+    var self = this;
+    self.tempSettings[tempSetting] = tempSettingValue;
+};
+BotAccount.prototype.getTempSetting = function (tempSetting) {
+    var self = this;
+    if (self.tempSettings.hasOwnProperty(tempSetting))
+        return self.tempSettings[tempSetting];
+    return null;
+};
+BotAccount.prototype.deleteTempSetting = function (tempSetting) {
+    var self = this;
+    if (self.tempSettings.hasOwnProperty(tempSetting))
+        delete self.tempSettings[tempSetting];
 };
 
 BotAccount.prototype.logoutAccount = function () {
