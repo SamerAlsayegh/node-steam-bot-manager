@@ -374,7 +374,6 @@ BotManager.prototype.displayMenu = function (activeAccount) {
                     if (!loggedIn) {
                         self.successDebug("Trying to authenticate into {0}".format(activeAccount.getAccountName()));
                         activeAccount.loginAccount(null);
-                        self.displayBotMenu();
                     } else {
                         activeAccount.logoutAccount();
                         self.displayBotMenu();
@@ -512,11 +511,13 @@ BotManager.prototype.enableTwoFactor = function (activeAccount) {
                         activeAccount.finalizeTwoFactor(response.shared_secret, steamCode, function (err, keyInformation) {
                             if (err) {
                                 self.errorDebug(err);
-                                self.displayMenu(activeAccount);
                             }
                             else {
                                 self.saveAccounts(function (err) {
-                                    self.errorDebug(err);
+                                    if (err) {
+                                        self.errorDebug(err);
+                                    }
+                                    self.displayBotMenu();
                                 });
                             }
                         });
@@ -541,7 +542,7 @@ BotManager.prototype.enableTwoFactor = function (activeAccount) {
                         {
                             type: 'input',
                             name: 'phoneNumber',
-                            message: "Enter the number you would like to link to the account ()",
+                            message: "Enter the number you would like to link to the account (ex. +18885550123)",
                             validate: function (value) {
                                 var pass = value.match(/\+(9[976]\d|8[987530]\d|6[987]\d|5[90]\d|42\d|3[875]\d|2[98654321]\d|9[8543210]|8[6421]|6[6543210]|5[87654321]|4[987654310]|3[9643210]|2[70]|7|1)\d{1,14}$/i);
                                 if (pass) {
