@@ -8,18 +8,14 @@ pids
 *.pid
 *.seed
 
-
-/examples/config/config.json
 # Dependency directory - allow everyone to maintain their own version
 node_modules
 
 # Optional npm cache directory
 .npm
 
-#Config files
-config/accounts.json
-config/config.json
 
-examples/config/accounts.json
-examples/config/config.json
-examples/Jackpot.js
+# Config files
+*/accounts.json
+*/config.json
+
