@@ -21,7 +21,7 @@ BotManager.prototype.BotAccounts = [];
 
 
 function BotManager() {
-    var self = this;
+    //var self = this;
 
 }
 
@@ -117,9 +117,10 @@ BotManager.prototype.restartAPI = function () {
 BotManager.prototype.displayBotMenu = function () {
     var self = this;
     var tempList = [];
-    for (var accountIndex in self.getAccounts()) {
-        if (self.getAccounts().hasOwnProperty(accountIndex)) {
-            tempList.push(self.getAccounts()[accountIndex].getAccountName());
+    var botAccounts = self.getAccounts();
+    for (var accountIndex in botAccounts) {
+        if (botAccounts.hasOwnProperty(accountIndex)) {
+            tempList.push(botAccounts[accountIndex].getAccountName());
         }
     }
     tempList.push(new inquirer.Separator());
@@ -181,16 +182,19 @@ BotManager.prototype.displayBotMenu = function () {
 BotManager.prototype.botLookup = function (keyData, callback) {
     var self = this;
     try {
-        if (self.getAccounts()[parseInt(keyData)])
+        if (self.getAccounts()[parseInt(keyData)]) {
             callback(null, self.getAccounts()[parseInt(keyData)]);
-        else
-            for (var botAccountIndex in self.getAccounts()) {
-                if (self.getAccounts().hasOwnProperty(botAccountIndex)) {
-                    if (self.getAccounts()[botAccountIndex].getAccountName().toLowerCase() == keyData.toLowerCase()) {
-                        callback(null, self.getAccounts()[botAccountIndex]);
+        }
+        else {
+            var botAccounts = self.getAccounts();
+            for (var botAccountIndex in botAccounts) {
+                if (botAccounts.hasOwnProperty(botAccountIndex)) {
+                    if (botAccounts[botAccountIndex].getAccountName().toLowerCase() == keyData.toLowerCase()) {
+                        callback(null, botAccounts[botAccountIndex]);
                     }
                 }
             }
+        }
     } catch (e) {
         callback({msg: "Failed to find bot with name or id."}, null);
     }
@@ -247,7 +251,9 @@ BotManager.prototype.displayMenu = function (activeAccount) {
                         friendsList.unshift({accountName: "Back"});
                         var nameList = [];
                         for (var friendId in friendsList) {
-                            nameList.push(friendsList[friendId].accountName);
+                            if (friendsList.hasOwnProperty(friendId)) {
+                                nameList.push(friendsList[friendId].accountName);
+                            }
                         }
 
                         var chatMenu = [
@@ -285,7 +291,9 @@ BotManager.prototype.displayMenu = function (activeAccount) {
                         friendsList.unshift({accountName: "Back"});// Add to first pos
                         var nameList = [];
                         for (var friendId in friendsList) {
-                            nameList.push(friendsList[friendId].accountName);
+                            if (friendsList.hasOwnProperty(friendId)) {
+                                nameList.push(friendsList[friendId].accountName);
+                            }
                         }
 
                         var tradeMenu = [
@@ -315,9 +323,11 @@ BotManager.prototype.displayMenu = function (activeAccount) {
                                     activeAccount.getInventory(730, 2, true, function (err, inventory, currencies) {
                                         var nameList = [];
                                         for (var id in inventory) {
-                                            nameList.push(inventory[id].name);
-                                            if (id > 30)
-                                                break;
+                                            if (inventory.hasOwnProperty(id)) {
+                                                nameList.push(inventory[id].name);
+                                                if (id > 30)
+                                                    break;
+                                            }
                                         }
 
 
@@ -331,35 +341,27 @@ BotManager.prototype.displayMenu = function (activeAccount) {
                                         ];
                                         inquirer.prompt(tradeMenu, function (result) {
                                             var menuEntry = nameList.indexOf(result.tradeOption);
-                                            var added = currentOffer.addMyItem(inventory[menuEntry]);
+                                            currentOffer.addMyItem(inventory[menuEntry]);
                                             currentOffer.send("Manual offer triggered by Bot Manager.", null, function (err, status) {
                                                 console.log(err);// if 50, then too many trades to this user currently...
-                                                console.log(status);
                                                 var time = activeAccount.getUnixTime();
                                                 activeAccount.getConfirmations(time, activeAccount.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
-                                                    console.log("Trying to confirm...");
-
-
                                                     if (err) {
                                                         console.log(err);
                                                     }
                                                     else {
                                                         for (var confirmId in confirmations) {
-                                                            console.log("Confirming trade with title: " + confirmations[confirmId].title);
-                                                            confirmations[confirmId].respond(time, activeAccount.generateMobileConfirmationCode(time, "allow"), true, function (err) {
-                                                                if (err) {
-                                                                    console.log("Trade failed to confirm");
-                                                                }
-                                                                else {
-                                                                    console.log("Confirmed trade.");
-
-                                                                }
-                                                            });
+                                                            if (confirmations.hasOwnProperty(confirmId)) {
+                                                                confirmations[confirmId].respond(time, activeAccount.generateMobileConfirmationCode(time, "allow"), true, function (err) {
+                                                                    if (err) {
+                                                                        self.errorDebug("Trade failed to confirm");
+                                                                    }
+                                                                });
+                                                            }
                                                         }
                                                     }
                                                 });
                                             });
-                                            console.log(added);
                                         });
                                     });
                                     break;
