@@ -1,14 +1,20 @@
 # NodeJS Bot Management Tool
-A bot management tool for [Steam Community](http://www.steamcommunity.com) which uses NodeJS.
+A bot management tool for [Steam Community](http://www.steamcommunity.com) built using NodeJS backend.
 
 
 
+## Scope of the project
+The scope of this project is to be a SteamBot alternative for NodeJS.
 
 # CAUTION:
-#### I do not recommend running any bots in production mode, as there are possibly many caveats I have not yet discovered. Until further notice, I recommend only trying out the functionality and reporting any problems you encounter.
+#### It is not recommended to run this tool in production mode.
 
 ## Demo:
 TODO: None available yet.
+
+
+## Examples:
+You can check examples of bots you can build by navigating to the 'examples' folder in the root of the project.
 
 ## Features:
 - Talk to people on the Bot's friends list
@@ -16,20 +22,23 @@ TODO: None available yet.
 - Set-up 2-factor-authentication (including the phone-number if not yet on account)
 - Handle API sign-up process*
 - Manage multiple bots at once
-- Calculate the inventory worth (relative to Steam Market prices) using another system I am currently working on.
+- API system
+- Plugin-capable (Customize the actions of the bot)
 
 ## TODO:
-- Add 1-to-1 trades
-- Add auto-confirming trades (Checks will be made in place to avoid getting ripped off.)
 - Add registration account checking
--
+
+
 ## Set-up:
 ~~~
 git clone https://github.com/Undeadkillz/node-steam-bot-manager
 node install
 node index.js
-Inside the 'config' folder, rename 'config_template.json' to 'config.json' and configure the settings as desired.
 ~~~
+## Configuration:
+Inside the 'config' folder, rename 'config_template.json' to 'config.json' and configure the settings as desired.
+More detailed configuration will be provided once I near completion.
+
 ---
 ### Registering a Bot:
 - Choose 'register' option from main menu (use arrow keys to navigate the menu)
@@ -50,8 +59,7 @@ Inside the 'config' folder, rename 'config_template.json' to 'config.json' and c
  - Delete (delete account - but does not unregister the 2-factor-authentication if enabled.)
 
 
-## Scope of the project
-The scope of this project is to be like a SteamBot alternative for NodeJS.
+
 
 
 
@@ -61,20 +69,27 @@ The scope of this project is to be like a SteamBot alternative for NodeJS.
 - [node-steam-totp](https://github.com/DoctorMcKay/node-steam-totp)
 - [node-steam-tradeoffer-manager](https://github.com/DoctorMcKay/node-steam-tradeoffer-manager)
 - [node-steamcommunity](https://github.com/DoctorMcKay/node-steamcommunity)
-- [jsdoc](https://github.com/jsdoc3/jsdoc)
 
 ## How to contribute:
 ~~~
 git clone https://github.com/Undeadkillz/node-steam-bot-manager # Clone project files locally
 node install # To install the tool and dependancies
 ~~~
-Submit a pull-request with the desired changes and I (Samer A.) will check your changes before accepting/declining them. Sometime, I will write up more informative 'How to contribute' section.
+The project is still in early stages, and any feedback or contribution is appreciated.
+
+#### To contribute:
+Simply make your desired changes and submit your pull request. At this point, there is no specific format you have to follow, just make sure the code is easily readable, and if possible comment where possible so that the pull request could be approved faster.
+
+#### To help:
+Install the tool, and try out the different examples or even build your own, and try to break the tool. Once you break it, just make sure to inform us via the ISSUES pages, about the issue.
+
+Make sure to atleast include a log of the error message and if possible inform us about the steps to reproduce the issue.
 
 ---
 
 
 ## Credits:
-- [Undeadkillz](https://github.com/Undeadkillz)
+- [Undeadkillz](https://github.com/Undeadkillz) | Add me on: **[Steam](http://steamcommunity.com/profiles/76561198042954517/)** - **[Skype](skype:undeadkillz?chat)**
 - All authors and helpers of the libraries listed above (with their respective library urls)
 
 

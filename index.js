@@ -2,92 +2,122 @@
  * Documentation and comments will be done later...
  */
 
-var inquirer = require("inquirer");
-var request = require('request');
-var colors = require('colors');
+var inquirer = require("inquirer");// Used for prompts (GUI)
+require('request');// Used for sending requests to the jackpot website.
+require('colors');// Used to prettify messages send by the console
+
 var BotAccount = require('./classes/BotAccount.js');
-var DataControl = require('./components/dataControl.js');
+var DataControl = require('./components/DataControl.js');
+var APIControl = require('./components/API_Control.js');
+
+
 // Import events module
-
-var botAccounts = [];
-var dataControl = new DataControl("config");
-var config = {};
-
-
-dataControl.getConfig(function (err, response) {
-    if (err) {
-        console.log(err);
-    } else {
-        infoDebug("Loaded config...");
-        config = response;
-        infoDebug("Ensuring all values are set, otherwise assigning default values");
-        if (!config.hasOwnProperty("botPrefix"))
-            config.botPrefix = "";
-    }
-});
+BotManager.prototype.dataControl = new DataControl("config");
+BotManager.prototype.APIControl = null;
+BotManager.prototype.__proto__ = require('events').EventEmitter.prototype;
 
 
-dataControl.getSavedAccounts(function (err, response) {
-    if (err) {
-        console.log(err);
-    } else {
-        initBots(response, function (err) {
-            displayBotMenu();
+BotManager.prototype.BotAccounts = [];
+
+
+function BotManager() {
+    var self = this;
+
+}
+
+BotManager.prototype.startManager = function () {
+    var self = this;
+    self.dataControl.on('error', function (err) {
+        self.errorDebug(err);
+    });
+
+    self.dataControl.on('loadedConfig', function (configResponse) {
+        config = configResponse;
+        self.APIControl = new APIControl(self.dataControl.getConfig());
+        self.APIControl.on('apiLoaded', function () {
+            self.emit('loadedAPI');
         });
-    }
-});
-
-
-function addBot(accountInfo) {
-    var activeAccount = new BotAccount(accountInfo);
-
-    if (activeAccount.getAccount().shared_secret) {
-        activeAccount.loginAccount();
-    }
-
-    activeAccount.on('displayBotMenu', function () {
-        displayBotMenu();
+        self.APIControl.startAPI();
     });
-    activeAccount.on('loggedIn', function (activeAccount) {
-        // User just logged in
-        if (activeAccount.getDisplayName() != null) {
-            activeAccount.changeName(activeAccount.getDisplayName(), config.botPrefix, function (err) {
-                if (err) {
-                    errorDebug("Failed to change name. Error: ", err);
-                }
-            })
+
+
+    self.dataControl.on('debug', function (msg) {
+        self.infoDebug(msg);
+    });
+
+
+    self.dataControl.on('loadedAccount', function (accountInfo) {
+        var activeAccount = new BotAccount(accountInfo);
+        if (activeAccount.getAccount().shared_secret) {
+            activeAccount.loginAccount();
         }
+        activeAccount.on('displayBotMenu', function () {
+            self.displayBotMenu();
+        });
+        activeAccount.on('sentOfferChanged', function (offer, oldState) {
+            self.emit('sentOfferChanged', offer, oldState);
+        });
 
-    });
-    activeAccount.on('updatedAccountDetails', function () {
-        dataControl.saveAccounts(botAccounts, function (err) {
-            if (err) {
-                errorDebug(err);
+
+        activeAccount.on('newOffer', function (offer) {
+            self.emit('newOffer', activeAccount, offer);
+        });
+        activeAccount.on('loggedIn', function (activeAccount) {
+            // User just logged in
+            if (activeAccount.getDisplayName() != null) {
+                activeAccount.changeName(activeAccount.getDisplayName(), config.botPrefix, function (err) {
+                    if (err) {
+                        self.errorDebug("Failed to change name. Error: " + err);
+                    }
+                })
             }
+            self.emit('loggedIn', activeAccount);
         });
+
+
+        activeAccount.on('updatedAccountDetails', function () {
+            self.saveAccounts(function (err) {
+                if (err)
+                    self.errorDebug(err);
+            });
+        });
+
+        activeAccount.on('incorrectCredentials', function (accountDetails) {
+            // We must ask user for new details...
+            self.errorDebug("The following details are incorrect: \nusername: {0}\npassword: {1}".format(accountDetails.accountName, accountDetails.password));
+        });
+
+
+        self.BotAccounts.push(activeAccount);
     });
 
-    activeAccount.on('incorrectCredentials', function (accountDetails) {
-        // We must ask user for new details...
-        errorDebug("The following details are incorrect: \nusername: {0}\npassword: {1}".format(accountDetails.accountName, accountDetails.password));
-    });
 
-
-    botAccounts.push(activeAccount);
-}
-function initBots(accountsList, callback) {
-    for (var accountIndex in accountsList) {
-        if (accountsList.hasOwnProperty(accountIndex)) {
-            addBot(accountsList[accountIndex]);
+    self.dataControl.initData(function (err, botAccountsList) {
+        if (err)
+            self.errorDebug(err);
+        else {
+            // Finished loading...
+            self.displayBotMenu();
         }
-    }
-    callback(null);
-}
-function displayBotMenu() {
+    });
+};
+
+BotManager.prototype.apiEndpoint = function (method, url, callback) {
+    var self = this;
+    self.APIControl.apiEndpoint(method, url, callback);
+};
+BotManager.prototype.restartAPI = function () {
+    var self = this;
+    self.APIControl.restartAPI();
+};
+
+
+BotManager.prototype.displayBotMenu = function () {
+    var self = this;
     var tempList = [];
-    for (var accountIndex in botAccounts) {
-        if (botAccounts.hasOwnProperty(accountIndex)) {
-            tempList.push(botAccounts[accountIndex].getAccountName());
+    for (var accountIndex in self.getAccounts()) {
+        if (self.getAccounts().hasOwnProperty(accountIndex)) {
+            tempList.push(self.getAccounts()[accountIndex].getAccountName());
         }
     }
     tempList.push(new inquirer.Separator());
@@ -121,8 +151,8 @@ function displayBotMenu() {
                 ];
 
                 inquirer.prompt(questions, function (result) {
-                    addBot({accountName: result.accountName, password: result.password});
-                    displayBotMenu();
+                    self.dataControl.registerAccount({accountName: result.accountName, password: result.password});
+                    self.displayBotMenu();
                 });
 
                 break;
@@ -130,13 +160,13 @@ function displayBotMenu() {
                 process.exit();
                 break;
             default:
-                botLookup(result.accountName, function (err, accountDetails) {
+                self.botLookup(result.accountName, function (err, accountDetails) {
                     // Check if bot is online or offline
                     if (err) {
-                        errorDebug(err);
+                        self.errorDebug(err);
                     }
                     else {
-                        displayMenu(accountDetails);
+                        self.displayMenu(accountDetails);
                     }
                 });
                 break;
@@ -144,25 +174,28 @@ function displayBotMenu() {
 
 
     });
-}
-function botLookup(keyData, callback) {
+};
+
+BotManager.prototype.botLookup = function (keyData, callback) {
+    var self = this;
     try {
-        if (botAccounts[parseInt(keyData)])
-            callback(null, botAccounts[parseInt(keyData)]);
+        if (self.getAccounts()[parseInt(keyData)])
+            callback(null, self.getAccounts()[parseInt(keyData)]);
         else
-            for (var botAccount in botAccounts) {
-                if (botAccounts.hasOwnProperty(botAccount)) {
-                    if (botAccounts[botAccount].getAccountName().toLowerCase() == keyData.toLowerCase()) {
-                        callback(null, botAccounts[botAccount]);
+            for (var botAccountIndex in self.getAccounts()) {
+                if (self.getAccounts().hasOwnProperty(botAccountIndex)) {
+                    if (self.getAccounts()[botAccountIndex].getAccountName().toLowerCase() == keyData.toLowerCase()) {
+                        callback(null, self.getAccounts()[botAccountIndex]);
                     }
                 }
             }
     } catch (e) {
         callback({msg: "Failed to find bot with name or id."}, null);
     }
-}
+};
 
-function processChat(activeAccount, target) {
+BotManager.prototype.processChat = function (activeAccount, target) {
+    var self = this;
     var chatMessage = [
         {
             message: 'Enter your message (\'quit\' to leave): ',
@@ -173,21 +206,22 @@ function processChat(activeAccount, target) {
     inquirer.prompt(chatMessage, function (result) {
         if (result.message.toLowerCase() == "quit" || result.message.toLowerCase() == "exit") {
             activeAccount.setChatting(null);
-            displayMenu(activeAccount);
+            self.displayMenu(activeAccount);
         }
         else {
             activeAccount.sendMessage(target, result.message);
-            processChat(activeAccount, target);
+            self.processChat(activeAccount, target);
         }
     });
-}
+};
 
-function displayMenu(activeAccount) {
+BotManager.prototype.displayMenu = function (activeAccount) {
+    var self = this;
     activeAccount.community.loggedIn(function (err, loggedIn, familyView) {
         var menuOptions = [
             "Chat",
             "Send trade",
-            "Calculate Inventory",
+            //"Calculate Inventory", This option was temporary, but may maybe added later.
             new inquirer.Separator(),
             loggedIn ? "Logout" : "Login",
             new inquirer.Separator(),
@@ -227,7 +261,7 @@ function displayMenu(activeAccount) {
                             // We will open chat with...
                             switch (menuEntry) {
                                 case 0:
-                                    displayMenu(activeAccount);
+                                    self.displayMenu(activeAccount);
                                     break;
                                 default:
                                     // User wants to actually chat with someone...
@@ -235,7 +269,7 @@ function displayMenu(activeAccount) {
                                         accountName: friendsList[menuEntry].accountName,
                                         sid: friendsList[menuEntry].accountSid
                                     });
-                                    processChat(activeAccount, friendsList[menuEntry].accountSid);
+                                    self.processChat(activeAccount, friendsList[menuEntry].accountSid);
                                     break;
                             }
                         });
@@ -266,12 +300,12 @@ function displayMenu(activeAccount) {
                             switch (menuEntry) {
                                 case 0:
                                     // Go back
-                                    displayMenu(activeAccount);
+                                    self.displayMenu(activeAccount);
                                     break;
                                 case 1:
                                     // Trade with custom steam id.
                                     // TODO: add trade to steam id
-                                    displayMenu(activeAccount);
+                                    self.displayMenu(activeAccount);
                                     break;
                                 default:
                                     // Trade with user selected.
@@ -296,7 +330,7 @@ function displayMenu(activeAccount) {
                                         inquirer.prompt(tradeMenu, function (result) {
                                             var menuEntry = nameList.indexOf(result.tradeOption);
                                             var added = currentOffer.addMyItem(inventory[menuEntry]);
-                                            currentOffer.send("Testing...", null, function (err, status) {
+                                            currentOffer.send("Manual offer triggered by Bot Manager.", null, function (err, status) {
                                                 console.log(err);// if 50, then too many trades to this user currently...
                                                 console.log(status);
                                                 var time = activeAccount.getUnixTime();
@@ -331,51 +365,51 @@ function displayMenu(activeAccount) {
                         });
                     });
                     break;
-                case 2:
-                    // TODO calculate inventory
-                    //appid, contextid, tradeableOnly, callback
-                    infoDebug("Loading inventory...");
-                    activeAccount.getInventory(730, 2, true, function (err, inventory, currencies) {
-                        infoDebug("Loaded inventory...");
-
-                        var itemNameList = [];
-                        for (var econItemIndex in inventory) {
-                            var econItem = inventory[econItemIndex];
-                            itemNameList.push(econItem.name);
-                        }
-                        request({
-                            url: config.marketInfo.marketAPIURL + '/api/v1/precise/batch/item',
-                            method: "POST",
-                            json: true,   // <--Very important!!!
-                            body: {itemNameList: JSON.stringify(itemNameList)}
-                        }, function (error, response, body) {
-                            var itemsInfo = {};
-                            itemsInfo.totalWorth = 0;
-                            for (var itemInfo in body) {
-                                if (body.hasOwnProperty(itemInfo)) {
-                                    if (body[itemInfo].value != null) {
-                                        itemsInfo.totalWorth += parseFloat(body[itemInfo].value);
-                                    }
-                                }
-                            }
-                            infoDebug("Worth of inventory is ${0}".format(itemsInfo.totalWorth / 100));
-                            displayMenu(activeAccount);
-
-                        });
-                    });
-                    break;
-                case 4:
+                //case 2:
+                //// TODO calculate inventory
+                ////appid, contextid, tradeableOnly, callback
+                //self.infoDebug("Loading inventory...");
+                //activeAccount.getInventory(730, 2, true, function (err, inventory, currencies) {
+                //    self.infoDebug("Loaded inventory...");
+                //
+                //    var itemNameList = [];
+                //    for (var econItemIndex in inventory) {
+                //        var econItem = inventory[econItemIndex];
+                //        itemNameList.push(econItem.name);
+                //    }
+                //    request({
+                //        url: config.marketInfo.marketAPIURL + '/api/v1/precise/batch/item',
+                //        method: "POST",
+                //        json: true,   // <--Very important!!!
+                //        body: {itemNameList: JSON.stringify(itemNameList)}
+                //    }, function (error, response, body) {
+                //        var itemsInfo = {};
+                //        itemsInfo.totalWorth = 0;
+                //        for (var itemInfo in body) {
+                //            if (body.hasOwnProperty(itemInfo)) {
+                //                if (body[itemInfo].value != null) {
+                //                    itemsInfo.totalWorth += parseFloat(body[itemInfo].value);
+                //                }
+                //            }
+                //        }
+                //        self.infoDebug("Worth of inventory is ${0}".format(itemsInfo.totalWorth / 100));
+                //        self.displayMenu(activeAccount);
+                //
+                //    });
+                //});
+                //break;
+                case 3:
                     // Handle logout/login logic and return to menu.
                     if (!loggedIn) {
-                        successDebug("Trying to authenticate into {0}".format(activeAccount.getAccountName()));
+                        self.successDebug("Trying to authenticate into {0}".format(activeAccount.getAccountName()));
                         activeAccount.loginAccount(null);
-                        displayBotMenu();
+                        self.displayBotMenu();
                     } else {
                         activeAccount.logoutAccount();
-                        displayBotMenu();
+                        self.displayBotMenu();
                     }
                     break;
-                case 6:
+                case 5:
 
                     var authOptions = [];
                     authOptions.push("Edit Display name");
@@ -413,12 +447,12 @@ function displayMenu(activeAccount) {
                                 inquirer.prompt(questions, function (result) {
                                     activeAccount.changeName(result.newName, config.botPrefix, function (err) {
                                         if (err) {
-                                            errorDebug("Failed to change name. Error: ", err);
+                                            self.errorDebug("Failed to change name. Error: ", err);
                                         }
                                         else {
-                                            infoDebug("Successfully changed display name");
+                                            self.infoDebug("Successfully changed display name");
                                         }
-                                        displayMenu(activeAccount);
+                                        self.displayMenu(activeAccount);
                                     })
                                 });
 
@@ -427,7 +461,7 @@ function displayMenu(activeAccount) {
                             case 2:
                                 if (!activeAccount.shared_secret) {
                                     // Enable 2FA
-                                    enableTwoFactor(activeAccount);
+                                    self.enableTwoFactor(activeAccount);
                                 } else {
                                     // TODO: Move to BotAccount class
                                     //disable2FA(activeAccount);
@@ -437,22 +471,22 @@ function displayMenu(activeAccount) {
                             case 3:
                                 if (activeAccount.has_shared_secret()) {
                                     // Send the auth key.
-                                    successDebug("Your authentication code for {0} is {1}".format(activeAccount.getAccountName(), activeAccount.generateMobileAuthenticationCode()));
+                                    self.successDebug("Your authentication code for {0} is {1}".format(activeAccount.getAccountName(), activeAccount.generateMobileAuthenticationCode()));
                                 } else {
                                     // Authn not enabled?
-                                    errorDebug("2-factor-authentication is not enabled. Check your email.");
+                                    self.errorDebug("2-factor-authentication is not enabled. Check your email.");
                                 }
-                                displayMenu(activeAccount);
+                                self.displayMenu(activeAccount);
                                 break;
                             default:
-                                displayMenu(activeAccount);
+                                self.displayMenu(activeAccount);
                                 break;
                         }
                     });
 
 
                     break;
-                case 7:
+                case 6:
                     var questions = [
                         {
                             type: 'confirm',
@@ -462,36 +496,37 @@ function displayMenu(activeAccount) {
                     ];
                     inquirer.prompt(questions, function (answers) {
                         if (answers.askDelete) {
-                            unregisterAccount(activeAccount, function (err) {
+                            self.unregisterAccount(activeAccount, function (err) {
                                 if (err) {
                                     // Failed...
-                                    errorDebug(err);
+                                    self.errorDebug(err);
                                 }
                                 else {
-                                    displayBotMenu();
+                                    self.displayBotMenu();
                                 }
                             });
                         }
                         else {
-                            displayMenu(activeAccount);
+                            self.displayMenu(activeAccount);
                         }
                     });
 
                     break;
-                case 8:
-                    displayBotMenu();
+                case 7:
+                    self.displayBotMenu();
                     break;
             }
 
         });
     });
-}
+};
 
-function enableTwoFactor(activeAccount) {
+BotManager.prototype.enableTwoFactor = function (activeAccount) {
+    var self = this;
     activeAccount.hasPhone(function (err, hasPhone, lastDigits) {
         if (hasPhone) {
             activeAccount.enableTwoFactor(function (response) {
-                successDebug("Make sure to save the following code saved somewhere secure: {0}".format(response.revocation_code));
+                self.successDebug("Make sure to save the following code saved somewhere secure: {0}".format(response.revocation_code));
                 var questions = [
                     {
                         type: 'input',
@@ -505,15 +540,12 @@ function enableTwoFactor(activeAccount) {
                         var steamCode = result.code;
                         activeAccount.finalizeTwoFactor(response.shared_secret, steamCode, function (err, keyInformation) {
                             if (err) {
-                                errorDebug(err);
-                                displayMenu(activeAccount);
+                                self.errorDebug(err);
+                                self.displayMenu(activeAccount);
                             }
                             else {
-                                dataControl.saveAccounts(botAccounts, function (err) {
-                                    if (err) {
-                                        errorDebug(err);
-                                    }
-                                    displayMenu(activeAccount);
+                                self.saveAccounts(function (err) {
+                                    self.errorDebug(err);
                                 });
                             }
                         });
@@ -552,8 +584,8 @@ function enableTwoFactor(activeAccount) {
                     inquirer.prompt(questions, function (result) {
                         activeAccount.addPhoneNumber(result.phoneNumber, function (err) {
                             if (err) {
-                                errorDebug(err);
-                                displayMenu(activeAccount);
+                                self.errorDebug(err);
+                                self.displayMenu(activeAccount);
                             }
                             else {
                                 var questions = [
@@ -567,12 +599,12 @@ function enableTwoFactor(activeAccount) {
                                 inquirer.prompt(questions, function (result) {
                                     activeAccount.verifyPhoneNumber(result.code, function (err) {
                                         if (err) {
-                                            errorDebug(err);
-                                            displayMenu(activeAccount);
+                                            self.errorDebug(err);
+                                            self.displayMenu(activeAccount);
                                         }
                                         else {
                                             // Verified phone number...
-                                            enableTwoFactor(activeAccount);
+                                            self.enableTwoFactor(activeAccount);
                                         }
                                     });
                                 });
@@ -582,37 +614,55 @@ function enableTwoFactor(activeAccount) {
                 }
                 else {
                     // Take back to main menu.
-                    errorDebug("Declined addition of phone number.");
-                    displayMenu(activeAccount);
+                    self.errorDebug("Declined addition of phone number.");
+                    self.displayMenu(activeAccount);
                 }
             });
         }
     });
-}
-function unregisterAccount(accountDetails, callback) {
-    botAccounts.splice(botAccounts.indexOf(accountDetails), botAccounts.indexOf(accountDetails) + 1);
-    dataControl.saveAccounts(botAccounts, function (err) {
+};
+
+BotManager.prototype.unregisterAccount = function (accountDetails, callback) {
+    var self = this;
+    self.BotAccounts.splice(self.BotAccounts.indexOf(accountDetails), self.BotAccounts.indexOf(accountDetails) + 1);
+    // Temporarily disable the save part as we want to make sure we unregister the AUTH before deleting.
+    //self.saveAccounts(function(err){
+    //    self.errorDebug(err);
+    //});
+};
+
+BotManager.prototype.getAccounts = function () {
+    var self = this;
+    return self.BotAccounts;
+};
+BotManager.prototype.saveAccounts = function (callback) {
+    var self = this;
+    self.dataControl.saveAccounts(self.getAccounts(), function (err) {
         if (err) {
-            errorDebug(err);
             callback(err);
         }
-        else {
-            callback(null);
-            successDebug("Deleted {0}".format(accountDetails.accountName));
-        }
+        callback(null);
     });
-}
+};
 
 
-function infoDebug(message) {
+BotManager.prototype.infoDebug = function (message) {
     console.log((message + " ").grey);
-}
-function errorDebug(message) {
+};
+BotManager.prototype.errorDebug = function (message) {
+    console.log(message);
     console.log((message + " ").red);
-}
-function successDebug(message) {
+};
+BotManager.prototype.successDebug = function (message) {
     console.log((message + " ").green);
-}
+};
+
+BotManager.prototype.chooseRandomBot = function () {
+    var self = this;
+    console.log(Math.floor(Math.round(Math.random() * self.getAccounts().length)));
+    return self.getAccounts()[0];
+};
+
 
 /**
  * Apply format function for any string in the file (used to correctly format strings with variables).
@@ -626,5 +676,9 @@ String.prototype.format = function () {
     }
     return content;
 };
+
+//new BotManager();
+
+module.exports = BotManager;
 
 
