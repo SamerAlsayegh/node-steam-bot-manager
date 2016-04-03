@@ -1,6 +1,3 @@
-/**
- * Created by Samer on 2016-04-01.
- */
 var index = require('../index.js');
 APIControl.prototype.__proto__ = require('events').EventEmitter.prototype;
 APIControl.prototype.bodyParser = require('body-parser');// Used to parse POST and GET requests received via express

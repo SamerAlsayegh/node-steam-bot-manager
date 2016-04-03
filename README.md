@@ -1,7 +1,8 @@
 # NodeJS Bot Management Tool
 A bot management tool for [Steam Community](http://www.steamcommunity.com) built using NodeJS backend.
 
-
+[![forthebadge](http://forthebadge.com/images/badges/uses-js.svg)](http://forthebadge.com)
+[![forthebadge](http://forthebadge.com/images/badges/built-with-love.svg)](http://forthebadge.com)
 
 ## Scope of the project
 The scope of this project is to be a SteamBot alternative for NodeJS.
@@ -93,6 +94,11 @@ Install the tool, and try out the different examples or even build your own, and
 
 Make sure to atleast include a log of the error message and if possible inform us about the steps to reproduce the issue.
 
+## Testing Policy
+[![forthebadge](http://forthebadge.com/images/badges/fuck-it-ship-it.svg)](http://forthebadge.com)
+
+I will ensure everything works, however I won't be building any unit-tests at this time.
+
 ---
 
 
@@ -100,6 +106,7 @@ Make sure to atleast include a log of the error message and if possible inform u
 - [Undeadkillz](https://github.com/Undeadkillz) | Add me on: **[Steam](http://steamcommunity.com/profiles/76561198042954517/)** - **[Skype](skype:undeadkillz?chat)**
 - All authors and helpers of the libraries listed above (with their respective library urls)
 
-
+[![forthebadge](http://forthebadge.com/images/badges/powered-by-water.svg)](http://forthebadge.com)
+[![forthebadge](http://forthebadge.com/images/badges/gluten-free.svg)](http://forthebadge.com)
 
 \* Using this feature means you agree to Steam's API terms found at: [Steam API Terms](http://steamcommunity.com/dev/apiterms)

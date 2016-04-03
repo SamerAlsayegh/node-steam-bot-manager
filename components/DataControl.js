@@ -1,6 +1,3 @@
-/**
- * Created by Samer on 2016-03-22.
- */
 var fs = require('fs');
 var index = require('../index.js');
 

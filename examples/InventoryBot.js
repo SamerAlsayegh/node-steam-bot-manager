@@ -4,8 +4,6 @@
  * and
  * bot will accept any trades done by an admin in-which the bot offers something and the admin offers nothing.
  *
- * SteamID used: 76561198042954517 | My SteamID - You may change this to yours and test it out.
- *
  */
 var BotManager = require('../index.js');// We will require the BotManager
 
@@ -21,7 +19,7 @@ function InventoryBot() {
         // We check if we are receiving or giving items.
         if (offer.itemsToGive.length > 0 && offer.itemsToReceive.length == 0) {
             // In this case we (the bot) are giving items.
-            if (offer.partner.getSteamID64() == '76561198042954517') {
+            if (offer.partner.getSteamID64() == '__YOUR_STEAM_ID_64B__') {
                 // We will be giving items in this case. So only accept if the 64Bit SteamID is ours/admins.
                 offer.accept(true, function (err, status) {
                     if (err)
@@ -55,7 +53,7 @@ function InventoryBot() {
             });
         }
     });
-
+    console.log("Random value? " + botsManager.chooseRandomBot());
     botsManager.startManager();// You must start the manager at the end so that all the hooks above it, are registered.
 }
 

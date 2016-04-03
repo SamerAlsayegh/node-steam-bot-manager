@@ -1,6 +1,3 @@
-/**
- * Created by Samer on 2016-03-22.
- */
 var SteamUser = require('steam-user');
 var SteamCommunity = require('steamcommunity');
 var SteamStore = require('steamstore');
@@ -11,7 +8,10 @@ BotAccount.prototype.__proto__ = require('events').EventEmitter.prototype;
 
 var SteamID = TradeOfferManager.SteamID;
 
-
+/**
+ * Creates a new BotAccount instance for a bot.
+ * @class
+ */
 function BotAccount(accountDetails) {
     // Ensure account values are valid
     var self = this;
@@ -33,7 +33,6 @@ function BotAccount(accountDetails) {
     self.accountDetails = accountDetails;
 
 
-    // Sometimes this fails(Does not run) if logging-in/out really quickly.
     self.client.on('loggedOn', function (details) {
         self.client.setPersona(SteamUser.Steam.EPersonaState.Online);
         self.emit('loggedOn', details);
@@ -48,6 +47,11 @@ function BotAccount(accountDetails) {
             self.accountDetails.sessionID = sessionID;
             self.accountDetails.cookies = cookies;
             delete self.accountDetails.twoFactorCode;
+            /**
+             * Updated an account's details (such as: username, password, sessionid, cookies...)
+             *
+             * @event BotAccount#updatedAccountDetails
+             */
             self.emit('updatedAccountDetails');
         }
 
@@ -61,16 +65,32 @@ function BotAccount(accountDetails) {
             if (self.currentChatting != null && senderID == self.currentChatting.sid) {
                 console.log(("\n" + self.currentChatting.accountName + ": " + message).green);
             }
+            /**
+             * Emitted when a friend message or chat room message is received.
+             *
+             * @event BotAccount#friendOrChatMessage
+             * @type {object}
+             * @property {SteamID} senderID - The message sender, as a SteamID object
+             * @property {String} message - The message text
+             * @property {SteamID} room - The room to which the message was sent. This is the user's SteamID if it was a friend message
+             */
             self.emit('friendOrChatMessage', senderID, message, room);
         });
 
         self.trade.on('sentOfferChanged', function (offer, oldState) {
-            self.emit('sentOfferChanged', offer, oldState);
-
+            /**
+             * Emitted when a trade offer changes state (Ex. accepted, pending, escrow, etc...)
+             *
+             * @event BotAccount#offerChanged
+             * @type {object}
+             * @property {TradeOffer} offer - The new offer's details
+             * @property {TradeOffer} oldState - The old offer's details
+             */
+            self.emit('offerChanged', offer, oldState);
         });
 
         self.trade.on('receivedOfferChanged', function (offer, oldState) {
-            self.emit('receivedOfferChanged', offer, oldState);
+            self.emit('offerChanged', offer, oldState);
         });
 
         // Useless right now
@@ -79,6 +99,13 @@ function BotAccount(accountDetails) {
         //});
 
         self.trade.on('newOffer', function (offer) {
+            /**
+             * Emitted when we receive a new trade offer
+             *
+             * @event BotAccount#newOffer
+             * @type {object}
+             * @property {TradeOffer} offer - The offer's details
+             */
             self.emit('newOffer', offer);
         });
 
@@ -94,20 +121,32 @@ function BotAccount(accountDetails) {
         //});
 
         self.client.on('tradeOffers', function (count) {
+            /**
+             * Emitted when we receive a new trade offer notification (only provides amount of offers and no other details)
+             *
+             * @event BotAccount#tradeOffers
+             * @type {object}
+             * @property {Integer} count - The amount of active trade offers (can be 0).
+             */
             self.emit('tradeOffers', count);
         });
 
-        self.emit('loggedIn', self);
+        /**
+         * Emitted when we fully sign into Steam and all functions are usable.
+         *
+         * @event BotAccount#loggedIn
+         */
+        self.emit('loggedIn');
     });
 
 
     self.client.on('error', function (e) {
         // Some error occurred during logon
-        console.log("error");
         console.log(e);
         switch (e.eresult) {
             case 5:
                 console.log("in correct auth??");
+
                 self.emit('incorrectCredentials', self.accountDetails);
                 var tempAccountDetails = {
                     accountName: self.accountDetails.accountName,
@@ -125,11 +164,19 @@ function BotAccount(accountDetails) {
 
 }
 
+/**
+ * Get the account's username, used to login to Steam
+ * @returns {String} accountName
+ */
 BotAccount.prototype.getAccountName = function () {
     var self = this;
     return self.accountDetails.accountName;
 };
 
+/**
+ * Generate two-factor-authentication code used for logging in.
+ * @returns {Error | String}
+ */
 BotAccount.prototype.generateMobileAuthenticationCode = function () {
     var self = this;
     if (self.accountDetails.shared_secret)
@@ -137,6 +184,13 @@ BotAccount.prototype.generateMobileAuthenticationCode = function () {
     else
         return new Error("Failed to generate authentication code. Enable 2-factor-authentication via this tool.");
 };
+
+/**
+ *
+ * @param time - Current time of trade (Please use getUnixTime())
+ * @param tag - Type of confirmation required ("conf" to load the confirmations page, "details" to load details about a trade, "allow" to confirm a trade, "cancel" to cancel it.)
+ * @returns {Error}
+ */
 BotAccount.prototype.generateMobileConfirmationCode = function (time, tag) {
     var self = this;
     if (self.accountDetails.identity_secret)
@@ -144,45 +198,79 @@ BotAccount.prototype.generateMobileConfirmationCode = function (time, tag) {
     else
         return new Error("Failed to generate confirmation code. Enable 2-factor-authentication via this tool.");
 };
+
+/**
+ * Get Unix time for usage with mobile confirmations.
+ * @returns {number}
+ */
 BotAccount.prototype.getUnixTime = function () {
     var self = this;
     return SteamTotp.time();
 };
+
+/**
+ * Get account details
+ * @returns {*|{accountName: *, password: *}}
+ */
 BotAccount.prototype.getAccount = function () {
     var self = this;
     return self.accountDetails;
 };
 
+/**
+ * Send a chat message to a steam user
+ * @param {SteamID} recipient - Recipient of the message
+ * @param {String} message - Message to send
+ */
 BotAccount.prototype.sendMessage = function (recipient, message) {
     var self = this;
     return self.client.chatMessage(recipient, message, 1);
 };
+/**
+ * @callback confirmationsCallback
+ * @param {Error} error - An error message if the process failed, null if successful
+ * @param {Array} confirmations - An array of Confirmations
+ */
 
-BotAccount.prototype.getConfirmations = function (time, key, callback) {
+/**
+ * Get outstanding confirmations
+ * @param time
+ * @param key
+ * @param confirmationsCallback
+ */
+BotAccount.prototype.getConfirmations = function (time, key, confirmationsCallback) {
     var self = this;
-    return self.community.getConfirmations(time, key, callback);
+    self.community.getConfirmations(time, key, confirmationsCallback);
 };
 
-BotAccount.prototype.sendMessage = function (recipient, message, type) {
-    var self = this;
-    return self.client.chatMessage(recipient, message, type);
-};
-
-
+/**
+ * Set the user we are chatting with
+ * @param {*|{accountName: *, sid: *}} chattingUserInfo
+ */
 BotAccount.prototype.setChatting = function (chattingUserInfo) {
     var self = this;
     self.currentChatting = chattingUserInfo;
 };
-
+/**
+ * Get the display name of the account
+ * @returns {String|null} displayName - Display name of the account
+ */
 BotAccount.prototype.getDisplayName = function () {
     var self = this;
     return (self.accountDetails.hasOwnProperty("displayName") ? self.accountDetails.displayName : null);
 };
-
-BotAccount.prototype.changeName = function (newName, namePrefix, callback) {
+/**
+ * Change the display name of the account (with prefix)
+ * @param {String} newName - The new display name
+ * @param {String} namePrefix - The prefix if there is one (Nullable)
+ * @param {errorCallback} errorCallback - A callback returned with possible errors
+ */
+BotAccount.prototype.changeName = function (newName, namePrefix, errorCallback) {
     var self = this;
+    if (namePrefix == null) namePrefix = '';
+
     self.community.editProfile({name: namePrefix + newName}, function (err) {
-        callback(err);
+        errorCallback(err);
         self.accountDetails.displayName = newName;
         self.emit('updatedAccountDetails');
     });

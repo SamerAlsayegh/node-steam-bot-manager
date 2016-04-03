@@ -1,10 +1,5 @@
-/**
- * Documentation and comments will be done later...
- */
-
-var inquirer = require("inquirer");// Used for prompts (GUI)
-require('request');// Used for sending requests to the jackpot website.
-require('colors');// Used to prettify messages send by the console
+const inquirer = require("inquirer");
+const colors = require('colors');// Used to prettify messages send by the console
 
 var BotAccount = require('./classes/BotAccount.js');
 var DataControl = require('./components/DataControl.js');
@@ -19,9 +14,12 @@ BotManager.prototype.__proto__ = require('events').EventEmitter.prototype;
 
 BotManager.prototype.BotAccounts = [];
 
-
+/**
+ * Creates a new BotManager instance.
+ * @class
+ */
 function BotManager() {
-    //var self = this;
+
 
 }
 
@@ -49,48 +47,48 @@ BotManager.prototype.startManager = function () {
 
 
     self.dataControl.on('loadedAccount', function (accountInfo) {
-        var activeAccount = new BotAccount(accountInfo);
-        if (activeAccount.getAccount().shared_secret) {
-            activeAccount.loginAccount();
+        var botAccount = new BotAccount(accountInfo);
+        if (botAccount.getAccount().shared_secret) {
+            botAccount.loginAccount();
         }
-        activeAccount.on('displayBotMenu', function () {
+        botAccount.on('displayBotMenu', function () {
             self.displayBotMenu();
         });
-        activeAccount.on('sentOfferChanged', function (offer, oldState) {
+        botAccount.on('sentOfferChanged', function (offer, oldState) {
             self.emit('sentOfferChanged', offer, oldState);
         });
 
 
-        activeAccount.on('newOffer', function (offer) {
-            self.emit('newOffer', activeAccount, offer);
+        botAccount.on('newOffer', function (offer) {
+            self.emit('newOffer', botAccount, offer);
         });
-        activeAccount.on('loggedIn', function (activeAccount) {
+        botAccount.on('loggedIn', function () {
             // User just logged in
-            if (activeAccount.getDisplayName() != null) {
-                activeAccount.changeName(activeAccount.getDisplayName(), config.bot_prefix, function (err) {
+            if (botAccount.getDisplayName() != null) {
+                botAccount.changeName(botAccount.getDisplayName(), config.bot_prefix, function (err) {
                     if (err) {
                         self.errorDebug("Failed to change name. Error: " + err);
                     }
                 })
             }
-            self.emit('loggedIn', activeAccount);
+            self.emit('loggedIn', botAccount);
         });
 
 
-        activeAccount.on('updatedAccountDetails', function () {
+        botAccount.on('updatedAccountDetails', function () {
             self.saveAccounts(function (err) {
                 if (err)
                     self.errorDebug(err);
             });
         });
 
-        activeAccount.on('incorrectCredentials', function (accountDetails) {
+        botAccount.on('incorrectCredentials', function (accountDetails) {
             // We must ask user for new details...
             self.errorDebug("The following details are incorrect: \nusername: {0}\npassword: {1}".format(accountDetails.accountName, accountDetails.password));
         });
 
 
-        self.BotAccounts.push(activeAccount);
+        self.BotAccounts.push(botAccount);
     });
 
 
@@ -179,6 +177,7 @@ BotManager.prototype.displayBotMenu = function () {
     });
 };
 
+
 BotManager.prototype.botLookup = function (keyData, callback) {
     var self = this;
     try {
@@ -196,11 +195,11 @@ BotManager.prototype.botLookup = function (keyData, callback) {
             }
         }
     } catch (e) {
-        callback({msg: "Failed to find bot with name or id."}, null);
+        callback(e, null);
     }
 };
 
-BotManager.prototype.processChat = function (activeAccount, target) {
+BotManager.prototype.processChat = function (botAccount, target) {
     var self = this;
     var chatMessage = [
         {
@@ -211,19 +210,19 @@ BotManager.prototype.processChat = function (activeAccount, target) {
     ];
     inquirer.prompt(chatMessage, function (result) {
         if (result.message.toLowerCase() == "quit" || result.message.toLowerCase() == "exit") {
-            activeAccount.setChatting(null);
-            self.displayMenu(activeAccount);
+            botAccount.setChatting(null);
+            self.displayMenu(botAccount);
         }
         else {
-            activeAccount.sendMessage(target, result.message);
-            self.processChat(activeAccount, target);
+            botAccount.sendMessage(target, result.message);
+            self.processChat(botAccount, target);
         }
     });
 };
 
-BotManager.prototype.displayMenu = function (activeAccount) {
+BotManager.prototype.displayMenu = function (botAccount) {
     var self = this;
-    activeAccount.community.loggedIn(function (err, loggedIn, familyView) {
+    botAccount.community.loggedIn(function (err, loggedIn, familyView) {
         var menuOptions = [
             "Chat",
             "Send trade",
@@ -247,7 +246,7 @@ BotManager.prototype.displayMenu = function (activeAccount) {
             var menuEntry = menuOptions.indexOf(result.menuOption);
             switch (menuEntry) {
                 case 0:
-                    activeAccount.getFriends(function (err, friendsList) {
+                    botAccount.getFriends(function (err, friendsList) {
                         friendsList.unshift({accountName: "Back"});
                         var nameList = [];
                         for (var friendId in friendsList) {
@@ -269,15 +268,15 @@ BotManager.prototype.displayMenu = function (activeAccount) {
                             // We will open chat with...
                             switch (menuEntry) {
                                 case 0:
-                                    self.displayMenu(activeAccount);
+                                    self.displayMenu(botAccount);
                                     break;
                                 default:
                                     // User wants to actually chat with someone...
-                                    activeAccount.setChatting({
+                                    botAccount.setChatting({
                                         accountName: friendsList[menuEntry].accountName,
                                         sid: friendsList[menuEntry].accountSid
                                     });
-                                    self.processChat(activeAccount, friendsList[menuEntry].accountSid);
+                                    self.processChat(botAccount, friendsList[menuEntry].accountSid);
                                     break;
                             }
                         });
@@ -286,7 +285,7 @@ BotManager.prototype.displayMenu = function (activeAccount) {
 
                     break;
                 case 1:
-                    activeAccount.getFriends(function (err, friendsList) {
+                    botAccount.getFriends(function (err, friendsList) {
                         friendsList.unshift({accountName: "Other SID/Name"});// Add to second pos
                         friendsList.unshift({accountName: "Back"});// Add to first pos
                         var nameList = [];
@@ -310,17 +309,17 @@ BotManager.prototype.displayMenu = function (activeAccount) {
                             switch (menuEntry) {
                                 case 0:
                                     // Go back
-                                    self.displayMenu(activeAccount);
+                                    self.displayMenu(botAccount);
                                     break;
                                 case 1:
                                     // Trade with custom steam id.
                                     // TODO: add trade to steam id
-                                    self.displayMenu(activeAccount);
+                                    self.displayMenu(botAccount);
                                     break;
                                 default:
                                     // Trade with user selected.
-                                    var currentOffer = activeAccount.createOffer(friendsList[menuEntry].accountSid);
-                                    activeAccount.getInventory(730, 2, true, function (err, inventory, currencies) {
+                                    var currentOffer = botAccount.createOffer(friendsList[menuEntry].accountSid);
+                                    botAccount.getInventory(730, 2, true, function (err, inventory, currencies) {
                                         var nameList = [];
                                         for (var id in inventory) {
                                             if (inventory.hasOwnProperty(id)) {
@@ -344,15 +343,15 @@ BotManager.prototype.displayMenu = function (activeAccount) {
                                             currentOffer.addMyItem(inventory[menuEntry]);
                                             currentOffer.send("Manual offer triggered by Bot Manager.", null, function (err, status) {
                                                 console.log(err);// if 50, then too many trades to this user currently...
-                                                var time = activeAccount.getUnixTime();
-                                                activeAccount.getConfirmations(time, activeAccount.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
+                                                var time = botAccount.getUnixTime();
+                                                botAccount.getConfirmations(time, botAccount.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
                                                     if (err) {
                                                         console.log(err);
                                                     }
                                                     else {
                                                         for (var confirmId in confirmations) {
                                                             if (confirmations.hasOwnProperty(confirmId)) {
-                                                                confirmations[confirmId].respond(time, activeAccount.generateMobileConfirmationCode(time, "allow"), true, function (err) {
+                                                                confirmations[confirmId].respond(time, botAccount.generateMobileConfirmationCode(time, "allow"), true, function (err) {
                                                                     if (err) {
                                                                         self.errorDebug("Trade failed to confirm");
                                                                     }
@@ -372,11 +371,11 @@ BotManager.prototype.displayMenu = function (activeAccount) {
                 case 3:
                     // Handle logout/login logic and return to menu.
                     if (!loggedIn) {
-                        self.successDebug("Trying to authenticate into {0}".format(activeAccount.getAccountName()));
-                        activeAccount.setTempSetting('displayBotMenu', true);
-                        activeAccount.loginAccount(null);
+                        self.successDebug("Trying to authenticate into {0}".format(botAccount.getAccountName()));
+                        botAccount.setTempSetting('displayBotMenu', true);
+                        botAccount.loginAccount(null);
                     } else {
-                        activeAccount.logoutAccount();
+                        botAccount.logoutAccount();
                         self.displayBotMenu();
                     }
                     break;
@@ -385,7 +384,7 @@ BotManager.prototype.displayMenu = function (activeAccount) {
                     var authOptions = [];
                     authOptions.push("Edit Display name");
                     authOptions.push(new inquirer.Separator());
-                    authOptions.push((activeAccount.has_shared_secret() ? "[ON]" : "[OFF]") + " Two Factor Authentication");
+                    authOptions.push((botAccount.has_shared_secret() ? "[ON]" : "[OFF]") + " Two Factor Authentication");
                     authOptions.push("Generate 2-factor-authentication code");
                     authOptions.push("Back");
 
@@ -416,41 +415,41 @@ BotManager.prototype.displayMenu = function (activeAccount) {
                                 ];
 
                                 inquirer.prompt(questions, function (result) {
-                                    activeAccount.changeName(result.newName, config.bot_prefix, function (err) {
+                                    botAccount.changeName(result.newName, config.bot_prefix, function (err) {
                                         if (err) {
                                             self.errorDebug("Failed to change name. Error: ", err);
                                         }
                                         else {
                                             self.infoDebug("Successfully changed display name");
                                         }
-                                        self.displayMenu(activeAccount);
+                                        self.displayMenu(botAccount);
                                     })
                                 });
 
 
                                 break;
                             case 2:
-                                if (!activeAccount.shared_secret) {
+                                if (!botAccount.shared_secret) {
                                     // Enable 2FA
-                                    self.enableTwoFactor(activeAccount);
+                                    self.enableTwoFactor(botAccount);
                                 } else {
                                     // TODO: Move to BotAccount class
-                                    //disable2FA(activeAccount);
+                                    //disable2FA(botAccount);
 
                                 }
                                 break;
                             case 3:
-                                if (activeAccount.has_shared_secret()) {
+                                if (botAccount.has_shared_secret()) {
                                     // Send the auth key.
-                                    self.successDebug("Your authentication code for {0} is {1}".format(activeAccount.getAccountName(), activeAccount.generateMobileAuthenticationCode()));
+                                    self.successDebug("Your authentication code for {0} is {1}".format(botAccount.getAccountName(), botAccount.generateMobileAuthenticationCode()));
                                 } else {
                                     // Authn not enabled?
                                     self.errorDebug("2-factor-authentication is not enabled. Check your email.");
                                 }
-                                self.displayMenu(activeAccount);
+                                self.displayMenu(botAccount);
                                 break;
                             default:
-                                self.displayMenu(activeAccount);
+                                self.displayMenu(botAccount);
                                 break;
                         }
                     });
@@ -462,12 +461,12 @@ BotManager.prototype.displayMenu = function (activeAccount) {
                         {
                             type: 'confirm',
                             name: 'askDelete',
-                            message: 'Are you sure you want to delete \'' + activeAccount.accountName + '\' account?'
+                            message: 'Are you sure you want to delete \'' + botAccount.accountName + '\' account?'
                         }
                     ];
                     inquirer.prompt(questions, function (answers) {
                         if (answers.askDelete) {
-                            self.unregisterAccount(activeAccount, function (err) {
+                            self.unregisterAccount(botAccount, function (err) {
                                 if (err) {
                                     // Failed...
                                     self.errorDebug(err);
@@ -478,7 +477,7 @@ BotManager.prototype.displayMenu = function (activeAccount) {
                             });
                         }
                         else {
-                            self.displayMenu(activeAccount);
+                            self.displayMenu(botAccount);
                         }
                     });
 
@@ -491,17 +490,20 @@ BotManager.prototype.displayMenu = function (activeAccount) {
         });
     });
 };
-
-BotManager.prototype.enableTwoFactor = function (activeAccount) {
+/**
+ * Start the two-factor-authentication process using the GUI
+ * @param {BotAccount} botAccount - The bot chosen to enable two-factor authentication for.
+ */
+BotManager.prototype.enableTwoFactor = function (botAccount) {
     var self = this;
-    activeAccount.hasPhone(function (err, hasPhone, lastDigits) {
+    botAccount.hasPhone(function (err, hasPhone, lastDigits) {
         if (hasPhone) {
-            activeAccount.enableTwoFactor(function (response) {
+            botAccount.enableTwoFactor(function (response) {
                 if (response.result == 84) {
                     // Rate limit exceeded. So delay the next request
                     self.successDebug("Please wait 2 seconds to continue...");
                     setTimeout(function () {
-                        self.enableTwoFactor(activeAccount);
+                        self.enableTwoFactor(botAccount);
                     }, 2000);
                 }
                 else if (response.result == 1) {
@@ -517,7 +519,7 @@ BotManager.prototype.enableTwoFactor = function (activeAccount) {
                     inquirer.prompt(questions, function (result) {
                         if (result.code) {
                             var steamCode = result.code;
-                            activeAccount.finalizeTwoFactor(response.shared_secret, steamCode, function (err, keyInformation) {
+                            botAccount.finalizeTwoFactor(response.shared_secret, steamCode, function (err, keyInformation) {
                                 if (err) {
                                     self.errorDebug(err);
                                 }
@@ -568,10 +570,10 @@ BotManager.prototype.enableTwoFactor = function (activeAccount) {
                     ];
 
                     inquirer.prompt(questions, function (result) {
-                        activeAccount.addPhoneNumber(result.phoneNumber, function (err) {
+                        botAccount.addPhoneNumber(result.phoneNumber, function (err) {
                             if (err) {
                                 self.errorDebug(err);
-                                self.displayMenu(activeAccount);
+                                self.displayMenu(botAccount);
                             }
                             else {
                                 var questions = [
@@ -583,14 +585,14 @@ BotManager.prototype.enableTwoFactor = function (activeAccount) {
                                 ];
 
                                 inquirer.prompt(questions, function (result) {
-                                    activeAccount.verifyPhoneNumber(result.code, function (err) {
+                                    botAccount.verifyPhoneNumber(result.code, function (err) {
                                         if (err) {
                                             self.errorDebug(err);
-                                            self.displayMenu(activeAccount);
+                                            self.displayMenu(botAccount);
                                         }
                                         else {
                                             // Verified phone number...
-                                            self.enableTwoFactor(activeAccount);
+                                            self.enableTwoFactor(botAccount);
                                         }
                                     });
                                 });
@@ -601,56 +603,103 @@ BotManager.prototype.enableTwoFactor = function (activeAccount) {
                 else {
                     // Take back to main menu.
                     self.errorDebug("Declined addition of phone number.");
-                    self.displayMenu(activeAccount);
+                    self.displayMenu(botAccount);
                 }
             });
         }
     });
 };
 
-BotManager.prototype.unregisterAccount = function (accountDetails, callback) {
+/**
+ *
+ * @param {BotAccount} botAccount - The bot chosen as part of the random choice
+ * @param {errorCallback} errorCallback - A callback returned with possible errors
+ */
+BotManager.prototype.unregisterAccount = function (botAccount, errorCallback) {
     var self = this;
-    self.BotAccounts.splice(self.BotAccounts.indexOf(accountDetails), self.BotAccounts.indexOf(accountDetails) + 1);
+    self.BotAccounts.splice(self.BotAccounts.indexOf(botAccount), self.BotAccounts.indexOf(botAccount) + 1);
     // Temporarily disable the save part as we want to make sure we unregister the AUTH before deleting.
     //self.saveAccounts(function(err){
     //    self.errorDebug(err);
     //});
+    errorCallback(null);
 };
 
+/**
+ * Retrieve accounts registered within the instance
+ * @returns {Array} - Array of BotAccount objects
+ */
 BotManager.prototype.getAccounts = function () {
     var self = this;
     return self.BotAccounts;
 };
-BotManager.prototype.saveAccounts = function (callback) {
+
+/**
+ * @callback errorCallback
+ * @param {Error} error - An error message if the process failed, null if successful
+ */
+
+/**
+ * Save bot accounts into json file
+ * @param {errorCallback} errorCallback - A callback returned with possible errors
+ */
+BotManager.prototype.saveAccounts = function (errorCallback) {
     var self = this;
     self.dataControl.saveAccounts(self.getAccounts(), function (err) {
         if (err) {
-            callback(err);
+            errorCallback(err);
         }
-        callback(null);
+        errorCallback(null);
     });
 };
 
-
+/**
+ * Post/log an informational message.
+ * @param {string} message - Informational message to log
+ */
 BotManager.prototype.infoDebug = function (message) {
     console.log((message + " ").grey);
 };
+
+/**
+ * Post/log an error-type message
+ * @param {string} message - Error message to log
+ */
 BotManager.prototype.errorDebug = function (message) {
     console.log((message + " ").red);
 };
+
+/**
+ * Post/log a success-type message
+ * @param {String} message - Success message to log
+ */
 BotManager.prototype.successDebug = function (message) {
     console.log((message + " ").green);
 };
 
-BotManager.prototype.chooseRandomBot = function () {
+
+/**
+ * Callback response
+ * @callback botAccountCallback
+ * @param {Error} error - An error message if the process failed, null if successful
+ * @param {BotAccount} botAccount - The bot chosen as part of the random choice
+ */
+
+/**
+ * Choose a random bot
+ * @param {botAccountCallback} botAccountCallback - A callback to run
+ */
+BotManager.prototype.chooseRandomBot = function (botAccountCallback) {
     var self = this;
-    console.log(Math.floor(Math.round(Math.random() * self.getAccounts().length)));
-    return self.getAccounts()[0];
+    var randomBotIndex = Math.round(Math.random() * self.getAccounts().length);
+    if (randomBotIndex >= self.getAccounts().length) randomBotIndex--;
+    randomBotIndex = 0;
+    botAccountCallback(null, self.getAccounts()[randomBotIndex]);
 };
 
 
 /**
- * Apply format function for any string in the file (used to correctly format strings with variables).
+ * Format the string based on arguments provided after the string
  * @returns {String}
  */
 String.prototype.format = function () {
