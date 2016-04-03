@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Class: BotAccount</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Class: BotAccount</h1>
+
+
+    <section>
+
+        <header>
+
+            <h2>BotAccount</h2>
+
+
+        </header>
+
+        <article>
+            <div class="container-overview">
+
+
+                <h4 class="name" id="BotAccount"><span class="type-signature"></span>new BotAccount<span
+                        class="signature">()</span><span class="type-signature"></span></h4>
+
+
+                <div class="description">
+                    Creates a new BotAccount instance for a bot.
+                </div>
+
+
+                <dl class="details">
+
+
+                    <dt class="tag-source">Source:</dt>
+                    <dd class="tag-source">
+                        <ul class="dummy">
+                            <li>
+                                <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                    href="classes_BotAccount.js.html#line15">line 15</a>
+                            </li>
+                        </ul>
+                    </dd>
+
+
+                </dl>
+
+
+            </div>
+
+
+            <h3 class="subsection-title">Methods</h3>
+
+
+            <h4 class="name" id="changeName"><span class="type-signature"></span>changeName<span class="signature">(newName, namePrefix, errorCallback)</span><span
+                    class="type-signature"></span></h4>
+
+
+            <div class="description">
+                Change the display name of the account (with prefix)
+            </div>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>newName</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type"><a href="String.html">String</a></span>
+
+
+                    </td>
+
+
+                    <td class="description last">The new display name</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>namePrefix</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type"><a href="String.html">String</a></span>
+
+
+                    </td>
+
+
+                    <td class="description last">The prefix if there is one (Nullable)</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>errorCallback</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type"><a href="global.html#errorCallback">errorCallback</a></span>
+
+
+                    </td>
+
+
+                    <td class="description last">A callback returned with possible errors</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line268">line 268</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="generateMobileAuthenticationCode"><span class="type-signature"></span>generateMobileAuthenticationCode<span
+                    class="signature">()</span><span class="type-signature"> &rarr; {Error|<a
+                    href="String.html">String</a>}</span></h4>
+
+
+            <div class="description">
+                Generate two-factor-authentication code used for logging in.
+            </div>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line180">line 180</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h5>Returns:</h5>
+
+
+            <dl>
+                <dt>
+                    Type
+                </dt>
+                <dd>
+
+                    <span class="param-type">Error</span>
+                    |
+
+                    <span class="param-type"><a href="String.html">String</a></span>
+
+
+                </dd>
+            </dl>
+
+
+            <h4 class="name" id="generateMobileConfirmationCode"><span class="type-signature"></span>generateMobileConfirmationCode<span
+                    class="signature">(time, tag)</span><span class="type-signature"> &rarr; {Error}</span></h4>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>time</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last">Current time of trade (Please use getUnixTime())</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>tag</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last">Type of confirmation required ("conf" to load the confirmations page,
+                        "details" to load details about a trade, "allow" to confirm a trade, "cancel" to cancel it.)
+                    </td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line194">line 194</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h5>Returns:</h5>
+
+
+            <dl>
+                <dt>
+                    Type
+                </dt>
+                <dd>
+
+                    <span class="param-type">Error</span>
+
+
+                </dd>
+            </dl>
+
+
+            <h4 class="name" id="getAccount"><span class="type-signature"></span>getAccount<span
+                    class="signature">()</span><span class="type-signature"> &rarr; {*|Object}</span></h4>
+
+
+            <div class="description">
+                Get account details
+            </div>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line215">line 215</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h5>Returns:</h5>
+
+
+            <dl>
+                <dt>
+                    Type
+                </dt>
+                <dd>
+
+                    <span class="param-type">*</span>
+                    |
+
+                    <span class="param-type">Object</span>
+
+
+                </dd>
+            </dl>
+
+
+            <h4 class="name" id="getAccountName"><span class="type-signature"></span>getAccountName<span
+                    class="signature">()</span><span class="type-signature"> &rarr; {<a
+                    href="String.html">String</a>}</span></h4>
+
+
+            <div class="description">
+                Get the account's username, used to login to Steam
+            </div>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line171">line 171</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h5>Returns:</h5>
+
+
+            <div class="param-desc">
+                accountName
+            </div>
+
+
+            <dl>
+                <dt>
+                    Type
+                </dt>
+                <dd>
+
+                    <span class="param-type"><a href="String.html">String</a></span>
+
+
+                </dd>
+            </dl>
+
+
+            <h4 class="name" id="getConfirmations"><span class="type-signature"></span>getConfirmations<span
+                    class="signature">(time, key, confirmationsCallback)</span><span class="type-signature"></span></h4>
+
+
+            <div class="description">
+                Get outstanding confirmations
+            </div>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>time</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last"></td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>key</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last"></td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>confirmationsCallback</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last"></td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line241">line 241</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="getDisplayName"><span class="type-signature"></span>getDisplayName<span
+                    class="signature">()</span><span class="type-signature"> &rarr; {<a href="String.html">String</a>|null}</span>
+            </h4>
+
+
+            <div class="description">
+                Get the display name of the account
+            </div>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line258">line 258</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h5>Returns:</h5>
+
+
+            <div class="param-desc">
+                displayName - Display name of the account
+            </div>
+
+
+            <dl>
+                <dt>
+                    Type
+                </dt>
+                <dd>
+
+                    <span class="param-type"><a href="String.html">String</a></span>
+                    |
+
+                    <span class="param-type">null</span>
+
+
+                </dd>
+            </dl>
+
+
+            <h4 class="name" id="getUnixTime"><span class="type-signature"></span>getUnixTime<span
+                    class="signature">()</span><span class="type-signature"> &rarr; {number}</span></h4>
+
+
+            <div class="description">
+                Get Unix time for usage with mobile confirmations.
+            </div>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line206">line 206</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h5>Returns:</h5>
+
+
+            <dl>
+                <dt>
+                    Type
+                </dt>
+                <dd>
+
+                    <span class="param-type">number</span>
+
+
+                </dd>
+            </dl>
+
+
+            <h4 class="name" id="sendMessage"><span class="type-signature"></span>sendMessage<span class="signature">(recipient, message)</span><span
+                    class="type-signature"></span></h4>
+
+
+            <div class="description">
+                Send a chat message to a steam user
+            </div>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>recipient</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">SteamID</span>
+
+
+                    </td>
+
+
+                    <td class="description last">Recipient of the message</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>message</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type"><a href="String.html">String</a></span>
+
+
+                    </td>
+
+
+                    <td class="description last">Message to send</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line225">line 225</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="setChatting"><span class="type-signature"></span>setChatting<span class="signature">(chattingUserInfo)</span><span
+                    class="type-signature"></span></h4>
+
+
+            <div class="description">
+                Set the user we are chatting with
+            </div>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>chattingUserInfo</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">*</span>
+                        |
+
+                        <span class="param-type">Object</span>
+
+
+                    </td>
+
+
+                    <td class="description last"></td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line250">line 250</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h3 class="subsection-title">Events</h3>
+
+
+            <h4 class="name" id="event:friendOrChatMessage">friendOrChatMessage</h4>
+
+
+            <div class="description">
+                Emitted when a friend message or chat room message is received.
+            </div>
+
+
+            <h5>Type:</h5>
+            <ul>
+                <li>
+
+                    <span class="param-type">object</span>
+
+
+                </li>
+            </ul>
+
+
+            <h5 class="subsection-title">Properties:</h5>
+
+
+            <table class="props">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>senderID</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">SteamID</span>
+
+
+                    </td>
+
+
+                    <td class="description last">The message sender, as a SteamID object</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>message</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type"><a href="String.html">String</a></span>
+
+
+                    </td>
+
+
+                    <td class="description last">The message text</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>room</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">SteamID</span>
+
+
+                    </td>
+
+
+                    <td class="description last">The room to which the message was sent. This is the user's SteamID if
+                        it was a friend message
+                    </td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line68">line 68</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="event:loggedIn">loggedIn</h4>
+
+
+            <div class="description">
+                Emitted when we fully sign into Steam and all functions are usable.
+            </div>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line134">line 134</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="event:newOffer">newOffer</h4>
+
+
+            <div class="description">
+                Emitted when we receive a new trade offer
+            </div>
+
+
+            <h5>Type:</h5>
+            <ul>
+                <li>
+
+                    <span class="param-type">object</span>
+
+
+                </li>
+            </ul>
+
+
+            <h5 class="subsection-title">Properties:</h5>
+
+
+            <table class="props">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>offer</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">TradeOffer</span>
+
+
+                    </td>
+
+
+                    <td class="description last">The offer's details</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line102">line 102</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="event:offerChanged">offerChanged</h4>
+
+
+            <div class="description">
+                Emitted when a trade offer changes state (Ex. accepted, pending, escrow, etc...)
+            </div>
+
+
+            <h5>Type:</h5>
+            <ul>
+                <li>
+
+                    <span class="param-type">object</span>
+
+
+                </li>
+            </ul>
+
+
+            <h5 class="subsection-title">Properties:</h5>
+
+
+            <table class="props">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>offer</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">TradeOffer</span>
+
+
+                    </td>
+
+
+                    <td class="description last">The new offer's details</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>oldState</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">TradeOffer</span>
+
+
+                    </td>
+
+
+                    <td class="description last">The old offer's details</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line81">line 81</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="event:tradeOffers">tradeOffers</h4>
+
+
+            <div class="description">
+                Emitted when we receive a new trade offer notification (only provides amount of offers and no other
+                details)
+            </div>
+
+
+            <h5>Type:</h5>
+            <ul>
+                <li>
+
+                    <span class="param-type">object</span>
+
+
+                </li>
+            </ul>
+
+
+            <h5 class="subsection-title">Properties:</h5>
+
+
+            <table class="props">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>count</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Integer</span>
+
+
+                    </td>
+
+
+                    <td class="description last">The amount of active trade offers (can be 0).</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line124">line 124</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="event:updatedAccountDetails">updatedAccountDetails</h4>
+
+
+            <div class="description">
+                Updated an account's details (such as: username, password, sessionid, cookies...)
+            </div>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line50">line 50</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+        </article>
+
+    </section>
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2>
+    <h3>Classes</h3>
+    <ul>
+        <li><a href="BotAccount.html">BotAccount</a></li>
+        <li><a href="BotManager.html">BotManager</a></li>
+    </ul>
+    <h3>Events</h3>
+    <ul>
+        <li><a href="BotAccount.html#event:friendOrChatMessage">friendOrChatMessage</a></li>
+        <li><a href="BotAccount.html#event:loggedIn">loggedIn</a></li>
+        <li><a href="BotAccount.html#event:newOffer">newOffer</a></li>
+        <li><a href="BotAccount.html#event:offerChanged">offerChanged</a></li>
+        <li><a href="BotAccount.html#event:tradeOffers">tradeOffers</a></li>
+        <li><a href="BotAccount.html#event:updatedAccountDetails">updatedAccountDetails</a></li>
+    </ul>
+    <h3><a href="global.html">Global</a></h3>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Sat Apr 02 2016 19:03:47
+    GMT-0400 (Eastern Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>
