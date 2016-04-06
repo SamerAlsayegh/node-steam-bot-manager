@@ -680,24 +680,14 @@ BotManager.prototype.successDebug = function (message) {
     console.log((message + " ").green);
 };
 
-
-/**
- * Callback response
- * @callback botAccountCallback
- * @param {Error} error - An error message if the process failed, null if successful
- * @param {BotAccount} botAccount - The bot chosen as part of the random choice
- */
-
 /**
  * Choose a random bot
- * @param {botAccountCallback} botAccountCallback - A callback to run
  */
-BotManager.prototype.chooseRandomBot = function (botAccountCallback) {
+BotManager.prototype.chooseRandomBot = function () {
     var self = this;
     var randomBotIndex = Math.round(Math.random() * self.getAccounts().length);
     if (randomBotIndex >= self.getAccounts().length) randomBotIndex--;
-    randomBotIndex = 0;
-    botAccountCallback(null, self.getAccounts()[randomBotIndex]);
+    return self.getAccounts()[randomBotIndex];
 };
 
 
