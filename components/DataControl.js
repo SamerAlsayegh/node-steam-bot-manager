@@ -15,26 +15,31 @@ function DataControl(localURI) {
 
 DataControl.prototype.initData = function (callback) {
     var self = this;
-    self.loadConfig(function (err, confValidated) {
-        if (err) {
-            self.emit('error', err);
-            callback(err, null);
-        } else {
-            self.config = confValidated;
-
-            self.emit('debug', "Loaded config");
-            self.emit('loadedConfig', self.config);
-
-            self.loadAccounts(function (err, callbackAccounts) {
+    try {
+        fs.mkdirSync(self.localURI.substr(0, self.localURI.lastIndexOf("/")));
+        self.loadConfig(function (err, confValidated) {
                 if (err) {
                     self.emit('error', err);
-                    callback(err, callbackAccounts);
+                    callback(err, null);
                 } else {
-                    callback(err, callbackAccounts);
+                    self.config = confValidated;
+
+                    self.emit('debug', "Loaded config");
+                    self.emit('loadedConfig', self.config);
+
+                    self.loadAccounts(function (err, callbackAccounts) {
+                        if (err) {
+                            self.emit('error', err);
+                            callback(err, callbackAccounts);
+                        } else {
+                            callback(err, callbackAccounts);
+                        }
+                    });
                 }
             });
+    } catch (e) {
+        if (e.code != 'EEXIST') throw e;
         }
-    });
 };
 
 
