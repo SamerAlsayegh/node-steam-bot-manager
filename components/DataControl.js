@@ -10,36 +10,37 @@ DataControl.prototype.__proto__ = require('events').EventEmitter.prototype;
 function DataControl(localURI) {
     var self = this;
     self.localURI = localURI;
+    try {
+        fs.mkdirSync(localURI);
+    } catch (e) {
+        if (e.code != 'EEXIST') throw e;
+    }
 }
 
 
 DataControl.prototype.initData = function (callback) {
     var self = this;
-    try {
-        fs.mkdirSync(self.localURI.substr(0, self.localURI.lastIndexOf("/")));
-        self.loadConfig(function (err, confValidated) {
+    self.loadConfig(function (err, confValidated) {
+        if (err) {
+            self.emit('error', err);
+            callback(err, null);
+        } else {
+            self.config = confValidated;
+
+            self.emit('debug', "Loaded config");
+            self.emit('loadedConfig', self.config);
+
+            self.loadAccounts(function (err, callbackAccounts) {
                 if (err) {
                     self.emit('error', err);
-                    callback(err, null);
+                    callback(err, callbackAccounts);
                 } else {
-                    self.config = confValidated;
-
-                    self.emit('debug', "Loaded config");
-                    self.emit('loadedConfig', self.config);
-
-                    self.loadAccounts(function (err, callbackAccounts) {
-                        if (err) {
-                            self.emit('error', err);
-                            callback(err, callbackAccounts);
-                        } else {
-                            callback(err, callbackAccounts);
-                        }
-                    });
+                    callback(err, callbackAccounts);
                 }
             });
-    } catch (e) {
-        if (e.code != 'EEXIST') throw e;
         }
+    });
+
 };
 
 
@@ -118,7 +119,6 @@ DataControl.prototype.loadConfig = function (callback) {
             callback(e, null);
         }
     });
-
 
 
 };
