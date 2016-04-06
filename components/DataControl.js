@@ -101,8 +101,10 @@ DataControl.prototype.loadAccounts = function (callback) {
 
 DataControl.prototype.loadConfig = function (callback) {
     var self = this;
-
-    self.getFile(this.localURI + "/config.json", this.localURI + "/config_template.json", function (err, rawConfig) {
+    //this.localURI + "/config_template.json" depreciated...
+    self.getFile(this.localURI + "/config.json", {
+        bot_prefix: "__BOT_SHARED_PREFIX__"
+    }, function (err, rawConfig) {
 
         try {
             var configJSON = JSON.parse(rawConfig);

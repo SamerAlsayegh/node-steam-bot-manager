@@ -5,7 +5,10 @@
  * bot will accept any trades done by an admin in-which the bot offers something and the admin offers nothing.
  *
  */
-var BotManager = require('../index.js');// We will require the BotManager
+
+
+/* We will require the node-steam-bot-manager module to use it */
+var BotManager = require('node-steam-bot-manager');
 
 
 function InventoryBot() {
@@ -26,7 +29,7 @@ function InventoryBot() {
                         console.log(err);
 
                     // Since we (the bot) is giving away items, it must authorize the trades...
-                    activeAccount.confirmOutstandingTrades();
+                    activeAccount.confirmOutstandingTrades();// This will not ACCEPT or DECLINE Trades, it will simply authorize them, as you would with your phone/steam app.
                 });
             }
             else {

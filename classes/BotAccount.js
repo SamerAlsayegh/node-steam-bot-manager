@@ -131,6 +131,18 @@ function BotAccount(accountDetails) {
             self.emit('tradeOffers', count);
         });
 
+        self.client.on('steamGuard', function (domain, callback, lastCodeWrong) {
+            /**
+             * Emitted when Steam requests a Steam Guard code from us. You should collect the code from the user somehow and then call the callback with the code as the sole argument.
+             *
+             * @event BotAccount#steamGuard
+             * @type {object}
+             * @property {String} domain - If an email code is needed, the domain name of the address where the email was sent. null if an app code is needed.
+             * @property {Callback} callbackSteamGuard - Should be called when the code is available.
+             * @property {Boolean} lastCodeWrong - true if you're using 2FA and the last code you provided was wrong, false otherwise
+             */
+            self.emit('steamGuard', domain, callback, lastCodeWrong);
+        });
         /**
          * Emitted when we fully sign into Steam and all functions are usable.
          *
@@ -369,23 +381,22 @@ BotAccount.prototype.verifyPhoneNumber = function (code, callback) {
 };
 BotAccount.prototype.getFriends = function (callback) {
     var self = this;
-    self.onlineFriendsList = [];
+    var onlineFriendsList = [];
     // We need to convert SteamID to names... To do that, we need SteamCommunity package.
     for (var id in Object.keys(self.client.users)) {
-        self.onlineFriendsList.push({
+        onlineFriendsList.push({
             accountName: self.client.users[Object.keys(self.client.users)[id]].player_name,
             accountSid: Object.keys(self.client.users)[id]
         });
-        if (id > 30) {
-            break;// Only show 30 - so menu loads fast.
-        }
     }
-    self.onlineFriendsList.splice(0, 1);//First entry is usually the bot's name. So just delete it
-    callback({Error: new Error("Failed to find all friends?")}, self.onlineFriendsList);
+    self.emit('loadedFriends', onlineFriendsList);
+    onlineFriendsList.splice(0, 1);//First entry is usually the bot's name. So just delete it
+    callback({Error: new Error("Failed to find all friends?")}, onlineFriendsList);
 };
 
 BotAccount.prototype.createOffer = function (sid) {
     var self = this;
+    self.emit('createdOffer', sid);
     return self.trade.createOffer(sid);
 };
 
@@ -396,8 +407,7 @@ BotAccount.prototype.has_shared_secret = function () {
 
 BotAccount.prototype.loginAccount = function (authCode) {
     var self = this;
-
-
+    self.emit('loggingIn');
     var accountDetailsModified = self.accountDetails;
     if (self.accountDetails.shared_secret) {
         self.client.setOption("promptSteamGuardCode", false);
@@ -420,19 +430,19 @@ BotAccount.prototype.hasPhone = function (callback) {
 
 BotAccount.prototype.finalizeTwoFactor = function (shared_secret, activationCode, callback) {
     var self = this;
+    self.emit('finalizedTwoFactorAuth');
     self.client.finalizeTwoFactor(shared_secret, activationCode, callback);
 };
 
 BotAccount.prototype.enableTwoFactor = function (callback) {
     var self = this;
+    self.emit('enablingTwoFactorAuth');
     self.client.enableTwoFactor(function (response) {
-
         self.accountDetails.shared_secret = response.shared_secret;
         self.accountDetails.identity_secret = response.identity_secret;
         self.accountDetails.revocation_code = response.revocation_code;
-
+        self.emit('enabledTwoFactorAuth', response);
         callback(response);
-
     });
 };
 

@@ -1,14 +1,8 @@
-# NodeJS Bot Management Tool
+# About
 A bot management tool for [Steam Community](http://www.steamcommunity.com) built using NodeJS backend.
 
 [![forthebadge](http://forthebadge.com/images/badges/uses-js.svg)](http://forthebadge.com)
 [![forthebadge](http://forthebadge.com/images/badges/built-with-love.svg)](http://forthebadge.com)
-
-## Scope of the project
-The scope of this project is to be a SteamBot alternative for NodeJS.
-
-# CAUTION:
-#### It is not recommended to run this tool in production mode.
 
 ## Demo:
 TODO: None available yet.
@@ -35,6 +29,7 @@ You can check examples of bots you can build by navigating to the 'examples' fol
  - npm
 
 ### Install and run:
+Using clone/git:
 ~~~
 git clone https://github.com/Undeadkillz/node-steam-bot-manager # Clone the repo
 cd node-steam-bot-manager # Change directory to the cloned repo
@@ -43,6 +38,8 @@ chmod -R 777 examples/config # Make the config folder accessible for edits
 cd examples # Change directory to examples folder
 node InventoryBot.js # Run the example bot
 ~~~
+Using npm:
+
 
 ### How to run 24/7 (Linux)
 
@@ -52,7 +49,14 @@ node InventoryBot.js # Run the example bot
 #!/bin/bash
 screen -dmLS BotManager node InventoryBot.js
 ~~~
-- Finally, just run the script with 'node server.sh'
+- Make sure permissions are set appropriately
+~~~
+chmod 755 server.sh
+~~~
+- Finally, just run the script with
+~~~
+./server.sh
+~~~
 - You may then access it, by typing 'screen -x BotManager'
 
 ## Configuration:

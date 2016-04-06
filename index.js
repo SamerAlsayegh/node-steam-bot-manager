@@ -54,14 +54,14 @@ BotManager.prototype.startManager = function () {
         botAccount.on('displayBotMenu', function () {
             self.displayBotMenu();
         });
-        botAccount.on('sentOfferChanged', function (offer, oldState) {
-            self.emit('sentOfferChanged', offer, oldState);
+        botAccount.on('offerChanged', function (offer, oldState) {
+            self.emit('offerChanged', botAccount, offer, oldState);
         });
-
-
         botAccount.on('newOffer', function (offer) {
             self.emit('newOffer', botAccount, offer);
         });
+
+
         botAccount.on('loggedIn', function () {
             // User just logged in
             if (botAccount.getDisplayName() != null) {
@@ -80,14 +80,17 @@ BotManager.prototype.startManager = function () {
                 if (err)
                     self.errorDebug(err);
             });
+            self.emit('updatedAccountDetails', botAccount);
         });
 
         botAccount.on('incorrectCredentials', function (accountDetails) {
             // We must ask user for new details...
+            self.emit('incorrectCredentials', accountDetails);
             self.errorDebug("The following details are incorrect: \nusername: {0}\npassword: {1}".format(accountDetails.accountName, accountDetails.password));
         });
 
 
+        self.emit('loadedAccount', accountInfo);
         self.BotAccounts.push(botAccount);
     });
 

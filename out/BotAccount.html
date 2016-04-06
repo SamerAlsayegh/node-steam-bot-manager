@@ -160,7 +160,7 @@
                     <ul class="dummy">
                         <li>
                             <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
-                                href="classes_BotAccount.js.html#line268">line 268</a>
+                                href="classes_BotAccount.js.html#line280">line 280</a>
                         </li>
                     </ul>
                 </dd>
@@ -187,7 +187,7 @@
                     <ul class="dummy">
                         <li>
                             <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
-                                href="classes_BotAccount.js.html#line180">line 180</a>
+                                href="classes_BotAccount.js.html#line192">line 192</a>
                         </li>
                     </ul>
                 </dd>
@@ -281,7 +281,7 @@
                     <ul class="dummy">
                         <li>
                             <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
-                                href="classes_BotAccount.js.html#line194">line 194</a>
+                                href="classes_BotAccount.js.html#line206">line 206</a>
                         </li>
                     </ul>
                 </dd>
@@ -312,7 +312,7 @@
 
             <div class="description">
                 Get account details
-            </div>
+</div>
 
 
             <dl class="details">
@@ -323,7 +323,7 @@
                     <ul class="dummy">
                         <li>
                             <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
-                                href="classes_BotAccount.js.html#line215">line 215</a>
+                                href="classes_BotAccount.js.html#line227">line 227</a>
                         </li>
                     </ul>
                 </dd>
@@ -369,7 +369,7 @@
                     <ul class="dummy">
                         <li>
                             <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
-                                href="classes_BotAccount.js.html#line171">line 171</a>
+                                href="classes_BotAccount.js.html#line183">line 183</a>
                         </li>
                     </ul>
                 </dd>
@@ -482,7 +482,7 @@
                     <ul class="dummy">
                         <li>
                             <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
-                                href="classes_BotAccount.js.html#line241">line 241</a>
+                                href="classes_BotAccount.js.html#line253">line 253</a>
                         </li>
                     </ul>
                 </dd>
@@ -509,7 +509,7 @@
                     <ul class="dummy">
                         <li>
                             <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
-                                href="classes_BotAccount.js.html#line258">line 258</a>
+                                href="classes_BotAccount.js.html#line270">line 270</a>
                         </li>
                     </ul>
                 </dd>
@@ -559,7 +559,7 @@
                     <ul class="dummy">
                         <li>
                             <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
-                                href="classes_BotAccount.js.html#line206">line 206</a>
+                                href="classes_BotAccount.js.html#line218">line 218</a>
                         </li>
                     </ul>
                 </dd>
@@ -590,7 +590,7 @@
 
             <div class="description">
                 Send a chat message to a steam user
-</div>
+            </div>
 
 
             <h5>Parameters:</h5>
@@ -661,7 +661,7 @@
                     <ul class="dummy">
                         <li>
                             <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
-                                href="classes_BotAccount.js.html#line225">line 225</a>
+                                href="classes_BotAccount.js.html#line237">line 237</a>
                         </li>
                     </ul>
                 </dd>
@@ -732,7 +732,7 @@
                     <ul class="dummy">
                         <li>
                             <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
-                                href="classes_BotAccount.js.html#line250">line 250</a>
+                                href="classes_BotAccount.js.html#line262">line 262</a>
                         </li>
                     </ul>
                 </dd>
@@ -876,7 +876,7 @@
                     <ul class="dummy">
                         <li>
                             <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
-                                href="classes_BotAccount.js.html#line134">line 134</a>
+                                href="classes_BotAccount.js.html#line146">line 146</a>
                         </li>
                     </ul>
                 </dd>
@@ -1059,6 +1059,125 @@
             </dl>
 
 
+            <h4 class="name" id="event:steamGuard">steamGuard</h4>
+
+
+            <div class="description">
+                Emitted when Steam requests a Steam Guard code from us. You should collect the code from the user
+                somehow and then call the callback with the code as the sole argument.
+</div>
+
+
+            <h5>Type:</h5>
+    <ul>
+        <li>
+
+            <span class="param-type">object</span>
+
+
+        </li>
+    </ul>
+
+
+            <h5 class="subsection-title">Properties:</h5>
+
+
+            <table class="props">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>domain</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type"><a href="String.html">String</a></span>
+
+
+                    </td>
+
+
+                    <td class="description last">If an email code is needed, the domain name of the address where the
+                        email was sent. null if an app code is needed.
+                    </td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>callbackSteamGuard</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Callback</span>
+
+
+                    </td>
+
+
+                    <td class="description last">Should be called when the code is available.</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>lastCodeWrong</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Boolean</span>
+
+
+                    </td>
+
+
+                    <td class="description last">true if you're using 2FA and the last code you provided was wrong,
+                        false otherwise
+                    </td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line135">line 135</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
             <h4 class="name" id="event:tradeOffers">tradeOffers</h4>
 
 
@@ -1069,14 +1188,14 @@
 
 
             <h5>Type:</h5>
-            <ul>
-                <li>
+    <ul>
+        <li>
 
-                    <span class="param-type">object</span>
+            <span class="param-type">object</span>
 
 
-                </li>
-            </ul>
+        </li>
+    </ul>
 
 
             <h5 class="subsection-title">Properties:</h5>
@@ -1183,6 +1302,7 @@
         <li><a href="BotAccount.html#event:loggedIn">loggedIn</a></li>
         <li><a href="BotAccount.html#event:newOffer">newOffer</a></li>
         <li><a href="BotAccount.html#event:offerChanged">offerChanged</a></li>
+        <li><a href="BotAccount.html#event:steamGuard">steamGuard</a></li>
         <li><a href="BotAccount.html#event:tradeOffers">tradeOffers</a></li>
         <li><a href="BotAccount.html#event:updatedAccountDetails">updatedAccountDetails</a></li>
     </ul>
@@ -1192,7 +1312,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Sat Apr 02 2016 20:31:53
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Sat Apr 02 2016 23:34:46
     GMT-0400 (Eastern Daylight Time)
 </footer>
 

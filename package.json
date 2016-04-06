@@ -1,14 +1,14 @@
 {
   "name": "node-steam-bot-manager",
   "version": "1.0.0",
-  "description": "A NodeJS Steam Community Bot Management tool. ",
+  "description": "A NodeJS Steam Bot Management tool. ",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Undeadkillz/node_steam_bot.git"
+    "url": "git+https://github.com/Undeadkillz/node-steam-bot-manager.git"
   },
   "keywords": [
     "nodejs",
