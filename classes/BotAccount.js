@@ -347,7 +347,9 @@ BotAccount.prototype.confirmOutstandingTrades = function () {
     var time = self.getUnixTime();
     self.getConfirmations(time, self.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
         if (err) {
-            console.log("Error: " + err);
+            self.emit('debug', {msg: "Failed to confirm outstanding trades"});
+            self.emit('error', {code: 503, msg: "Failed to confirm outstanding trades"});
+            setTimeout(self.confirmOutstandingTrades(), 5000);
         }
         else {
             for (var confirmId in confirmations) {
@@ -356,9 +358,6 @@ BotAccount.prototype.confirmOutstandingTrades = function () {
                         if (err) {
                             console.log("Trade failed to confirm");
                             console.log(err);
-                        }
-                        else {
-                            console.log("Confirmed trade.");
                         }
                     });
                 }
@@ -444,6 +443,10 @@ BotAccount.prototype.enableTwoFactor = function (callback) {
         self.emit('enabledTwoFactorAuth', response);
         callback(response);
     });
+};
+
+BotAccount.prototype.getStateName = function (state) {
+    return TradeOfferManager.getStateName(state);
 };
 
 BotAccount.prototype.setTempSetting = function (tempSetting, tempSettingValue) {

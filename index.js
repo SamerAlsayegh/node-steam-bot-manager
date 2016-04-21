@@ -327,8 +327,6 @@ BotManager.prototype.displayMenu = function (botAccount) {
                                         for (var id in inventory) {
                                             if (inventory.hasOwnProperty(id)) {
                                                 nameList.push(inventory[id].name);
-                                                if (id > 30)
-                                                    break;
                                             }
                                         }
 
@@ -345,24 +343,30 @@ BotManager.prototype.displayMenu = function (botAccount) {
                                             var menuEntry = nameList.indexOf(result.tradeOption);
                                             currentOffer.addMyItem(inventory[menuEntry]);
                                             currentOffer.send("Manual offer triggered by Bot Manager.", null, function (err, status) {
-                                                console.log(err);// if 50, then too many trades to this user currently...
-                                                var time = botAccount.getUnixTime();
-                                                botAccount.getConfirmations(time, botAccount.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
-                                                    if (err) {
-                                                        console.log(err);
-                                                    }
-                                                    else {
-                                                        for (var confirmId in confirmations) {
-                                                            if (confirmations.hasOwnProperty(confirmId)) {
-                                                                confirmations[confirmId].respond(time, botAccount.generateMobileConfirmationCode(time, "allow"), true, function (err) {
-                                                                    if (err) {
-                                                                        self.errorDebug("Trade failed to confirm");
-                                                                    }
-                                                                });
+                                                if (err) {
+                                                    self.errorDebug(err);
+                                                    self.displayMenu(botAccount);
+                                                } else {
+                                                    var time = botAccount.getUnixTime();
+                                                    botAccount.getConfirmations(time, botAccount.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
+                                                        if (err) {
+                                                            self.errorDebug(err);
+                                                            self.displayMenu(botAccount);
+                                                        }
+                                                        else {
+                                                            for (var confirmId in confirmations) {
+                                                                if (confirmations.hasOwnProperty(confirmId)) {
+                                                                    confirmations[confirmId].respond(time, botAccount.generateMobileConfirmationCode(time, "allow"), true, function (err) {
+                                                                        if (err) {
+                                                                            self.errorDebug("Trade failed to confirm");
+                                                                        }
+                                                                        self.displayMenu(botAccount);
+                                                                    });
+                                                                }
                                                             }
                                                         }
-                                                    }
-                                                });
+                                                    });
+                                                }
                                             });
                                         });
                                     });
@@ -685,8 +689,7 @@ BotManager.prototype.successDebug = function (message) {
  */
 BotManager.prototype.chooseRandomBot = function () {
     var self = this;
-    var randomBotIndex = Math.round(Math.random() * self.getAccounts().length);
-    if (randomBotIndex >= self.getAccounts().length) randomBotIndex--;
+    var randomBotIndex = Math.floor((Math.random() * self.getAccounts().length) % 1 == 0 && (Math.random() * self.getAccounts().length) > 0 ? self.getAccounts().length - 1 : (Math.random() * self.getAccounts().length));
     return self.getAccounts()[randomBotIndex];
 };
 
