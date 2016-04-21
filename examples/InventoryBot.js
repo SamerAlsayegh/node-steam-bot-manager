@@ -4,6 +4,7 @@
  * and
  * bot will accept any trades done by an admin in-which the bot offers something and the admin offers nothing.
  *
+ * Make sure you copy this file and not use it directly. Follow install instructions on github.
  */
 
 
@@ -12,11 +13,11 @@ var BotManager = require('node-steam-bot-manager');
 
 
 function InventoryBot() {
-    var botsManager = new BotManager();// Create new instanceof the BotManager
+    var botsManager = new BotManager();// Create new instance of the BotManager
 
     // Once we receive an offer from someone (Using trade offers not live trades)
     botsManager.on('newOffer', function (activeAccount, offer) {
-        // 'activeAccount' refers to us (the bot) doing the trade, check docs.
+        // 'activeAccount' refers to us (the bot receiving the offer) doing the trade, check docs for more info.
         // 'offer' contains details about the trade, check docs.
 
         // We check if we are receiving or giving items.
@@ -56,7 +57,6 @@ function InventoryBot() {
             });
         }
     });
-    console.log("Random value? " + botsManager.chooseRandomBot());
     botsManager.startManager();// You must start the manager at the end so that all the hooks above it, are registered.
 }
 

@@ -28,20 +28,19 @@ You can check examples of bots you can build by navigating to the 'examples' fol
  - NodeJS
  - npm
 
-### Install and run:
-Using clone/git:
+### Install and run (using Example bot):
+Using npm:
 ~~~
-git clone https://github.com/Undeadkillz/node-steam-bot-manager # Clone the repo
-cd node-steam-bot-manager # Change directory to the cloned repo
-npm install # Installs all libraries required
-chmod -R 777 examples/config # Make the config folder accessible for edits
-cd examples # Change directory to examples folder
+npm i node-steam-bot-manager --save
+~~~
+Copy 'InventoryBot.js' found in 'examples' folder.
+[Link to raw-file](https://raw.githubusercontent.com/Undeadkillz/node-steam-bot-manager/master/examples/InventoryBot.js)
+~~~
 node InventoryBot.js # Run the example bot
 ~~~
-Using npm:
+That's it! If you encounter issues, just post in 'Issues' or contact me on Steam (link below)
 
-
-### How to run 24/7 (Linux)
+### How to run 24/7 (Linux - using Example bot)
 
 - 'yum install screen' or 'apt-get install screen' (Use based on your distro)
 - Create a 'server.sh' file wherever the bot you would like to run is (ex. InventoryBot.js) and paste the following:
@@ -107,7 +106,7 @@ I will ensure everything works, however I won't be building any unit-tests at th
 
 
 ## Credits:
-- [Undeadkillz](https://github.com/Undeadkillz) | Add me on: **[Steam](http://steamcommunity.com/profiles/76561198042954517/)** - **[Skype](skype:undeadkillz?chat)**
+- [Undeadkillz](https://github.com/Undeadkillz) | Add me on: **[Steam](http://steamcommunity.com/profiles/76561198042954517/)**
 - All authors and helpers of the libraries listed above (with their respective library urls)
 
 [![forthebadge](http://forthebadge.com/images/badges/powered-by-water.svg)](http://forthebadge.com)
