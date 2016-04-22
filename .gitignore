@@ -14,7 +14,8 @@ node_modules
 # Optional npm cache directory
 .npm
 
-
+.idea
+out
 # Config files
 private
 

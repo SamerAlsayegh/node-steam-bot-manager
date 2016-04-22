@@ -1,11 +1,19 @@
 # About
 A bot management tool for [Steam Community](http://www.steamcommunity.com) built using NodeJS backend.
 
+
+
+Version 1.0.25
+
 [![forthebadge](http://forthebadge.com/images/badges/uses-js.svg)](http://forthebadge.com)
 [![forthebadge](http://forthebadge.com/images/badges/built-with-love.svg)](http://forthebadge.com)
 
 ## Demo:
-TODO: None available yet.
+##### Check out [csgospin.win](csgospin.win) for a demo of the bot in action using a custom built handler.
+
+To showcase a demo of your use, pm Undeadkillz on Steam or Github with your website using this bot.
+
+
 
 ## Examples:
 You can check examples of bots you can build by navigating to the 'examples' folder in the root of the project.
@@ -18,10 +26,11 @@ You can check examples of bots you can build by navigating to the 'examples' fol
 - Handle API sign-up process*
 - Manage multiple bots at once
 - API system
-- Plugin-capable (Customize the actions of the bot)
+- Custom handler for your usage (Customize the actions of the bot)
 
 ## TODO:
 - Add registration account checking
+- Add further error checking
 
 ## Set-up
 ### Prerequisites:
