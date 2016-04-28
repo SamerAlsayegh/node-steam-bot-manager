@@ -288,25 +288,46 @@ BotAccount.prototype.changeName = function (newName, namePrefix, errorCallback) 
     });
 };
 
-BotAccount.prototype.getInventory = function (appid, contextid, tradeableOnly, callback) {
+/**
+ * @callback inventoryCallback
+ * @param {Error} error - An error message if the process failed, null if successful
+ * @param {Array} inventory - An array of Items returned via fetch
+ * @param {Array} currencies - An array of currencies (Only a few games use this)
+ */
+
+/**
+ * Retrieve account inventory based on filters
+ * @param {Integer} appid - appid by-which to fetch inventory based on.
+ * @param {Integer} contextid - contextid of lookup (1 - Gifts, 2 - In-game Items, 3 - Coupons, 6 - Game Cards, Profile Backgrounds & Emoticons)
+ * @param {Boolean} tradableOnly - Items retrieved must be tradable
+ * @param {inventoryCallback} inventoryCallback - Inventory details (refer to inventoryCallback for more info.)
+ */
+BotAccount.prototype.getInventory = function (appid, contextid, tradableOnly, inventoryCallback) {
     var self = this;
-    self.trade.loadInventory(appid, contextid, tradeableOnly, callback);
+    self.trade.loadInventory(appid, contextid, tradableOnly, inventoryCallback);
 };
 
-
-BotAccount.prototype.getUserInventory = function (steamID, appid, contextid, tradableOnly, callback) {
+/**
+ * Retrieve account inventory based on filters and provided steamID
+ * @param {SteamID} steamID - SteamID to use for lookup of inventory
+ * @param {Integer} appid - appid by-which to fetch inventory based on.
+ * @param {Integer} contextid - contextid of lookup (1 - Gifts, 2 - In-game Items, 3 - Coupons, 6 - Game Cards, Profile Backgrounds & Emoticons)
+ * @param {Boolean} tradableOnly - Items retrieved must be tradableOnly
+ * @param {inventoryCallback} inventoryCallback - Inventory details (refer to inventoryCallback for more info.)
+ */
+BotAccount.prototype.getUserInventory = function (steamID, appid, contextid, tradableOnly, inventoryCallback) {
     var self = this;
-    self.trade.loadUserInventory(steamID, appid, contextid, tradableOnly, callback);
+    self.trade.loadUserInventory(steamID, appid, contextid, tradableOnly, inventoryCallback);
 };
-BotAccount.prototype.addPhoneNumber = function (phoneNumber, callback) {
+/**
+ * Add a phone-number to the account (For example before setting up 2-factor authentication)
+ * @param phoneNumber - Certain format must be followed
+ * @param {errorCallback} errorCallback - A callback returned with possible errors
+ */
+BotAccount.prototype.addPhoneNumber = function (phoneNumber, errorCallback) {
     var self = this;
     self.store.addPhoneNumber(phoneNumber, true, function (err) {
-        if (err) {
-            callback(err);
-        }
-        else {
-            callback(null);
-        }
+        errorCallback(err);
     });
 };
 
@@ -407,6 +428,7 @@ BotAccount.prototype.has_shared_secret = function () {
 BotAccount.prototype.loginAccount = function (authCode) {
     var self = this;
     self.emit('loggingIn');
+    self.emit('debug', "Logging into account");
     var accountDetailsModified = self.accountDetails;
     if (self.accountDetails.shared_secret) {
         self.client.setOption("promptSteamGuardCode", false);
@@ -467,6 +489,7 @@ BotAccount.prototype.deleteTempSetting = function (tempSetting) {
 
 BotAccount.prototype.logoutAccount = function () {
     var self = this;
+    self.emit('debug', "Logging out from '" + self.getAccountName() + "'");
     self.client.logOff();
 };
 

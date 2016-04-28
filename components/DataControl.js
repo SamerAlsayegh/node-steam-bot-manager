@@ -11,6 +11,7 @@ function DataControl(localURI) {
     var self = this;
     self.localURI = localURI;
     try {
+        self.emit('debug', "Creating missing folder.");
         fs.mkdirSync(localURI);
     } catch (e) {
         if (e.code != 'EEXIST') throw e;
