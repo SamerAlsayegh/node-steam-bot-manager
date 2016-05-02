@@ -136,7 +136,9 @@ BotManager.prototype.displayBotMenu = function () {
             choices: tempList
         }
     ];
-    inquirer.prompt(botList, function (result) {
+
+    inquirer.prompt(botList).then(function (result) {
+        // Use user feedback for... whatever!!
         switch (result.accountName) {
 
             case 'register':
@@ -154,7 +156,7 @@ BotManager.prototype.displayBotMenu = function () {
                     }
                 ];
 
-                inquirer.prompt(questions, function (result) {
+                inquirer.prompt(questions).then(function (result) {
                     self.dataControl.registerAccount({accountName: result.accountName, password: result.password});
                     self.displayBotMenu();
                 });
@@ -175,8 +177,6 @@ BotManager.prototype.displayBotMenu = function () {
                 });
                 break;
         }
-
-
     });
 };
 
@@ -211,7 +211,7 @@ BotManager.prototype.processChat = function (botAccount, target) {
             name: 'message'
         }
     ];
-    inquirer.prompt(chatMessage, function (result) {
+    inquirer.prompt(chatMessage).then(function (result) {
         if (result.message.toLowerCase() == "quit" || result.message.toLowerCase() == "exit") {
             botAccount.setChatting(null);
             self.displayMenu(botAccount);
@@ -245,7 +245,7 @@ BotManager.prototype.displayMenu = function (botAccount) {
                 choices: menuOptions
             }
         ];
-        inquirer.prompt(mainMenu, function (result) {
+        inquirer.prompt(mainMenu).then(function (result) {
             var menuEntry = menuOptions.indexOf(result.menuOption);
             switch (menuEntry) {
                 case 0:
@@ -266,7 +266,7 @@ BotManager.prototype.displayMenu = function (botAccount) {
                                 choices: nameList
                             }
                         ];
-                        inquirer.prompt(chatMenu, function (result) {
+                        inquirer.prompt(chatMenu).then(function (result) {
                             var menuEntry = nameList.indexOf(result.chatOption);
                             // We will open chat with...
                             switch (menuEntry) {
@@ -306,7 +306,7 @@ BotManager.prototype.displayMenu = function (botAccount) {
                                 choices: nameList
                             }
                         ];
-                        inquirer.prompt(tradeMenu, function (result) {
+                        inquirer.prompt(tradeMenu).then(function (result) {
                             var menuEntry = nameList.indexOf(result.tradeOption);
                             // We will open chat with...
                             switch (menuEntry) {
@@ -339,7 +339,7 @@ BotManager.prototype.displayMenu = function (botAccount) {
                                                 choices: nameList
                                             }
                                         ];
-                                        inquirer.prompt(tradeMenu, function (result) {
+                                        inquirer.prompt(tradeMenu).then(function (result) {
                                             var menuEntry = nameList.indexOf(result.tradeOption);
                                             currentOffer.addMyItem(inventory[menuEntry]);
                                             currentOffer.send("Manual offer triggered by Bot Manager.", null, function (err, status) {
@@ -403,7 +403,7 @@ BotManager.prototype.displayMenu = function (botAccount) {
                             choices: authOptions
                         }
                     ];
-                    inquirer.prompt(authMenu, function (result) {
+                    inquirer.prompt(authMenu).then(function (result) {
                         var optionIndex = authOptions.indexOf(result.authOption);
                         switch (optionIndex) {
                             case 0:
@@ -421,7 +421,7 @@ BotManager.prototype.displayMenu = function (botAccount) {
                                     }
                                 ];
 
-                                inquirer.prompt(questions, function (result) {
+                                inquirer.prompt(questions).then(function (result) {
                                     botAccount.changeName(result.newName, config.bot_prefix, function (err) {
                                         if (err) {
                                             self.errorDebug("Failed to change name. Error: ", err);
@@ -471,8 +471,8 @@ BotManager.prototype.displayMenu = function (botAccount) {
                             message: 'Are you sure you want to delete \'' + botAccount.accountName + '\' account?'
                         }
                     ];
-                    inquirer.prompt(questions, function (answers) {
-                        if (answers.askDelete) {
+                    inquirer.prompt(questions).then(function (result) {
+                        if (result.askDelete) {
                             self.unregisterAccount(botAccount, function (err) {
                                 if (err) {
                                     // Failed...
@@ -523,7 +523,7 @@ BotManager.prototype.enableTwoFactor = function (botAccount) {
                         }
                     ];
 
-                    inquirer.prompt(questions, function (result) {
+                    inquirer.prompt(questions).then(function (result) {
                         if (result.code) {
                             var steamCode = result.code;
                             botAccount.finalizeTwoFactor(response.shared_secret, steamCode, function (err, keyInformation) {
@@ -558,7 +558,7 @@ BotManager.prototype.enableTwoFactor = function (botAccount) {
                 }
             ];
 
-            inquirer.prompt(questions, function (result) {
+            inquirer.prompt(questions).then(function (result) {
                 if (result.confirmAddition) {
 
                     var questions = [
@@ -576,7 +576,7 @@ BotManager.prototype.enableTwoFactor = function (botAccount) {
                         }
                     ];
 
-                    inquirer.prompt(questions, function (result) {
+                    inquirer.prompt(questions).then(function (result) {
                         botAccount.addPhoneNumber(result.phoneNumber, function (err) {
                             if (err) {
                                 self.errorDebug(err);
@@ -591,7 +591,7 @@ BotManager.prototype.enableTwoFactor = function (botAccount) {
                                     }
                                 ];
 
-                                inquirer.prompt(questions, function (result) {
+                                inquirer.prompt(questions).then(function (result) {
                                     botAccount.verifyPhoneNumber(result.code, function (err) {
                                         if (err) {
                                             self.errorDebug(err);
