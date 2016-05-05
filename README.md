@@ -2,8 +2,7 @@
 A bot management tool for [Steam Community](http://www.steamcommunity.com) built using NodeJS backend.
 
 
-
-Version 1.0.28
+[![npm version](https://badge.fury.io/js/node-steam-bot-manager.svg)](https://badge.fury.io/js/node-steam-bot-manager)
 
 [![forthebadge](http://forthebadge.com/images/badges/uses-js.svg)](http://forthebadge.com)
 [![forthebadge](http://forthebadge.com/images/badges/built-with-love.svg)](http://forthebadge.com)
@@ -12,7 +11,6 @@ Version 1.0.28
 ##### Check out [www.csgospin.win](http://csgospin.win) for a demo of the bot in action using a custom built handler.
 
 To showcase a demo of your use, pm Undeadkillz on Steam or Github with your website using this bot.
-
 
 
 ## Examples:
@@ -30,7 +28,7 @@ You can check examples of bots you can build by navigating to the 'examples' fol
 
 ## TODO:
 - Add registration account checking
-- Add further error checking
+- Add further error handling
 
 ## Set-up
 ### Prerequisites:
@@ -38,6 +36,10 @@ You can check examples of bots you can build by navigating to the 'examples' fol
  - npm
 
 ### Install and run (using Example bot):
+
+[![NPM](https://nodei.co/npm/node-steam-bot-manager.png?downloads=true)](https://nodei.co/npm/node-steam-bot-manager/)
+
+
 Using npm:
 ~~~
 npm i node-steam-bot-manager --save
@@ -120,5 +122,6 @@ I will ensure everything works, however I won't be building any unit-tests at th
 
 [![forthebadge](http://forthebadge.com/images/badges/powered-by-water.svg)](http://forthebadge.com)
 [![forthebadge](http://forthebadge.com/images/badges/gluten-free.svg)](http://forthebadge.com)
+
 
 \* Using this feature means you agree to Steam's API terms found at: [Steam API Terms](http://steamcommunity.com/dev/apiterms)

@@ -1,7 +1,7 @@
 {
   "name": "node-steam-bot-manager",
-  "version": "1.0.28",
-  "description": "A NodeJS Steam Bot Management tool. ",
+  "version": "1.0.29",
+  "description": "A NodeJS Steam Bot Management tool.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -19,7 +19,7 @@
     "chat",
     "marketplace"
   ],
-  "author": "Samer Alsayegh <samer@pvpkillz.com> (http://www.SamerAlsayegh.com)",
+  "author": "Samer Alsayegh <s.s409_@hotmail.com> (http://www.SamerAlsayegh.com)",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Undeadkillz/node-steam-bot-manager/issues"
@@ -29,7 +29,7 @@
     "body-parser": "^1.15.0",
     "colors": "^1.1.2",
     "express": "^4.13.4",
-    "fs": "0.0.2",
+    "fs": "^0.0.2",
     "inquirer": "^1.0.2",
     "jsdoc": "^3.4.0",
     "request": "*",

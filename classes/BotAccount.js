@@ -331,8 +331,18 @@ BotAccount.prototype.addPhoneNumber = function (phoneNumber, errorCallback) {
     });
 };
 
+/**
+ * @callback acceptedTradesCallback
+ * @param {Error} error - An error message if the process failed, null if successful
+ * @param {Array} acceptedTrades - An array of trades that were confirmed in the process.
+ */
 
-BotAccount.prototype.confirmTradesFromUser = function (SteamID, callback) {
+/**
+ * Confirm (not accept) all sent trades associated with a certain SteamID via the two-factor authenticator.
+ * @param {SteamID} steamID - SteamID to use for lookup of inventory
+ * @param {acceptedTradesCallback} acceptedTradesCallback - Inventory details (refer to inventoryCallback for more info.)
+ */
+BotAccount.prototype.confirmTradesFromUser = function (steamID, acceptedTradesCallback) {
     var self = this;
 
     self.trade.getOffers(1, null, function (err, sent, received) {
@@ -363,6 +373,9 @@ BotAccount.prototype.confirmTradesFromUser = function (SteamID, callback) {
     // Old confirmation code - removed due to not providing enought info.
 };
 
+/**
+ * Confirm (not accept) all outstanding trades that were sent out, regardless of trade target via the two-factor authenticator.
+ */
 BotAccount.prototype.confirmOutstandingTrades = function () {
     var self = this;
     var time = self.getUnixTime();

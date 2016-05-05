@@ -223,6 +223,7 @@ BotManager.prototype.processChat = function (botAccount, target) {
     });
 };
 
+
 BotManager.prototype.displayMenu = function (botAccount) {
     var self = this;
     botAccount.community.loggedIn(function (err, loggedIn, familyView) {
@@ -323,6 +324,12 @@ BotManager.prototype.displayMenu = function (botAccount) {
                                     // Trade with user selected.
                                     var currentOffer = botAccount.createOffer(friendsList[menuEntry].accountSid);
                                     botAccount.getInventory(730, 2, true, function (err, inventory, currencies) {
+                                        if (inventory.length < 1) {
+                                            self.infoDebug("Bot has no items in inventory. Redirecting to menu...");
+                                            self.displayMenu(botAccount);
+                                            return;
+                                        }
+
                                         var nameList = [];
                                         for (var id in inventory) {
                                             if (inventory.hasOwnProperty(id)) {
@@ -333,15 +340,28 @@ BotManager.prototype.displayMenu = function (botAccount) {
 
                                         var tradeMenu = [
                                             {
-                                                type: 'list',
+                                                type: 'checkbox',
                                                 name: 'tradeOption',
-                                                message: 'What would you like to offer?',
-                                                choices: nameList
+                                                message: 'What would you like to offer? (\'Enter\' to send trade)',
+                                                choices: nameList,
+                                                validate: function (answer) {
+                                                    if (answer.length < 1) {
+                                                        self.displayMenu(botAccount);
+                                                        return false;
+                                                    }
+                                                    return true;
+                                                }
                                             }
+
                                         ];
                                         inquirer.prompt(tradeMenu).then(function (result) {
-                                            var menuEntry = nameList.indexOf(result.tradeOption);
-                                            currentOffer.addMyItem(inventory[menuEntry]);
+                                            for (var itemNameIndex in result.tradeOption) {
+                                                if (result.tradeOption.hasOwnProperty(itemNameIndex)) {
+                                                    var itemName = result.tradeOption[itemNameIndex];
+                                                    currentOffer.addMyItem(inventory[nameList.indexOf(itemName)]);
+                                                    nameList[nameList.indexOf(itemName)] = {name: itemName, displayed: true};
+                                                }
+                                            }
                                             currentOffer.send("Manual offer triggered by Bot Manager.", null, function (err, status) {
                                                 if (err) {
                                                     self.errorDebug(err);
@@ -497,6 +517,8 @@ BotManager.prototype.displayMenu = function (botAccount) {
         });
     });
 };
+
+
 /**
  * Start the two-factor-authentication process using the GUI
  * @param {BotAccount} botAccount - The bot chosen to enable two-factor authentication for.
