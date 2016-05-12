@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <title>JSDoc: Source: classes/BotAccount.js</title>
 
-    <script src="scripts/prettify/prettify.js"></script>
-    <script src="scripts/prettify/lang-css.js"></script>
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
     <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
     <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
     <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
@@ -19,7 +19,11 @@
 
     <h1 class="page-title">Source: classes/BotAccount.js</h1>
 
+    
 
+
+
+    
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>var SteamUser = require('steam-user');
@@ -153,6 +157,7 @@ function BotAccount(accountDetails) {
              * @property {Integer} count - The amount of active trade offers (can be 0).
              */
             self.emit('tradeOffers', count);
+            self.setTempSetting('tradeOffers', count);
         });
 
         self.client.on('steamGuard', function (domain, callback, lastCodeWrong) {
@@ -162,7 +167,7 @@ function BotAccount(accountDetails) {
              * @event BotAccount#steamGuard
              * @type {object}
              * @property {String} domain - If an email code is needed, the domain name of the address where the email was sent. null if an app code is needed.
-             * @property {Callback} callbackSteamGuard - Should be called when the code is available.
+             * @property {callbackSteamGuard} callbackSteamGuard - Should be called when the code is available.
              * @property {Boolean} lastCodeWrong - true if you're using 2FA and the last code you provided was wrong, false otherwise
              */
             self.emit('steamGuard', domain, callback, lastCodeWrong);
@@ -181,8 +186,6 @@ function BotAccount(accountDetails) {
         console.log(e);
         switch (e.eresult) {
             case 5:
-                console.log("in correct auth??");
-
                 self.emit('incorrectCredentials', self.accountDetails);
                 var tempAccountDetails = {
                     accountName: self.accountDetails.accountName,
@@ -200,6 +203,14 @@ function BotAccount(accountDetails) {
 
 }
 
+/**
+ * Get the current trade offers on the account.
+ * @returns {Integer} tradeOfferCount
+ */
+BotAccount.prototype.getTradeOffers = function(){
+    var self = this;
+    return self.getTempSetting('tradeOffers') ? self.getTempSetting('tradeOffers') : 0;
+};
 /**
  * Get the account's username, used to login to Steam
  * @returns {String} accountName
@@ -312,30 +323,61 @@ BotAccount.prototype.changeName = function (newName, namePrefix, errorCallback) 
     });
 };
 
-BotAccount.prototype.getInventory = function (appid, contextid, tradeableOnly, callback) {
+/**
+ * @callback inventoryCallback
+ * @param {Error} error - An error message if the process failed, null if successful
+ * @param {Array} inventory - An array of Items returned via fetch
+ * @param {Array} currencies - An array of currencies (Only a few games use this)
+ */
+
+/**
+ * Retrieve account inventory based on filters
+ * @param {Integer} appid - appid by-which to fetch inventory based on.
+ * @param {Integer} contextid - contextid of lookup (1 - Gifts, 2 - In-game Items, 3 - Coupons, 6 - Game Cards, Profile Backgrounds &amp; Emoticons)
+ * @param {Boolean} tradableOnly - Items retrieved must be tradable
+ * @param {inventoryCallback} inventoryCallback - Inventory details (refer to inventoryCallback for more info.)
+ */
+BotAccount.prototype.getInventory = function (appid, contextid, tradableOnly, inventoryCallback) {
     var self = this;
-    self.trade.loadInventory(appid, contextid, tradeableOnly, callback);
+    self.trade.loadInventory(appid, contextid, tradableOnly, inventoryCallback);
 };
 
-
-BotAccount.prototype.getUserInventory = function (steamID, appid, contextid, tradableOnly, callback) {
+/**
+ * Retrieve account inventory based on filters and provided steamID
+ * @param {SteamID} steamID - SteamID to use for lookup of inventory
+ * @param {Integer} appid - appid by-which to fetch inventory based on.
+ * @param {Integer} contextid - contextid of lookup (1 - Gifts, 2 - In-game Items, 3 - Coupons, 6 - Game Cards, Profile Backgrounds &amp; Emoticons)
+ * @param {Boolean} tradableOnly - Items retrieved must be tradableOnly
+ * @param {inventoryCallback} inventoryCallback - Inventory details (refer to inventoryCallback for more info.)
+ */
+BotAccount.prototype.getUserInventory = function (steamID, appid, contextid, tradableOnly, inventoryCallback) {
     var self = this;
-    self.trade.loadUserInventory(steamID, appid, contextid, tradableOnly, callback);
+    self.trade.loadUserInventory(steamID, appid, contextid, tradableOnly, inventoryCallback);
 };
-BotAccount.prototype.addPhoneNumber = function (phoneNumber, callback) {
+/**
+ * Add a phone-number to the account (For example before setting up 2-factor authentication)
+ * @param phoneNumber - Certain format must be followed
+ * @param {errorCallback} errorCallback - A callback returned with possible errors
+ */
+BotAccount.prototype.addPhoneNumber = function (phoneNumber, errorCallback) {
     var self = this;
     self.store.addPhoneNumber(phoneNumber, true, function (err) {
-        if (err) {
-            callback(err);
-        }
-        else {
-            callback(null);
-        }
+        errorCallback(err);
     });
 };
 
+/**
+ * @callback acceptedTradesCallback
+ * @param {Error} error - An error message if the process failed, null if successful
+ * @param {Array} acceptedTrades - An array of trades that were confirmed in the process.
+ */
 
-BotAccount.prototype.confirmTradesFromUser = function (SteamID, callback) {
+/**
+ * Accept and confirm all sent or received trades associated with a certain SteamID.
+ * @param {SteamID} steamID - SteamID to use for lookup of inventory
+ * @param {acceptedTradesCallback} acceptedTradesCallback - Accepted trades callback along with any errors.
+ */
+BotAccount.prototype.acceptTradesFromUser = function (steamID, acceptedTradesCallback) {
     var self = this;
 
     self.trade.getOffers(1, null, function (err, sent, received) {
@@ -363,16 +405,17 @@ BotAccount.prototype.confirmTradesFromUser = function (SteamID, callback) {
 
         callback(err, acceptedTrades);
     });
-    // Old confirmation code - removed due to not providing enought info.
 };
 
+/**
+ * Confirm (not accept) all outstanding trades that were sent out, regardless of trade target via the two-factor authenticator.
+ */
 BotAccount.prototype.confirmOutstandingTrades = function () {
     var self = this;
     var time = self.getUnixTime();
     self.getConfirmations(time, self.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
         if (err) {
-            self.emit('debug', {msg: "Failed to confirm outstanding trades"});
-            self.emit('error', {code: 503, msg: "Failed to confirm outstanding trades"});
+            self.emit('error', {code: 503, msg: "Failed to fetch outstanding trades"});
             setTimeout(self.confirmOutstandingTrades(), 5000);
         }
         else {
@@ -380,8 +423,7 @@ BotAccount.prototype.confirmOutstandingTrades = function () {
                 if (confirmations.hasOwnProperty(confirmId)) {
                     confirmations[confirmId].respond(time, self.generateMobileConfirmationCode(time, "allow"), true, function (err) {
                         if (err) {
-                            console.log("Trade failed to confirm");
-                            console.log(err);
+                            self.emit('error', {code: 503, msg: "Failed to confirm outstanding trades"});
                         }
                     });
                 }
@@ -414,7 +456,7 @@ BotAccount.prototype.getFriends = function (callback) {
     }
     self.emit('loadedFriends', onlineFriendsList);
     onlineFriendsList.splice(0, 1);//First entry is usually the bot's name. So just delete it
-    callback({Error: new Error("Failed to find all friends?")}, onlineFriendsList);
+    callback(null, onlineFriendsList);
 };
 
 BotAccount.prototype.createOffer = function (sid) {
@@ -431,6 +473,7 @@ BotAccount.prototype.has_shared_secret = function () {
 BotAccount.prototype.loginAccount = function (authCode) {
     var self = this;
     self.emit('loggingIn');
+    self.emit('debug', "Logging into account");
     var accountDetailsModified = self.accountDetails;
     if (self.accountDetails.shared_secret) {
         self.client.setOption("promptSteamGuardCode", false);
@@ -491,6 +534,7 @@ BotAccount.prototype.deleteTempSetting = function (tempSetting) {
 
 BotAccount.prototype.logoutAccount = function () {
     var self = this;
+    self.emit('debug', "Logging out from '" + self.getAccountName() + "'");
     self.client.logOff();
 };
 
@@ -501,36 +545,21 @@ module.exports = BotAccount;
     </section>
 
 
+
+
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2>
-    <h3>Classes</h3>
-    <ul>
-        <li><a href="BotAccount.html">BotAccount</a></li>
-        <li><a href="BotManager.html">BotManager</a></li>
-    </ul>
-    <h3>Events</h3>
-    <ul>
-        <li><a href="BotAccount.html#event:friendOrChatMessage">friendOrChatMessage</a></li>
-        <li><a href="BotAccount.html#event:loggedIn">loggedIn</a></li>
-        <li><a href="BotAccount.html#event:newOffer">newOffer</a></li>
-        <li><a href="BotAccount.html#event:offerChanged">offerChanged</a></li>
-        <li><a href="BotAccount.html#event:steamGuard">steamGuard</a></li>
-        <li><a href="BotAccount.html#event:tradeOffers">tradeOffers</a></li>
-        <li><a href="BotAccount.html#event:updatedAccountDetails">updatedAccountDetails</a></li>
-    </ul>
-    <h3><a href="global.html">Global</a></h3>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BotAccount.html">BotAccount</a></li><li><a href="BotManager.html">BotManager</a></li></ul><h3>Events</h3><ul><li><a href="BotAccount.html#event:friendOrChatMessage">friendOrChatMessage</a></li><li><a href="BotAccount.html#event:loggedIn">loggedIn</a></li><li><a href="BotAccount.html#event:newOffer">newOffer</a></li><li><a href="BotAccount.html#event:offerChanged">offerChanged</a></li><li><a href="BotAccount.html#event:steamGuard">steamGuard</a></li><li><a href="BotAccount.html#event:tradeOffers">tradeOffers</a></li><li><a href="BotAccount.html#event:updatedAccountDetails">updatedAccountDetails</a></li></ul><h3><a href="global.html">Global</a></h3>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Thu Apr 28 2016 14:08:38
-    GMT-0400 (Eastern Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Fri May 13 2016 00:54:29 GMT+0400 (Arabian Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"></script>
+<script src="scripts/linenumber.js"> </script>
 </body>
 </html>

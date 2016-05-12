@@ -77,12 +77,9 @@ Once completed, you may run the bot again with the changes taking effect.
 ---
 ### Registering a Bot:
 - Choose 'register' option from main menu (use arrow keys to navigate the menu)
-- Enter the username of the bot [The credentials are not yet checked, so be sure of the credentials.]
-- Enter the password of the bot [The credentials are not yet checked, so be sure of the credentials.]
-- Main menu will appear with new bot.
-- Use arrow keys to choose the bot you want to manage.
-
-
+- Enter the username of the bot
+- Enter the password of the bot
+- Main menu will appear with new bot which is navigated using arrow keys.
 
 
 

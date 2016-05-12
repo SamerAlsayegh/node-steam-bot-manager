@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <title>JSDoc: Source: index.js</title>
 
-    <script src="scripts/prettify/prettify.js"></script>
-    <script src="scripts/prettify/lang-css.js"></script>
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
     <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
     <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
     <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
@@ -19,7 +19,11 @@
 
     <h1 class="page-title">Source: index.js</h1>
 
+    
 
+
+
+    
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>const inquirer = require("inquirer");
@@ -78,9 +82,22 @@ BotManager.prototype.startManager = function () {
         botAccount.on('displayBotMenu', function () {
             self.displayBotMenu();
         });
+        botAccount.on('sentOfferChanged', function (offer, oldState) {
+            self.emit('sentOfferChanged', botAccount, offer, oldState);
+        });
+        botAccount.on('friendOrChatMessage', function (senderid, message, room) {
+            self.emit('friendOrChatMessage', botAccount, senderid, message, room);
+        });
+        botAccount.on('tradeOffers', function (count) {
+            self.emit('tradeOffers', botAccount, count);
+        });
         botAccount.on('offerChanged', function (offer, oldState) {
             self.emit('offerChanged', botAccount, offer, oldState);
         });
+        botAccount.on('offerChanged', function (offer, oldState) {
+            self.emit('offerChanged', botAccount, offer, oldState);
+        });
+        
         botAccount.on('newOffer', function (offer) {
             self.emit('newOffer', botAccount, offer);
         });
@@ -160,7 +177,9 @@ BotManager.prototype.displayBotMenu = function () {
             choices: tempList
         }
     ];
-    inquirer.prompt(botList, function (result) {
+
+    inquirer.prompt(botList).then(function (result) {
+        // Use user feedback for... whatever!!
         switch (result.accountName) {
 
             case 'register':
@@ -178,7 +197,7 @@ BotManager.prototype.displayBotMenu = function () {
                     }
                 ];
 
-                inquirer.prompt(questions, function (result) {
+                inquirer.prompt(questions).then(function (result) {
                     self.dataControl.registerAccount({accountName: result.accountName, password: result.password});
                     self.displayBotMenu();
                 });
@@ -199,8 +218,6 @@ BotManager.prototype.displayBotMenu = function () {
                 });
                 break;
         }
-
-
     });
 };
 
@@ -235,7 +252,7 @@ BotManager.prototype.processChat = function (botAccount, target) {
             name: 'message'
         }
     ];
-    inquirer.prompt(chatMessage, function (result) {
+    inquirer.prompt(chatMessage).then(function (result) {
         if (result.message.toLowerCase() == "quit" || result.message.toLowerCase() == "exit") {
             botAccount.setChatting(null);
             self.displayMenu(botAccount);
@@ -246,6 +263,7 @@ BotManager.prototype.processChat = function (botAccount, target) {
         }
     });
 };
+
 
 BotManager.prototype.displayMenu = function (botAccount) {
     var self = this;
@@ -269,7 +287,7 @@ BotManager.prototype.displayMenu = function (botAccount) {
                 choices: menuOptions
             }
         ];
-        inquirer.prompt(mainMenu, function (result) {
+        inquirer.prompt(mainMenu).then(function (result) {
             var menuEntry = menuOptions.indexOf(result.menuOption);
             switch (menuEntry) {
                 case 0:
@@ -290,7 +308,7 @@ BotManager.prototype.displayMenu = function (botAccount) {
                                 choices: nameList
                             }
                         ];
-                        inquirer.prompt(chatMenu, function (result) {
+                        inquirer.prompt(chatMenu).then(function (result) {
                             var menuEntry = nameList.indexOf(result.chatOption);
                             // We will open chat with...
                             switch (menuEntry) {
@@ -330,7 +348,7 @@ BotManager.prototype.displayMenu = function (botAccount) {
                                 choices: nameList
                             }
                         ];
-                        inquirer.prompt(tradeMenu, function (result) {
+                        inquirer.prompt(tradeMenu).then(function (result) {
                             var menuEntry = nameList.indexOf(result.tradeOption);
                             // We will open chat with...
                             switch (menuEntry) {
@@ -347,6 +365,12 @@ BotManager.prototype.displayMenu = function (botAccount) {
                                     // Trade with user selected.
                                     var currentOffer = botAccount.createOffer(friendsList[menuEntry].accountSid);
                                     botAccount.getInventory(730, 2, true, function (err, inventory, currencies) {
+                                        if (inventory.length &lt; 1) {
+                                            self.infoDebug("Bot has no items in inventory. Redirecting to menu...");
+                                            self.displayMenu(botAccount);
+                                            return;
+                                        }
+
                                         var nameList = [];
                                         for (var id in inventory) {
                                             if (inventory.hasOwnProperty(id)) {
@@ -357,15 +381,28 @@ BotManager.prototype.displayMenu = function (botAccount) {
 
                                         var tradeMenu = [
                                             {
-                                                type: 'list',
+                                                type: 'checkbox',
                                                 name: 'tradeOption',
-                                                message: 'What would you like to offer?',
-                                                choices: nameList
+                                                message: 'What would you like to offer? (\'Enter\' to send trade)',
+                                                choices: nameList,
+                                                validate: function (answer) {
+                                                    if (answer.length &lt; 1) {
+                                                        self.displayMenu(botAccount);
+                                                        return false;
+                                                    }
+                                                    return true;
+                                                }
                                             }
+
                                         ];
-                                        inquirer.prompt(tradeMenu, function (result) {
-                                            var menuEntry = nameList.indexOf(result.tradeOption);
-                                            currentOffer.addMyItem(inventory[menuEntry]);
+                                        inquirer.prompt(tradeMenu).then(function (result) {
+                                            for (var itemNameIndex in result.tradeOption) {
+                                                if (result.tradeOption.hasOwnProperty(itemNameIndex)) {
+                                                    var itemName = result.tradeOption[itemNameIndex];
+                                                    currentOffer.addMyItem(inventory[nameList.indexOf(itemName)]);
+                                                    nameList[nameList.indexOf(itemName)] = {name: itemName, displayed: true};
+                                                }
+                                            }
                                             currentOffer.send("Manual offer triggered by Bot Manager.", null, function (err, status) {
                                                 if (err) {
                                                     self.errorDebug(err);
@@ -427,7 +464,7 @@ BotManager.prototype.displayMenu = function (botAccount) {
                             choices: authOptions
                         }
                     ];
-                    inquirer.prompt(authMenu, function (result) {
+                    inquirer.prompt(authMenu).then(function (result) {
                         var optionIndex = authOptions.indexOf(result.authOption);
                         switch (optionIndex) {
                             case 0:
@@ -445,7 +482,7 @@ BotManager.prototype.displayMenu = function (botAccount) {
                                     }
                                 ];
 
-                                inquirer.prompt(questions, function (result) {
+                                inquirer.prompt(questions).then(function (result) {
                                     botAccount.changeName(result.newName, config.bot_prefix, function (err) {
                                         if (err) {
                                             self.errorDebug("Failed to change name. Error: ", err);
@@ -495,8 +532,8 @@ BotManager.prototype.displayMenu = function (botAccount) {
                             message: 'Are you sure you want to delete \'' + botAccount.accountName + '\' account?'
                         }
                     ];
-                    inquirer.prompt(questions, function (answers) {
-                        if (answers.askDelete) {
+                    inquirer.prompt(questions).then(function (result) {
+                        if (result.askDelete) {
                             self.unregisterAccount(botAccount, function (err) {
                                 if (err) {
                                     // Failed...
@@ -521,6 +558,8 @@ BotManager.prototype.displayMenu = function (botAccount) {
         });
     });
 };
+
+
 /**
  * Start the two-factor-authentication process using the GUI
  * @param {BotAccount} botAccount - The bot chosen to enable two-factor authentication for.
@@ -547,7 +586,7 @@ BotManager.prototype.enableTwoFactor = function (botAccount) {
                         }
                     ];
 
-                    inquirer.prompt(questions, function (result) {
+                    inquirer.prompt(questions).then(function (result) {
                         if (result.code) {
                             var steamCode = result.code;
                             botAccount.finalizeTwoFactor(response.shared_secret, steamCode, function (err, keyInformation) {
@@ -582,7 +621,7 @@ BotManager.prototype.enableTwoFactor = function (botAccount) {
                 }
             ];
 
-            inquirer.prompt(questions, function (result) {
+            inquirer.prompt(questions).then(function (result) {
                 if (result.confirmAddition) {
 
                     var questions = [
@@ -600,7 +639,7 @@ BotManager.prototype.enableTwoFactor = function (botAccount) {
                         }
                     ];
 
-                    inquirer.prompt(questions, function (result) {
+                    inquirer.prompt(questions).then(function (result) {
                         botAccount.addPhoneNumber(result.phoneNumber, function (err) {
                             if (err) {
                                 self.errorDebug(err);
@@ -615,7 +654,7 @@ BotManager.prototype.enableTwoFactor = function (botAccount) {
                                     }
                                 ];
 
-                                inquirer.prompt(questions, function (result) {
+                                inquirer.prompt(questions).then(function (result) {
                                     botAccount.verifyPhoneNumber(result.code, function (err) {
                                         if (err) {
                                             self.errorDebug(err);
@@ -741,36 +780,21 @@ module.exports = BotManager;
     </section>
 
 
+
+
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2>
-    <h3>Classes</h3>
-    <ul>
-        <li><a href="BotAccount.html">BotAccount</a></li>
-        <li><a href="BotManager.html">BotManager</a></li>
-    </ul>
-    <h3>Events</h3>
-    <ul>
-        <li><a href="BotAccount.html#event:friendOrChatMessage">friendOrChatMessage</a></li>
-        <li><a href="BotAccount.html#event:loggedIn">loggedIn</a></li>
-        <li><a href="BotAccount.html#event:newOffer">newOffer</a></li>
-        <li><a href="BotAccount.html#event:offerChanged">offerChanged</a></li>
-        <li><a href="BotAccount.html#event:steamGuard">steamGuard</a></li>
-        <li><a href="BotAccount.html#event:tradeOffers">tradeOffers</a></li>
-        <li><a href="BotAccount.html#event:updatedAccountDetails">updatedAccountDetails</a></li>
-    </ul>
-    <h3><a href="global.html">Global</a></h3>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BotAccount.html">BotAccount</a></li><li><a href="BotManager.html">BotManager</a></li></ul><h3>Events</h3><ul><li><a href="BotAccount.html#event:friendOrChatMessage">friendOrChatMessage</a></li><li><a href="BotAccount.html#event:loggedIn">loggedIn</a></li><li><a href="BotAccount.html#event:newOffer">newOffer</a></li><li><a href="BotAccount.html#event:offerChanged">offerChanged</a></li><li><a href="BotAccount.html#event:steamGuard">steamGuard</a></li><li><a href="BotAccount.html#event:tradeOffers">tradeOffers</a></li><li><a href="BotAccount.html#event:updatedAccountDetails">updatedAccountDetails</a></li></ul><h3><a href="global.html">Global</a></h3>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Thu Apr 28 2016 14:08:38
-    GMT-0400 (Eastern Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Fri May 13 2016 00:54:29 GMT+0400 (Arabian Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"></script>
+<script src="scripts/linenumber.js"> </script>
 </body>
 </html>

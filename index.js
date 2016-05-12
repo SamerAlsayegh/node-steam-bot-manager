@@ -54,9 +54,22 @@ BotManager.prototype.startManager = function () {
         botAccount.on('displayBotMenu', function () {
             self.displayBotMenu();
         });
+        botAccount.on('sentOfferChanged', function (offer, oldState) {
+            self.emit('sentOfferChanged', botAccount, offer, oldState);
+        });
+        botAccount.on('friendOrChatMessage', function (senderid, message, room) {
+            self.emit('friendOrChatMessage', botAccount, senderid, message, room);
+        });
+        botAccount.on('tradeOffers', function (count) {
+            self.emit('tradeOffers', botAccount, count);
+        });
         botAccount.on('offerChanged', function (offer, oldState) {
             self.emit('offerChanged', botAccount, offer, oldState);
         });
+        botAccount.on('offerChanged', function (offer, oldState) {
+            self.emit('offerChanged', botAccount, offer, oldState);
+        });
+        
         botAccount.on('newOffer', function (offer) {
             self.emit('newOffer', botAccount, offer);
         });

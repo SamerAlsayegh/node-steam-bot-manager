@@ -129,6 +129,7 @@ function BotAccount(accountDetails) {
              * @property {Integer} count - The amount of active trade offers (can be 0).
              */
             self.emit('tradeOffers', count);
+            self.setTempSetting('tradeOffers', count);
         });
 
         self.client.on('steamGuard', function (domain, callback, lastCodeWrong) {
@@ -138,7 +139,7 @@ function BotAccount(accountDetails) {
              * @event BotAccount#steamGuard
              * @type {object}
              * @property {String} domain - If an email code is needed, the domain name of the address where the email was sent. null if an app code is needed.
-             * @property {Callback} callbackSteamGuard - Should be called when the code is available.
+             * @property {callbackSteamGuard} callbackSteamGuard - Should be called when the code is available.
              * @property {Boolean} lastCodeWrong - true if you're using 2FA and the last code you provided was wrong, false otherwise
              */
             self.emit('steamGuard', domain, callback, lastCodeWrong);
@@ -157,8 +158,6 @@ function BotAccount(accountDetails) {
         console.log(e);
         switch (e.eresult) {
             case 5:
-                console.log("in correct auth??");
-
                 self.emit('incorrectCredentials', self.accountDetails);
                 var tempAccountDetails = {
                     accountName: self.accountDetails.accountName,
@@ -176,6 +175,14 @@ function BotAccount(accountDetails) {
 
 }
 
+/**
+ * Get the current trade offers on the account.
+ * @returns {Integer} tradeOfferCount
+ */
+BotAccount.prototype.getTradeOffers = function(){
+    var self = this;
+    return self.getTempSetting('tradeOffers') ? self.getTempSetting('tradeOffers') : 0;
+};
 /**
  * Get the account's username, used to login to Steam
  * @returns {String} accountName
@@ -338,11 +345,11 @@ BotAccount.prototype.addPhoneNumber = function (phoneNumber, errorCallback) {
  */
 
 /**
- * Confirm (not accept) all sent trades associated with a certain SteamID via the two-factor authenticator.
+ * Accept and confirm all sent or received trades associated with a certain SteamID.
  * @param {SteamID} steamID - SteamID to use for lookup of inventory
- * @param {acceptedTradesCallback} acceptedTradesCallback - Inventory details (refer to inventoryCallback for more info.)
+ * @param {acceptedTradesCallback} acceptedTradesCallback - Accepted trades callback along with any errors.
  */
-BotAccount.prototype.confirmTradesFromUser = function (steamID, acceptedTradesCallback) {
+BotAccount.prototype.acceptTradesFromUser = function (steamID, acceptedTradesCallback) {
     var self = this;
 
     self.trade.getOffers(1, null, function (err, sent, received) {
@@ -370,7 +377,6 @@ BotAccount.prototype.confirmTradesFromUser = function (steamID, acceptedTradesCa
 
         callback(err, acceptedTrades);
     });
-    // Old confirmation code - removed due to not providing enought info.
 };
 
 /**
@@ -381,8 +387,7 @@ BotAccount.prototype.confirmOutstandingTrades = function () {
     var time = self.getUnixTime();
     self.getConfirmations(time, self.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
         if (err) {
-            self.emit('debug', {msg: "Failed to confirm outstanding trades"});
-            self.emit('error', {code: 503, msg: "Failed to confirm outstanding trades"});
+            self.emit('error', {code: 503, msg: "Failed to fetch outstanding trades"});
             setTimeout(self.confirmOutstandingTrades(), 5000);
         }
         else {
@@ -390,8 +395,7 @@ BotAccount.prototype.confirmOutstandingTrades = function () {
                 if (confirmations.hasOwnProperty(confirmId)) {
                     confirmations[confirmId].respond(time, self.generateMobileConfirmationCode(time, "allow"), true, function (err) {
                         if (err) {
-                            console.log("Trade failed to confirm");
-                            console.log(err);
+                            self.emit('error', {code: 503, msg: "Failed to confirm outstanding trades"});
                         }
                     });
                 }
@@ -424,7 +428,7 @@ BotAccount.prototype.getFriends = function (callback) {
     }
     self.emit('loadedFriends', onlineFriendsList);
     onlineFriendsList.splice(0, 1);//First entry is usually the bot's name. So just delete it
-    callback({Error: new Error("Failed to find all friends?")}, onlineFriendsList);
+    callback(null, onlineFriendsList);
 };
 
 BotAccount.prototype.createOffer = function (sid) {
