@@ -69,7 +69,7 @@ BotManager.prototype.startManager = function () {
         botAccount.on('offerChanged', function (offer, oldState) {
             self.emit('offerChanged', botAccount, offer, oldState);
         });
-        
+
         botAccount.on('newOffer', function (offer) {
             self.emit('newOffer', botAccount, offer);
         });
@@ -541,14 +541,14 @@ BotManager.prototype.enableTwoFactor = function (botAccount) {
     botAccount.hasPhone(function (err, hasPhone, lastDigits) {
         if (hasPhone) {
             botAccount.enableTwoFactor(function (response) {
-                if (response.result == 84) {
+                if (response.status == 84) {
                     // Rate limit exceeded. So delay the next request
-                    self.successDebug("Please wait 2 seconds to continue...");
+                    self.successDebug("Please wait 5 seconds to continue... Possibly blocked by Steam for sending out too many SMS's. Retry in 24 hours, please.");
                     setTimeout(function () {
                         self.enableTwoFactor(botAccount);
-                    }, 2000);
+                    }, 5000);
                 }
-                else if (response.result == 1) {
+                else if (response.status == 1) {
                     self.successDebug("Make sure to save the following code saved somewhere secure: {0}".format(response.revocation_code));
                     var questions = [
                         {
@@ -578,7 +578,9 @@ BotManager.prototype.enableTwoFactor = function (botAccount) {
                     });
                 }
                 else {
-                    self.errorDebug("Error encountered while trying to enable two-factor-authentication, error code: " + response.result);
+                    self.errorDebug("Error encountered while trying to enable two-factor-authentication, error code: " + response);
+                    self.errorDebug(response);
+
                     self.displayBotMenu();
                 }
             });
