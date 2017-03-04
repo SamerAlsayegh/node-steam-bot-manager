@@ -4,10 +4,10 @@
     <meta charset="utf-8">
     <title>JSDoc: Source: components/DataControl.js</title>
 
-    <script src="scripts/prettify/prettify.js"></script>
-    <script src="scripts/prettify/lang-css.js"></script>
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
     <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
     <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
     <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
@@ -19,184 +19,181 @@
 
     <h1 class="page-title">Source: components/DataControl.js</h1>
 
+    
 
+
+
+    
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>var fs = require('fs');
-                var index = require('../index.js');
+var index = require('../index.js');
 
 
-                DataControl.prototype.config = {};
+DataControl.prototype.config = {};
 
-                DataControl.prototype.__proto__ = require('events').EventEmitter.prototype;
-
-
-                function DataControl(localURI) {
-                var self = this;
-                self.localURI = localURI;
-                }
+DataControl.prototype.__proto__ = require('events').EventEmitter.prototype;
 
 
-                DataControl.prototype.initData = function (callback) {
-                var self = this;
-                self.loadConfig(function (err, confValidated) {
+function DataControl(localURI) {
+    var self = this;
+    self.localURI = localURI;
+    try {
+        self.emit('debug', "Creating missing folder.");
+        fs.mkdirSync(localURI);
+    } catch (e) {
+        if (e.code != 'EEXIST') throw e;
+    }
+}
+
+
+DataControl.prototype.initData = function (callback) {
+    var self = this;
+    self.loadConfig(function (err, confValidated) {
+        if (err) {
+            self.emit('error', err);
+            callback(err, null);
+        } else {
+            self.config = confValidated;
+
+            self.emit('debug', "Loaded config");
+            self.emit('loadedConfig', self.config);
+
+            self.loadAccounts(function (err, callbackAccounts) {
                 if (err) {
-                self.emit('error', err);
-                callback(err, null);
+                    self.emit('error', err);
+                    callback(err, callbackAccounts);
                 } else {
-                self.config = confValidated;
-
-                self.emit('debug', "Loaded config");
-                self.emit('loadedConfig', self.config);
-
-                self.loadAccounts(function (err, callbackAccounts) {
-                if (err) {
-                self.emit('error', err);
-                callback(err, callbackAccounts);
-                } else {
-                callback(err, callbackAccounts);
+                    callback(err, callbackAccounts);
                 }
-                });
-                }
-                });
-                };
+            });
+        }
+    });
+
+};
 
 
-                DataControl.prototype.validateConfig = function (config, callback) {
-                if (!config.hasOwnProperty("bot_prefix"))
-                config.bot_prefix = "";// Default bot prefix
-                //if (!config.hasOwnProperty("api_port")) // Removed = disable api system
-                // config.api_port = 1338;// Default api port
+DataControl.prototype.validateConfig = function (config, callback) {
+    if (!config.hasOwnProperty("bot_prefix"))
+        config.bot_prefix = "";// Default bot prefix
+    //if (!config.hasOwnProperty("api_port")) // Removed = disable api system
+    //    config.api_port = 1338;// Default api port
 
-                callback(null, config);
-                };
+    callback(null, config);
+};
 
-                DataControl.prototype.registerAccount = function (accountDetails) {
-                var self = this;
-                self.emit('loadedAccount', accountDetails);
-                };
+DataControl.prototype.registerAccount = function (accountDetails) {
+    var self = this;
+    self.emit('loadedAccount', accountDetails);
+};
 
 
-                DataControl.prototype.getFile = function (filePath, expectedForm, callback) {
-                var self = this;
-                try {
-                var rawContents = fs.readFileSync(filePath);
-                callback(null, rawContents);
-                } catch (e) {
-                try {
-                if (typeof expectedForm == "string") {
+DataControl.prototype.getFile = function (filePath, expectedForm, callback) {
+    var self = this;
+    try {
+        var rawContents = fs.readFileSync(filePath);
+        callback(null, rawContents);
+    } catch (e) {
+        try {
+            if (typeof expectedForm == "string") {
                 var stream = fs.createReadStream(expectedForm).pipe(fs.createWriteStream(filePath));
                 stream.on('finish', function () {
-                self.getFile(filePath, expectedForm, callback);
+                    self.getFile(filePath, expectedForm, callback);
                 });
-                }
-                else {
+            }
+            else {
                 fs.writeFile(filePath, JSON.stringify(expectedForm), function (err) {
-                self.getFile(filePath, expectedForm, callback);
+                    self.getFile(filePath, expectedForm, callback);
                 });
-                }
-                } catch (e) {
-                callback(e, null);
-                }
-                }
-                };
+            }
+        } catch (e) {
+            callback(e, null);
+        }
+    }
+};
 
 
-                DataControl.prototype.loadAccounts = function (callback) {
-                var self = this;
-                var accountList = [];
-                self.getFile(this.localURI + "/accounts.json", [], function (err, rawAccounts) {
+DataControl.prototype.loadAccounts = function (callback) {
+    var self = this;
+    var accountList = [];
+    self.getFile(this.localURI + "/accounts.json", [], function (err, rawAccounts) {
 
-                try {
-                var accountsJSON = JSON.parse(rawAccounts);
-                for (var accountIndex in accountsJSON) {
+        try {
+            var accountsJSON = JSON.parse(rawAccounts);
+            for (var accountIndex in accountsJSON) {
                 if (accountsJSON.hasOwnProperty(accountIndex)) {
-                self.emit('loadedAccount', accountsJSON[accountIndex]);
-                accountList.push(accountsJSON[accountIndex]);
+                    self.emit('loadedAccount', accountsJSON[accountIndex]);
+                    accountList.push(accountsJSON[accountIndex]);
                 }
-                }
-                callback(null, accountList);
-                } catch (e) {
-                callback(e, null);
-                }
-                });
-                };
+            }
+            callback(null, accountList);
+        } catch (e) {
+            callback(e, null);
+        }
+    });
+};
 
 
-                DataControl.prototype.loadConfig = function (callback) {
-                var self = this;
+DataControl.prototype.loadConfig = function (callback) {
+    var self = this;
+    //this.localURI + "/config_template.json" depreciated...
+    self.getFile(this.localURI + "/config.json", {
+        bot_prefix: "__BOT_SHARED_PREFIX__"
+    }, function (err, rawConfig) {
 
-                self.getFile(this.localURI + "/config.json", this.localURI + "/config_template.json", function (err,
-                rawConfig) {
-
-                try {
-                var configJSON = JSON.parse(rawConfig);
-                self.validateConfig(configJSON, callback)
-                } catch (e) {
-                callback(e, null);
-                }
-                });
-
-
-                };
-                DataControl.prototype.getConfig = function () {
-                var self = this;
-                return self.config;
-                };
+        try {
+            var configJSON = JSON.parse(rawConfig);
+            self.validateConfig(configJSON, callback)
+        } catch (e) {
+            callback(e, null);
+        }
+    });
 
 
-                /**
-                * Save all accounts using a list of the BotAccounts class.
-                * @param botAccounts
-                * @param callback
-                */
-                DataControl.prototype.saveAccounts = function (botAccounts, callback) {
-                var self = this;
-                var botAccountList = [];
-                for (var botAccount in botAccounts) {
-                if (botAccounts.hasOwnProperty(botAccount)) {
-                botAccountList.push(botAccounts[botAccount].getAccount());
-                }
-                }
-                fs.writeFile(this.localURI + "/accounts.json", JSON.stringify(botAccountList), callback);
-                };
+};
+DataControl.prototype.getConfig = function () {
+    var self = this;
+    return self.config;
+};
 
-                module.exports = DataControl;
-            </code></pre>
+
+/**
+ * Save all accounts using a list of the BotAccounts class.
+ * @param botAccounts
+ * @param callback
+ */
+DataControl.prototype.saveAccounts = function (botAccounts, callback) {
+    var self = this;
+    var botAccountList = [];
+    for (var botAccount in botAccounts) {
+        if (botAccounts.hasOwnProperty(botAccount)) {
+            botAccountList.push(botAccounts[botAccount].getAccount());
+        }
+    }
+    fs.writeFile(this.localURI + "/accounts.json", JSON.stringify(botAccountList), callback);
+};
+
+module.exports = DataControl;
+</code></pre>
         </article>
     </section>
+
+
 
 
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2>
-    <h3>Classes</h3>
-    <ul>
-        <li><a href="BotAccount.html">BotAccount</a></li>
-        <li><a href="BotManager.html">BotManager</a></li>
-    </ul>
-    <h3>Events</h3>
-    <ul>
-        <li><a href="BotAccount.html#event:friendOrChatMessage">friendOrChatMessage</a></li>
-        <li><a href="BotAccount.html#event:loggedIn">loggedIn</a></li>
-        <li><a href="BotAccount.html#event:newOffer">newOffer</a></li>
-        <li><a href="BotAccount.html#event:offerChanged">offerChanged</a></li>
-        <li><a href="BotAccount.html#event:steamGuard">steamGuard</a></li>
-        <li><a href="BotAccount.html#event:tradeOffers">tradeOffers</a></li>
-        <li><a href="BotAccount.html#event:updatedAccountDetails">updatedAccountDetails</a></li>
-    </ul>
-    <h3><a href="global.html">Global</a></h3>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BotAccount.html">BotAccount</a></li><li><a href="BotManager.html">BotManager</a></li></ul><h3>Events</h3><ul><li><a href="BotAccount.html#event:friendOrChatMessage">friendOrChatMessage</a></li><li><a href="BotAccount.html#event:loggedIn">loggedIn</a></li><li><a href="BotAccount.html#event:newOffer">newOffer</a></li><li><a href="BotAccount.html#event:offerChanged">offerChanged</a></li><li><a href="BotAccount.html#event:steamGuard">steamGuard</a></li><li><a href="BotAccount.html#event:tradeOffers">tradeOffers</a></li><li><a href="BotAccount.html#event:updatedAccountDetails">updatedAccountDetails</a></li></ul><h3><a href="global.html">Global</a></h3>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Sat Apr 02 2016 23:34:46
-    GMT-0400 (Eastern Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Fri May 13 2016 00:54:29 GMT+0400 (Arabian Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"></script>
+<script src="scripts/linenumber.js"> </script>
 </body>
 </html>
