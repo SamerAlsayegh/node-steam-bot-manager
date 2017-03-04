@@ -3,13 +3,13 @@ A bot management tool for [Steam Community](http://www.steamcommunity.com) built
 
 
 
-Version 1.0.27
+Version 1.0.28
 
 [![forthebadge](http://forthebadge.com/images/badges/uses-js.svg)](http://forthebadge.com)
 [![forthebadge](http://forthebadge.com/images/badges/built-with-love.svg)](http://forthebadge.com)
 
 ## Demo:
-##### Check out [www.csgospin.win](http://csgospin.win) for a demo of the bot in action using a custom built handler.
+##### No demo's currently exist. If you would like a quick demo, please contact Undeadkillz on Steam.
 
 To showcase a demo of your use, pm Undeadkillz on Steam or Github with your website using this bot.
 
