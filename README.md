@@ -3,7 +3,7 @@ A bot management tool for [Steam Community](http://www.steamcommunity.com) built
 
 
 
-Version 1.0.26
+Version 1.0.27
 
 [![forthebadge](http://forthebadge.com/images/badges/uses-js.svg)](http://forthebadge.com)
 [![forthebadge](http://forthebadge.com/images/badges/built-with-love.svg)](http://forthebadge.com)
@@ -19,14 +19,16 @@ To showcase a demo of your use, pm Undeadkillz on Steam or Github with your webs
 You can check examples of bots you can build by navigating to the 'examples' folder in the root of the project.
 
 ## Features:
-- GUI-based
-- Talk to people on the Bot's friends list
-- Trade with people on the Bot's friends list.
-- Set-up 2-factor-authentication (including the phone-number if not yet on account)
-- Handle API sign-up process*
-- Manage multiple bots at once
-- API system
-- Custom handler for your usage (Customize the actions of the bot)
+- GUI-based control
+- GUI-Messaging
+- GUI-Trading
+- 2-Factor Authentication Support + Enabling
+- Enable API-Access
+- Manage multiple bots simultaneously
+- API Support for third-party systems (Betting, Trading, and so on..)
+- Even based interactions of a single bot or multiple
+- Ability to upvote/downvote attachments on SteamCommunity (Please don't abuse)
+
 
 ## TODO:
 - Add registration account checking

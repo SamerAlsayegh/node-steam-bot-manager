@@ -3,10 +3,10 @@ var SteamCommunity = require('steamcommunity');
 var SteamStore = require('steamstore');
 var TradeOfferManager = require('steam-tradeoffer-manager');
 var SteamTotp = require('steam-totp');
+
 BotAccount.prototype.__proto__ = require('events').EventEmitter.prototype;
 
 
-var SteamID = TradeOfferManager.SteamID;
 
 /**
  * Creates a new BotAccount instance for a bot.
@@ -22,15 +22,19 @@ function BotAccount(accountDetails) {
     self.trade = new TradeOfferManager({
         "steam": self.client,
         "community": self.community,
-        "cancelTime": 1000 * 60 * 60 * 24 * 10, // Keep offers upto 1 hour, and then just cancel them.
+        "cancelTime": 1000 * 60 * 60 * 24, // Keep offers upto 1 day, and then just cancel them.
         "pendingCancelTime": 1000 * 60 * 30, // Keep offers upto 30 mins, and then cancel them if they still need confirmation
-        "cancelOfferCount": 30,// Cancel offers once we hit 7 day threshold
+        "cancelOfferCount": 7,// Cancel offers once we hit 7 day threshold
         "cancelOfferCountMinAge": 1000 * 60 * 60 * 24 * 7,// Keep offers until 7 days old
         "language": "en", // We want English item descriptions
         "pollInterval": 5000 // We want to poll every 5 seconds since we don't have Steam notifying us of offers
     });
+    self.SteamID = TradeOfferManager.SteamID;
+    self.request = require('request');
     self.store = new SteamStore();
     self.accountDetails = accountDetails;
+    self.loggedIn = false;
+    self.delayedTasks = [];
 
 
     self.client.on('loggedOn', function (details) {
@@ -40,8 +44,9 @@ function BotAccount(accountDetails) {
             self.emit('displayBotMenu');
             self.deleteTempSetting('displayBotMenu');
         }
-    });
 
+
+    });
     self.client.on('webSession', function (sessionID, cookies) {
         if (self.accountDetails.sessionID != sessionID || self.accountDetails.cookies != cookies) {
             self.accountDetails.sessionID = sessionID;
@@ -60,95 +65,85 @@ function BotAccount(accountDetails) {
             self.store.setCookies(cookies);
             self.trade.setCookies(cookies);
         }
+        self.loggedIn = true;
+        self.processQueue(function (err) {
+            if (!err) {
 
-        self.client.on('friendOrChatMessage', function (senderID, message, room) {
-            if (self.currentChatting != null && senderID == self.currentChatting.sid) {
-                console.log(("\n" + self.currentChatting.accountName + ": " + message).green);
+
+                self.client.on('friendOrChatMessage', function (senderID, message, room) {
+                    if (self.currentChatting != null && senderID == self.currentChatting.sid) {
+                        console.log(("\n" + self.currentChatting.accountName + ": " + message).green);
+                    }
+                    /**
+                     * Emitted when a friend message or chat room message is received.
+                     *
+                     * @event BotAccount#friendOrChatMessage
+                     * @type {object}
+                     * @property {SteamID} senderID - The message sender, as a SteamID object
+                     * @property {String} message - The message text
+                     * @property {SteamID} room - The room to which the message was sent. This is the user's SteamID if it was a friend message
+                     */
+                    self.emit('friendOrChatMessage', senderID, message, room);
+                });
+
+                self.trade.on('sentOfferChanged', function (offer, oldState) {
+                    /**
+                     * Emitted when a trade offer changes state (Ex. accepted, pending, escrow, etc...)
+                     *
+                     * @event BotAccount#offerChanged
+                     * @type {object}
+                     * @property {TradeOffer} offer - The new offer's details
+                     * @property {TradeOffer} oldState - The old offer's details
+                     */
+                    self.emit('offerChanged', offer, oldState);
+                });
+
+                self.trade.on('receivedOfferChanged', function (offer, oldState) {
+                    self.emit('offerChanged', offer, oldState);
+                });
+
+                self.trade.on('newOffer', function (offer) {
+                    /**
+                     * Emitted when we receive a new trade offer
+                     *
+                     * @event BotAccount#newOffer
+                     * @type {object}
+                     * @property {TradeOffer} offer - The offer's details
+                     */
+                    self.emit('newOffer', offer);
+                });
+
+                self.client.on('tradeOffers', function (count) {
+                    /**
+                     * Emitted when we receive a new trade offer notification (only provides amount of offers and no other details)
+                     *
+                     * @event BotAccount#tradeOffers
+                     * @type {object}
+                     * @property {Integer} count - The amount of active trade offers (can be 0).
+                     */
+                    self.emit('tradeOffers', count);
+                });
+
+                self.client.on('steamGuard', function (domain, callback, lastCodeWrong) {
+                    /**
+                     * Emitted when Steam requests a Steam Guard code from us. You should collect the code from the user somehow and then call the callback with the code as the sole argument.
+                     *
+                     * @event BotAccount#steamGuard
+                     * @type {object}
+                     * @property {String} domain - If an email code is needed, the domain name of the address where the email was sent. null if an app code is needed.
+                     * @property {Callback} callbackSteamGuard - Should be called when the code is available.
+                     * @property {Boolean} lastCodeWrong - true if you're using 2FA and the last code you provided was wrong, false otherwise
+                     */
+                    self.emit('steamGuard', domain, callback, lastCodeWrong);
+                });
+                /**
+                 * Emitted when we fully sign into Steam and all functions are usable.
+                 *
+                 * @event BotAccount#loggedIn
+                 */
+                self.emit('loggedIn');
             }
-            /**
-             * Emitted when a friend message or chat room message is received.
-             *
-             * @event BotAccount#friendOrChatMessage
-             * @type {object}
-             * @property {SteamID} senderID - The message sender, as a SteamID object
-             * @property {String} message - The message text
-             * @property {SteamID} room - The room to which the message was sent. This is the user's SteamID if it was a friend message
-             */
-            self.emit('friendOrChatMessage', senderID, message, room);
-        });
-
-        self.trade.on('sentOfferChanged', function (offer, oldState) {
-            /**
-             * Emitted when a trade offer changes state (Ex. accepted, pending, escrow, etc...)
-             *
-             * @event BotAccount#offerChanged
-             * @type {object}
-             * @property {TradeOffer} offer - The new offer's details
-             * @property {TradeOffer} oldState - The old offer's details
-             */
-            self.emit('offerChanged', offer, oldState);
-        });
-
-        self.trade.on('receivedOfferChanged', function (offer, oldState) {
-            self.emit('offerChanged', offer, oldState);
-        });
-
-        // Useless right now
-        //self.client.on('friendsList', function () {
-        //    self.emit('friendsList');
-        //});
-
-        self.trade.on('newOffer', function (offer) {
-            /**
-             * Emitted when we receive a new trade offer
-             *
-             * @event BotAccount#newOffer
-             * @type {object}
-             * @property {TradeOffer} offer - The offer's details
-             */
-            self.emit('newOffer', offer);
-        });
-
-
-        // Really glitchy trade system... So just ignore it for now.
-        //self.client.on('tradeResponse', function (steamid, response, restrictions) {
-        //    self.emit('tradeResponse', steamid, response, restrictions);
-        //});
-
-        // Really glitchy trade system... So just ignore it for now.
-        //self.client.on('tradeRequest', function (steamID, respond) {
-        //    respond(false);
-        //});
-
-        self.client.on('tradeOffers', function (count) {
-            /**
-             * Emitted when we receive a new trade offer notification (only provides amount of offers and no other details)
-             *
-             * @event BotAccount#tradeOffers
-             * @type {object}
-             * @property {Integer} count - The amount of active trade offers (can be 0).
-             */
-            self.emit('tradeOffers', count);
-        });
-
-        self.client.on('steamGuard', function (domain, callback, lastCodeWrong) {
-            /**
-             * Emitted when Steam requests a Steam Guard code from us. You should collect the code from the user somehow and then call the callback with the code as the sole argument.
-             *
-             * @event BotAccount#steamGuard
-             * @type {object}
-             * @property {String} domain - If an email code is needed, the domain name of the address where the email was sent. null if an app code is needed.
-             * @property {Callback} callbackSteamGuard - Should be called when the code is available.
-             * @property {Boolean} lastCodeWrong - true if you're using 2FA and the last code you provided was wrong, false otherwise
-             */
-            self.emit('steamGuard', domain, callback, lastCodeWrong);
-        });
-        /**
-         * Emitted when we fully sign into Steam and all functions are usable.
-         *
-         * @event BotAccount#loggedIn
-         */
-        self.emit('loggedIn');
+        })
     });
 
 
@@ -196,6 +191,16 @@ BotAccount.prototype.generateMobileAuthenticationCode = function () {
     else
         return new Error("Failed to generate authentication code. Enable 2-factor-authentication via this tool.");
 };
+
+/**
+ * Generate two-factor-authentication code used for logging in.
+ * @returns {Error | String}
+ */
+BotAccount.prototype.fromIndividualAccountID = function (id) {
+    var self = this;
+    return self.SteamID.fromIndividualAccountID(id);
+};
+
 
 /**
  *
@@ -275,16 +280,88 @@ BotAccount.prototype.getDisplayName = function () {
  * Change the display name of the account (with prefix)
  * @param {String} newName - The new display name
  * @param {String} namePrefix - The prefix if there is one (Nullable)
- * @param {errorCallback} errorCallback - A callback returned with possible errors
+ * @param {Function} callback - A callback returned with possible errors
  */
-BotAccount.prototype.changeName = function (newName, namePrefix, errorCallback) {
+BotAccount.prototype.changeName = function (newName, namePrefix, callback) {
     var self = this;
-    if (namePrefix == null) namePrefix = '';
+    if (!self.loggedIn) {
+        self.addToQueue(self.changeName, [newName, namePrefix, callback]);
+    }
+    else {
+        if (namePrefix == null) namePrefix = '';
 
-    self.community.editProfile({name: namePrefix + newName}, function (err) {
-        errorCallback(err);
-        self.accountDetails.displayName = newName;
-        self.emit('updatedAccountDetails');
+        self.community.editProfile({name: namePrefix + newName}, function (err) {
+            if (err)
+                callback(err.Error);
+            self.accountDetails.displayName = newName;
+            self.emit('updatedAccountDetails');
+            callback(null);
+        });
+    }
+};
+
+
+BotAccount.prototype.wrapFunction = function (fn, context, params) {
+    return function () {
+        fn.apply(context, params);
+    };
+};
+/**
+ * Add a function to the queue which runs when we login usually.
+ * @param functionV
+ * @param functionData
+ */
+BotAccount.prototype.addToQueue = function (functionV, functionData) {
+    var self = this;
+    var functionVal = self.wrapFunction(functionV, self, functionData);
+    self.delayedTasks.push(functionVal);
+};
+/**
+ * Process the queue to run tasks that were delayed.
+ * @param callback
+ */
+BotAccount.prototype.processQueue = function (callback) {
+    var self = this;
+    while (self.delayedTasks.length > 0) {
+        (self.delayedTasks.shift())();
+    }
+    callback(null);
+};
+
+
+BotAccount.prototype.upvoteSharedFile = function (sharedFileId, callback) {
+    var self = this;
+
+    var options = {
+        form: {
+            'sessionid': self.accountDetails.sessionID,
+            'id': sharedFileId
+        }
+    };
+
+    self.community.httpRequestPost('https://steamcommunity.com/sharedfiles/voteup', options, function (error, response, body) {
+        if (!error && response.statusCode == 200)
+            callback(null);
+        else
+            callback(error);
+    });
+};
+BotAccount.prototype.downvoteSharedFile = function (sharedFileId, callback) {
+    var self = this;
+
+    var options = {
+        form: {
+            'sessionid': self.accountDetails.sessionID,
+            'id': sharedFileId
+        }
+    };
+
+    self.community.httpRequestPost('https://steamcommunity.com/sharedfiles/votedown', options, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            callback(null);
+        }
+        else
+            callback(error);
     });
 };
 
@@ -339,7 +416,6 @@ BotAccount.prototype.confirmTradesFromUser = function (SteamID, callback) {
 
         callback(err, acceptedTrades);
     });
-    // Old confirmation code - removed due to not providing enought info.
 };
 
 BotAccount.prototype.confirmOutstandingTrades = function () {
@@ -464,6 +540,7 @@ BotAccount.prototype.deleteTempSetting = function (tempSetting) {
     if (self.tempSettings.hasOwnProperty(tempSetting))
         delete self.tempSettings[tempSetting];
 };
+
 
 BotAccount.prototype.logoutAccount = function () {
     var self = this;

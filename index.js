@@ -23,7 +23,7 @@ function BotManager() {
 
 }
 
-BotManager.prototype.startManager = function () {
+BotManager.prototype.startManager = function (callback) {
     var self = this;
     self.dataControl.on('error', function (err) {
         self.errorDebug(err);
@@ -96,13 +96,17 @@ BotManager.prototype.startManager = function () {
 
 
     self.dataControl.initData(function (err, botAccountsList) {
-        if (err)
+        if (err) {
             self.errorDebug(err);
+            callback(err);
+        }
         else {
             // Finished loading...
             self.displayBotMenu();
+            callback(null);
         }
     });
+
 };
 
 BotManager.prototype.apiEndpoint = function (method, url, callback) {
@@ -121,7 +125,7 @@ BotManager.prototype.displayBotMenu = function () {
     var botAccounts = self.getAccounts();
     for (var accountIndex in botAccounts) {
         if (botAccounts.hasOwnProperty(accountIndex)) {
-            tempList.push(botAccounts[accountIndex].getAccountName());
+            tempList.push(botAccounts[accountIndex].getAccountName() + "[{0}]".format(botAccounts[accountIndex].getDisplayName()));
         }
     }
     tempList.push(new inquirer.Separator());
@@ -164,7 +168,7 @@ BotManager.prototype.displayBotMenu = function () {
                 process.exit();
                 break;
             default:
-                self.botLookup(result.accountName, function (err, accountDetails) {
+                self.botLookup(result.accountName.split("\[")[0], function (err, accountDetails) {
                     // Check if bot is online or offline
                     if (err) {
                         self.errorDebug(err);
@@ -231,7 +235,7 @@ BotManager.prototype.displayMenu = function (botAccount) {
             "Send trade",
             //"Calculate Inventory", This option was temporary, but may maybe added later.
             new inquirer.Separator(),
-            loggedIn ? "Logout" : "Login",
+            botAccount.loggedIn ? "Logout" : "Login",
             new inquirer.Separator(),
             "Manage",
             "Delete",
@@ -324,6 +328,7 @@ BotManager.prototype.displayMenu = function (botAccount) {
                                     var currentOffer = botAccount.createOffer(friendsList[menuEntry].accountSid);
                                     botAccount.getInventory(730, 2, true, function (err, inventory, currencies) {
                                         var nameList = [];
+                                        nameList.push("Cancel");
                                         for (var id in inventory) {
                                             if (inventory.hasOwnProperty(id)) {
                                                 nameList.push(inventory[id].name);
@@ -341,33 +346,38 @@ BotManager.prototype.displayMenu = function (botAccount) {
                                         ];
                                         inquirer.prompt(tradeMenu, function (result) {
                                             var menuEntry = nameList.indexOf(result.tradeOption);
-                                            currentOffer.addMyItem(inventory[menuEntry]);
-                                            currentOffer.send("Manual offer triggered by Bot Manager.", null, function (err, status) {
-                                                if (err) {
-                                                    self.errorDebug(err);
-                                                    self.displayMenu(botAccount);
-                                                } else {
-                                                    var time = botAccount.getUnixTime();
-                                                    botAccount.getConfirmations(time, botAccount.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
-                                                        if (err) {
-                                                            self.errorDebug(err);
-                                                            self.displayMenu(botAccount);
-                                                        }
-                                                        else {
-                                                            for (var confirmId in confirmations) {
-                                                                if (confirmations.hasOwnProperty(confirmId)) {
-                                                                    confirmations[confirmId].respond(time, botAccount.generateMobileConfirmationCode(time, "allow"), true, function (err) {
-                                                                        if (err) {
-                                                                            self.errorDebug("Trade failed to confirm");
-                                                                        }
-                                                                        self.displayMenu(botAccount);
-                                                                    });
+                                            if (menuEntry == 0) {
+                                                self.displayMenu(botAccount);
+                                            }
+                                            else {
+                                                currentOffer.addMyItem(inventory[menuEntry]);
+                                                currentOffer.send("Manual offer triggered by Bot Manager.", null, function (err, status) {
+                                                    if (err) {
+                                                        self.errorDebug(err);
+                                                        self.displayMenu(botAccount);
+                                                    } else {
+                                                        var time = botAccount.getUnixTime();
+                                                        botAccount.getConfirmations(time, botAccount.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
+                                                            if (err) {
+                                                                self.errorDebug(err);
+                                                                self.displayMenu(botAccount);
+                                                            }
+                                                            else {
+                                                                for (var confirmId in confirmations) {
+                                                                    if (confirmations.hasOwnProperty(confirmId)) {
+                                                                        confirmations[confirmId].respond(time, botAccount.generateMobileConfirmationCode(time, "allow"), true, function (err) {
+                                                                            if (err) {
+                                                                                self.errorDebug("Trade failed to confirm");
+                                                                            }
+                                                                            self.displayMenu(botAccount);
+                                                                        });
+                                                                    }
                                                                 }
                                                             }
-                                                        }
-                                                    });
-                                                }
-                                            });
+                                                        });
+                                                    }
+                                                });
+                                            }
                                         });
                                     });
                                     break;
@@ -424,7 +434,7 @@ BotManager.prototype.displayMenu = function (botAccount) {
                                 inquirer.prompt(questions, function (result) {
                                     botAccount.changeName(result.newName, config.bot_prefix, function (err) {
                                         if (err) {
-                                            self.errorDebug("Failed to change name. Error: ", err);
+                                            self.errorDebug("Failed to change name. Error: {0}".format(err));
                                         }
                                         else {
                                             self.infoDebug("Successfully changed display name");
