@@ -3,7 +3,7 @@ A bot management tool for [Steam Community](http://www.steamcommunity.com) built
 
 
 
-Version 1.0.35
+Version 1.0.36
 
 [![forthebadge](http://forthebadge.com/images/badges/uses-js.svg)](http://forthebadge.com)
 [![forthebadge](http://forthebadge.com/images/badges/built-with-love.svg)](http://forthebadge.com)
@@ -38,6 +38,8 @@ You can check examples of bots you can build by navigating to the 'examples' fol
 ### Prerequisites:
  - NodeJS
  - npm
+
+[![NPM](https://nodei.co/npm/node-steam-bot-manager.png)](https://www.npmjs.com/package/node-steam-bot-manager)
 
 ### Install and run (using Example bot):
 Using npm:

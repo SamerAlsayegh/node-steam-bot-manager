@@ -34,6 +34,7 @@ function BotAccount(accountDetails) {
     self.store = new SteamStore();
     self.accountDetails = accountDetails;
     self.loggedIn = false;
+    self.rateLimited = false;
     self.delayedTasks = [];
 
 
@@ -149,11 +150,13 @@ function BotAccount(accountDetails) {
 
     self.client.on('error', function (e) {
         // Some error occurred during logon
-        console.log(e);
+        self.emit('error', e);
         switch (e.eresult) {
+            case 84:
+                // RateLimitExceeded - Any future events based on rate limits will be queued.
+                self.rateLimited = true;
+                break;
             case 5:
-                console.log("in correct auth??");
-
                 self.emit('incorrectCredentials', self.accountDetails);
                 var tempAccountDetails = {
                     accountName: self.accountDetails.accountName,
@@ -163,9 +166,7 @@ function BotAccount(accountDetails) {
                 self.accountDetails = tempAccountDetails;
                 self.emit('updatedAccountDetails');
                 break;
-            default:
-                self.emit('debug', e);
-        }
+            }
         self.emit('displayBotMenu');
     });
 
@@ -193,7 +194,7 @@ BotAccount.prototype.generateMobileAuthenticationCode = function () {
 };
 
 /**
- * Generate two-factor-authentication code used for logging in.
+ * Fetch SteamID Object from the SteamID.
  * @returns {Error | String}
  */
 BotAccount.prototype.fromIndividualAccountID = function (id) {
@@ -276,30 +277,6 @@ BotAccount.prototype.getDisplayName = function () {
     var self = this;
     return (self.accountDetails.hasOwnProperty("displayName") ? self.accountDetails.displayName : null);
 };
-/**
- * Change the display name of the account (with prefix)
- * @param {String} newName - The new display name
- * @param {String} namePrefix - The prefix if there is one (Nullable)
- * @param {Function} callback - A callback returned with possible errors
- */
-BotAccount.prototype.changeName = function (newName, namePrefix, callback) {
-    var self = this;
-    if (!self.loggedIn) {
-        self.addToQueue(self.changeName, [newName, namePrefix, callback]);
-    }
-    else {
-        if (namePrefix == null) namePrefix = '';
-
-        self.community.editProfile({name: namePrefix + newName}, function (err) {
-            if (err)
-                callback(err.Error);
-            self.accountDetails.displayName = newName;
-            self.emit('updatedAccountDetails');
-            callback(null);
-        });
-    }
-};
-
 
 BotAccount.prototype.wrapFunction = function (fn, context, params) {
     return function () {
@@ -365,29 +342,85 @@ BotAccount.prototype.downvoteSharedFile = function (sharedFileId, callback) {
     });
 };
 
-BotAccount.prototype.getInventory = function (appid, contextid, tradeableOnly, callback) {
+/**
+ * Change the display name of the account (with prefix)
+ * @param {String} newName - The new display name
+ * @param {String} namePrefix - The prefix if there is one (Nullable)
+ * @param {errorCallback} errorCallback - A callback returned with possible errors
+ */
+BotAccount.prototype.changeName = function (newName, namePrefix, errorCallback) {
     var self = this;
-    self.trade.loadInventory(appid, contextid, tradeableOnly, callback);
+    if (!self.loggedIn) {
+        self.addToQueue(self.changeName, [newName, namePrefix, errorCallback]);
+    }
+    else {
+        if (namePrefix == null) namePrefix = '';
+
+        self.community.editProfile({name: namePrefix + newName}, function (err) {
+            if (err)
+                return errorCallback(err.Error);
+            self.accountDetails.displayName = newName;
+            self.emit('updatedAccountDetails');
+            errorCallback(null);
+        });
+    }
 };
 
+/**
+ * @callback inventoryCallback
+ * @param {Error} error - An error message if the process failed, null if successful
+ * @param {Array} inventory - An array of Items returned via fetch
+ * @param {Array} currencies - An array of currencies (Only a few games use this)
+ */
 
-BotAccount.prototype.getUserInventory = function (steamID, appid, contextid, tradableOnly, callback) {
+/**
+ * Retrieve account inventory based on filters
+ * @param {Integer} appid - appid by-which to fetch inventory based on.
+ * @param {Integer} contextid - contextid of lookup (1 - Gifts, 2 - In-game Items, 3 - Coupons, 6 - Game Cards, Profile Backgrounds & Emoticons)
+ * @param {Boolean} tradableOnly - Items retrieved must be tradable
+ * @param {inventoryCallback} inventoryCallback - Inventory details (refer to inventoryCallback for more info.)
+ */
+BotAccount.prototype.getInventory = function (appid, contextid, tradableOnly, inventoryCallback) {
     var self = this;
-    self.trade.loadUserInventory(steamID, appid, contextid, tradableOnly, callback);
+    self.trade.loadInventory(appid, contextid, tradableOnly, inventoryCallback);
 };
-BotAccount.prototype.addPhoneNumber = function (phoneNumber, callback) {
+
+/**
+ * Retrieve account inventory based on filters and provided steamID
+ * @param {SteamID} steamID - SteamID to use for lookup of inventory
+ * @param {Integer} appid - appid by-which to fetch inventory based on.
+ * @param {Integer} contextid - contextid of lookup (1 - Gifts, 2 - In-game Items, 3 - Coupons, 6 - Game Cards, Profile Backgrounds & Emoticons)
+ * @param {Boolean} tradableOnly - Items retrieved must be tradableOnly
+ * @param {inventoryCallback} inventoryCallback - Inventory details (refer to inventoryCallback for more info.)
+ */
+BotAccount.prototype.getUserInventory = function (steamID, appid, contextid, tradableOnly, inventoryCallback) {
+    var self = this;
+    self.trade.loadUserInventory(steamID, appid, contextid, tradableOnly, inventoryCallback);
+};
+/**
+ * Add a phone-number to the account (For example before setting up 2-factor authentication)
+ * @param phoneNumber - Certain format must be followed
+ * @param {errorCallback} errorCallback - A callback returned with possible errors
+ */
+BotAccount.prototype.addPhoneNumber = function (phoneNumber, errorCallback) {
     var self = this;
     self.store.addPhoneNumber(phoneNumber, true, function (err) {
-        if (err) {
-            callback(err);
-        }
-        else {
-            callback(null);
-        }
+        errorCallback(err);
     });
 };
 
 
+/**
+ * @callback acceptedTradesCallback
+ * @param {Error} error - An error message if the process failed, null if successful
+ * @param {Array} acceptedTrades - An array of trades that were confirmed in the process.
+ */
+
+/**
+ * Confirm (not accept) all sent trades associated with a certain SteamID via the two-factor authenticator.
+ * @param {SteamID} steamID - SteamID to use for lookup of inventory
+ * @param {acceptedTradesCallback} acceptedTradesCallback - Inventory details (refer to inventoryCallback for more info.)
+ */
 BotAccount.prototype.confirmTradesFromUser = function (SteamID, callback) {
     var self = this;
 
@@ -412,29 +445,38 @@ BotAccount.prototype.confirmTradesFromUser = function (SteamID, callback) {
                 }
             }
         }
-        self.confirmOutstandingTrades();
-
-        callback(err, acceptedTrades);
+        self.confirmOutstandingTrades(function(err, confirmedTrades){
+            callback(err, acceptedTrades);
+        });
     });
 };
 
-BotAccount.prototype.confirmOutstandingTrades = function () {
+
+/**
+ * Confirm (not accept) all outstanding trades that were sent out, regardless of trade target via the two-factor authenticator.
+ */
+BotAccount.prototype.confirmOutstandingTrades = function (callback) {
     var self = this;
     var time = self.getUnixTime();
     self.getConfirmations(time, self.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
         if (err) {
             self.emit('debug', {msg: "Failed to confirm outstanding trades"});
             self.emit('error', {code: 503, msg: "Failed to confirm outstanding trades"});
-            setTimeout(self.confirmOutstandingTrades(), 5000);
+            setTimeout(self.confirmOutstandingTrades(callback), 5000);
         }
         else {
+            var confirmedTrades = [];
             for (var confirmId in confirmations) {
                 if (confirmations.hasOwnProperty(confirmId)) {
                     confirmations[confirmId].respond(time, self.generateMobileConfirmationCode(time, "allow"), true, function (err) {
-                        if (err) {
-                            console.log("Trade failed to confirm");
-                            console.log(err);
+                        if (err)
+                            return callback(err, confirmedTrades);
+                        confirmedTrades.push(confirmations[confirmId]);
+                        if (confirmedTrades.length == confirmations.length){
+                            // Everything went smooth
+                            return callback(null, confirmations);
                         }
+
                     });
                 }
             }
