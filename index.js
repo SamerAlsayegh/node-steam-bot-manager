@@ -27,9 +27,10 @@ BotManager.prototype.startManager = function (callbackManager) {
     self.config = {};
 
     self.dataControl.on('loadedConfig', function (configResponse) {
-        config = configResponse;
-        if (self.dataControl.getConfig().hasOwnProperty("api_port")) {
-            self.APIControl = new APIControl(self.dataControl.getConfig());
+        self.config = configResponse;
+
+        if (self.config.hasOwnProperty("api_port") && self.config.api_port != null) {
+            self.APIControl = new APIControl(self.config);
             self.APIControl.on('apiLoaded', function () {
                 self.emit('loadedAPI');
             });
@@ -51,7 +52,7 @@ BotManager.prototype.startManager = function (callbackManager) {
     });
 
     self.dataControl.on('loadedAccount', function (accountInfo) {
-        var botAccount = new BotAccount(accountInfo);
+        var botAccount = new BotAccount(accountInfo, self.config.settings);
         if (botAccount.getAccount().shared_secret) {
             botAccount.loginAccount();
         }
@@ -69,7 +70,7 @@ BotManager.prototype.startManager = function (callbackManager) {
         botAccount.on('loggedIn', function () {
             // User just logged in
             if (botAccount.getDisplayName() != null) {
-                botAccount.changeName(botAccount.getDisplayName(), config.bot_prefix, function (err) {
+                botAccount.changeName(botAccount.getDisplayName(), self.config.bot_prefix, function (err) {
                     if (err) {
                         self.errorDebug("Failed to change name. Error: " + err);
                     }
@@ -202,14 +203,14 @@ BotManager.prototype.botLookup = function (keyData, callback) {
                 if (botAccounts.hasOwnProperty(botAccountIndex)) {
                     if (botAccounts[botAccountIndex].getAccountName().indexOf(keyData) != -1) {
                         return callback(null, botAccounts[botAccountIndex]);
-                    } else if (botAccountIndex == botAccounts.length-1)
-                        return callback({Error: "Failed to locate bot."},null);
+                    } else if (botAccountIndex == botAccounts.length - 1)
+                        return callback({Error: "Failed to locate bot."}, null);
                 }
             }
         }
     } catch (e) {
         if (e)
-        return callback(e, null);
+            return callback(e, null);
     }
 };
 
@@ -267,15 +268,15 @@ BotManager.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                     var currentOffer = botAccount.createOffer(friendsList[menuEntry].accountSid);
                     switch (tradeMenuOption) {
                         case 0:
-                            botAccount.getUserInventory(friendsList[menuEntry].accountSid, 730, 2, true, function (err, inventory, currencies) {
-                                if (err){
+                            botAccount.getUserInventory(friendsList[menuEntry].accountSid, self.config.appid, 2, true, function (err, inventory, currencies) {
+                                if (err) {
                                     self.errorDebug(err);
                                     self.displayMenu(botAccount);
                                 }
                                 else {
 
 
-                                    if (inventory.length < 1) {
+                                    if (inventory == null || inventory.length < 1) {
                                         self.infoDebug("Other user has no items in inventory. Redirecting to menu...");
                                         self.initTradeMenu(botAccount);
                                         return;
@@ -321,7 +322,7 @@ BotManager.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                                                 self.errorDebug(err);
                                                 self.displayMenu(botAccount);
                                             } else {
-                                                botAccount.confirmOutstandingTrades(function(err, confirmedTrades){
+                                                botAccount.confirmOutstandingTrades(function (err, confirmedTrades) {
                                                     if (err)
                                                         self.errorDebug(err);
                                                     self.infoDebug("Confirmed and sent offer.");
@@ -335,8 +336,8 @@ BotManager.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
 
                             break;
                         case 1:
-                            botAccount.getInventory(730, 2, true, function (err, inventory, currencies) {
-                                if (inventory.length < 1) {
+                            botAccount.getInventory(self.config.appid, 2, true, function (err, inventory, currencies) {
+                                if (inventory == null || inventory.length < 1) {
                                     self.infoDebug("Bot has no items in inventory. Redirecting to menu...");
                                     self.initTradeMenu(botAccount);
                                     return;
@@ -379,7 +380,7 @@ BotManager.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                                             self.errorDebug(err);
                                             self.displayMenu(botAccount);
                                         } else {
-                                            botAccount.confirmOutstandingTrades(function(err, confirmedTrades){
+                                            botAccount.confirmOutstandingTrades(function (err, confirmedTrades) {
                                                 if (err)
                                                     self.errorDebug(err);
                                                 self.infoDebug("Confirmed and sent offer.");
@@ -541,12 +542,12 @@ BotManager.prototype.displayMenu = function (botAccount) {
                                         type: 'confirm',
                                         name: 'prefix',
                                         default: true,
-                                        message: "Give default prefix of '{0}'?".format(config.bot_prefix)
+                                        message: "Give default prefix of '{0}'?".format(self.config.bot_prefix)
                                     }
                                 ];
 
                                 inquirer.prompt(questions, function (result) {
-                                    botAccount.changeName(result.newName, config.bot_prefix, function (err) {
+                                    botAccount.changeName(result.newName, self.config.bot_prefix, function (err) {
                                         if (err) {
                                             self.errorDebug("Failed to change name. Error: {0}".format(err));
                                         }

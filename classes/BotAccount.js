@@ -11,21 +11,39 @@ BotAccount.prototype.__proto__ = require('events').EventEmitter.prototype;
  * Creates a new BotAccount instance for a bot.
  * @class
  */
-function BotAccount(accountDetails) {
+function BotAccount(accountDetails, settings) {
     // Ensure account values are valid
     var self = this;
     // Init all required variables
     self.tempSettings = {};
+    self.settings = settings;
     self.community = new SteamCommunity();
     self.client = new SteamUser();
+
+
+    if (!self.settings.hasOwnProperty("tradeCancelTime"))
+        self.settings.tradeCancelTime = 60 * 60 * 24;
+    if (!self.settings.hasOwnProperty("tradePendingCancelTime"))
+        self.settings.tradePendingCancelTime = 60 * 60 * 24;
+    if (!self.settings.hasOwnProperty("language"))
+        self.settings.language = 60 * 60 * 24;
+    if (!self.settings.hasOwnProperty("tradePollInterval"))
+        self.settings.tradePollInterval = 60 * 60 * 24;
+    if (!self.settings.hasOwnProperty("tradeCancelOfferCount"))
+        self.settings.tradeCancelOfferCount = 60 * 60 * 24;
+    if (!self.settings.hasOwnProperty("tradeCancelOfferCountMinAge"))
+        self.settings.tradeCancelOfferCountMinAge = 60 * 60;
+    if (!self.settings.hasOwnProperty("cancelTradeOnOverflow"))
+        self.settings.cancelTradeOnOverflow = true;
+
     self.trade = new TradeOfferManager({
         "steam": self.client,
         "community": self.community,
-        "cancelTime": 1000 * 60 * 60 * 24, // Keep offers upto 1 day, and then just cancel them.
-        "pendingCancelTime": 1000 * 60 * 30, // Keep offers upto 30 mins, and then cancel them if they still need confirmation
-        "cancelOfferCount": 7,// Cancel offers once we hit 7 day threshold
-        "cancelOfferCountMinAge": 1000 * 60 * 60 * 24 * 7,// Keep offers until 7 days old
-        "language": "en", // We want English item descriptions
+        "cancelTime": self.settings.tradeCancelTime, // Keep offers upto 1 day, and then just cancel them.
+        "pendingCancelTime": self.settings.tradePendingCancelTime, // Keep offers upto 30 mins, and then cancel them if they still need confirmation
+        "cancelOfferCount": self.settings.tradeCancelOfferCount,// Cancel offers once we hit 7 day threshold
+        "cancelOfferCountMinAge": self.settings.tradeCancelOfferCountMinAge,// Keep offers until 7 days old
+        "language": self.settings.language, // We want English item descriptions
         "pollInterval": 5000 // We want to poll every 5 seconds since we don't have Steam notifying us of offers
     });
     self.SteamID = TradeOfferManager.SteamID;
@@ -368,8 +386,8 @@ BotAccount.prototype.changeName = function (newName, namePrefix, errorCallback) 
 /**
  * @callback inventoryCallback
  * @param {Error} error - An error message if the process failed, null if successful
- * @param {Array} inventory - An array of Items returned via fetch
- * @param {Array} currencies - An array of currencies (Only a few games use this)
+ * @param {Array} inventory - An array of Items returned via fetch (if null, then game is not owned by user)
+ * @param {Array} currencies - An array of currencies (Only a few games use this) - (if null, then game is not owned by user)
  */
 
 /**
@@ -521,8 +539,51 @@ BotAccount.prototype.getFriends = function (callback) {
 
 BotAccount.prototype.createOffer = function (sid) {
     var self = this;
-    self.emit('createdOffer', sid);
-    return self.trade.createOffer(sid);
+    if (self.settings.cancelTradeOnOverflow) {
+        self.trade.getOffers(1, null, function (err, sent, received) {
+            var allTrades = [];
+            var tradeToCancelDueToTotalLimit = null;
+            var tradeToCancelDueToPersonalLimit = [];
+
+            for (var tradeIndex in sent) {
+                allTrades.push(sent[tradeIndex]);
+            }
+            for (var tradeIndex in received) {
+                allTrades.push(received[tradeIndex]);
+            }
+            var savedTradesCounts = {};
+            for (var tradeIndex in allTrades) {
+                var trade = allTrades[tradeIndex];
+                if (!savedTradesCounts.hasOwnProperty(trade.partner))
+                    savedTradesCounts[trade.partner] = 0;
+                savedTradesCounts[trade.partner] = savedTradesCounts[trade.partner]++;
+                if (savedTradesCounts[trade.partner] >= 5)
+                    tradeToCancelDueToPersonalLimit.push(trade);
+
+                if (tradeToCancelDueToTotalLimit == null || tradeToCancelDueToTotalLimit.updated.getTime() > trade.updated.getTime()) {
+                    tradeToCancelDueToTotalLimit = trade;
+                }
+            }
+            if (tradeToCancelDueToPersonalLimit.length >= 0 && self.settings.cancelTradeOnOverflow) {
+                for (var tradeIndex in tradeToCancelDueToPersonalLimit) {
+                    self.infoDebug("Cancelled trade #" + tradeToCancelDueToPersonalLimit[tradeIndex].tradeID + " due to overload in personal trade requests");
+                    tradeToCancelDueToPersonalLimit[tradeIndex].cancel();
+
+                }
+            }
+            if (allTrades.length >= 30 && self.settings.cancelTradeOnOverflow) {
+                self.infoDebug("Cancelled trade #" + tradeToCancelDueToTotalLimit.tradeID + " due to overload in total trade requests");
+                tradeToCancelDueToTotalLimit.cancel();
+            }
+            self.emit('createdOffer', sid);
+            // Before we create an offer, we will get previous offers and ensure it meets the limitations, to avoid errors.
+            return self.trade.createOffer(sid);
+        });
+    } else {
+        self.emit('createdOffer', sid);
+        // Before we create an offer, we will get previous offers and ensure it meets the limitations, to avoid errors.
+        return self.trade.createOffer(sid);
+    }
 };
 
 BotAccount.prototype.has_shared_secret = function () {

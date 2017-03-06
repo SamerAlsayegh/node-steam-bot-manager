@@ -48,6 +48,21 @@ DataControl.prototype.initData = function (callback) {
 DataControl.prototype.validateConfig = function (config, callback) {
     if (!config.hasOwnProperty("bot_prefix"))
         config.bot_prefix = "";// Default bot prefix
+    if (!config.hasOwnProperty("tradeCancelTime"))
+        config.tradeCancelTime = 60 * 60 * 24;
+    if (!config.hasOwnProperty("tradePendingCancelTime"))
+        config.tradePendingCancelTime = 60 * 60 * 24;
+    if (!config.hasOwnProperty("language"))
+        config.language = 60 * 60 * 24;
+    if (!config.hasOwnProperty("tradePollInterval"))
+        config.tradePollInterval = 60 * 60 * 24;
+    if (!config.hasOwnProperty("tradeCancelOfferCount"))
+        config.tradeCancelOfferCount = 60 * 60 * 24;
+    if (!config.hasOwnProperty("tradeCancelOfferCountMinAge"))
+        config.tradeCancelOfferCountMinAge = 60 * 60;
+    if (!config.hasOwnProperty("cancelTradeOnOverflow"))
+        config.cancelTradeOnOverflow = true;
+    
     //if (!config.hasOwnProperty("api_port")) // Removed = disable api system
     //    config.api_port = 1338;// Default api port
 
@@ -108,9 +123,18 @@ DataControl.prototype.loadAccounts = function (callback) {
 
 DataControl.prototype.loadConfig = function (callback) {
     var self = this;
-    //this.localURI + "/config_template.json" depreciated...
     self.getFile(this.localURI + "/config.json", {
-        bot_prefix: "__BOT_SHARED_PREFIX__"
+        bot_prefix: "__BOT_SHARED_PREFIX__",
+        api_port: null,
+        settings: {
+            tradeCancelTime: 3600,
+            tradePendingCancelTime: 3600,
+            language: "en",
+            tradePollInterval: 5000,
+            tradeCancelOfferCount: 30,
+            tradeCancelOfferCountMinAge: 60,
+            cancelTradeOnOverflow: true
+        }
     }, function (err, rawConfig) {
 
         try {
