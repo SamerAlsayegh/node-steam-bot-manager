@@ -196,19 +196,20 @@ BotManager.prototype.botLookup = function (keyData, callback) {
     try {
         if (self.getAccounts()[parseInt(keyData)]) {
             callback(null, self.getAccounts()[parseInt(keyData)]);
-        }
-        else {
+        } else {
             var botAccounts = self.getAccounts();
             for (var botAccountIndex in botAccounts) {
                 if (botAccounts.hasOwnProperty(botAccountIndex)) {
-                    if (botAccounts[botAccountIndex].getAccountName().toLowerCase() == keyData.toLowerCase()) {
-                        callback(null, botAccounts[botAccountIndex]);
-                    }
+                    if (botAccounts[botAccountIndex].getAccountName().indexOf(keyData) != -1) {
+                        return callback(null, botAccounts[botAccountIndex]);
+                    } else if (botAccountIndex == botAccounts.length-1)
+                        return callback({Error: "Failed to locate bot."},null);
                 }
             }
         }
     } catch (e) {
-        callback(e, null);
+        if (e)
+        return callback(e, null);
     }
 };
 
@@ -378,24 +379,11 @@ BotManager.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                                             self.errorDebug(err);
                                             self.displayMenu(botAccount);
                                         } else {
-                                            var time = botAccount.getUnixTime();
-                                            botAccount.getConfirmations(time, botAccount.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
-                                                if (err) {
+                                            botAccount.confirmOutstandingTrades(function(err, confirmedTrades){
+                                                if (err)
                                                     self.errorDebug(err);
-                                                    self.displayMenu(botAccount);
-                                                }
-                                                else {
-                                                    for (var confirmId in confirmations) {
-                                                        if (confirmations.hasOwnProperty(confirmId)) {
-                                                            confirmations[confirmId].respond(time, botAccount.generateMobileConfirmationCode(time, "allow"), true, function (err) {
-                                                                if (err) {
-                                                                    self.errorDebug("Trade failed to confirm");
-                                                                }
-                                                                self.displayMenu(botAccount);
-                                                            });
-                                                        }
-                                                    }
-                                                }
+                                                self.infoDebug("Confirmed and sent offer.");
+                                                self.displayMenu(botAccount);
                                             });
                                         }
                                     });

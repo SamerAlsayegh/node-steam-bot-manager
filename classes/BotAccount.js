@@ -7,7 +7,6 @@ var SteamTotp = require('steam-totp');
 BotAccount.prototype.__proto__ = require('events').EventEmitter.prototype;
 
 
-
 /**
  * Creates a new BotAccount instance for a bot.
  * @class
@@ -166,7 +165,7 @@ function BotAccount(accountDetails) {
                 self.accountDetails = tempAccountDetails;
                 self.emit('updatedAccountDetails');
                 break;
-            }
+        }
         self.emit('displayBotMenu');
     });
 
@@ -382,7 +381,11 @@ BotAccount.prototype.changeName = function (newName, namePrefix, errorCallback) 
  */
 BotAccount.prototype.getInventory = function (appid, contextid, tradableOnly, inventoryCallback) {
     var self = this;
-    self.trade.loadInventory(appid, contextid, tradableOnly, inventoryCallback);
+    if (!self.loggedIn) {
+        self.addToQueue(self.getInventory, [appid, contextid, tradableOnly, inventoryCallback]);
+    }
+    else
+        self.trade.loadInventory(appid, contextid, tradableOnly, inventoryCallback);
 };
 
 /**
@@ -395,7 +398,11 @@ BotAccount.prototype.getInventory = function (appid, contextid, tradableOnly, in
  */
 BotAccount.prototype.getUserInventory = function (steamID, appid, contextid, tradableOnly, inventoryCallback) {
     var self = this;
-    self.trade.loadUserInventory(steamID, appid, contextid, tradableOnly, inventoryCallback);
+    if (!self.loggedIn) {
+        self.addToQueue(self.getUserInventory, [steamID, appid, contextid, tradableOnly, inventoryCallback]);
+    }
+    else
+        self.trade.loadUserInventory(steamID, appid, contextid, tradableOnly, inventoryCallback);
 };
 /**
  * Add a phone-number to the account (For example before setting up 2-factor authentication)
@@ -445,7 +452,7 @@ BotAccount.prototype.confirmTradesFromUser = function (SteamID, callback) {
                 }
             }
         }
-        self.confirmOutstandingTrades(function(err, confirmedTrades){
+        self.confirmOutstandingTrades(function (err, confirmedTrades) {
             callback(err, acceptedTrades);
         });
     });
@@ -466,19 +473,20 @@ BotAccount.prototype.confirmOutstandingTrades = function (callback) {
         }
         else {
             var confirmedTrades = [];
-            for (var confirmId in confirmations) {
-                if (confirmations.hasOwnProperty(confirmId)) {
-                    confirmations[confirmId].respond(time, self.generateMobileConfirmationCode(time, "allow"), true, function (err) {
-                        if (err)
-                            return callback(err, confirmedTrades);
-                        confirmedTrades.push(confirmations[confirmId]);
-                        if (confirmedTrades.length == confirmations.length){
-                            // Everything went smooth
-                            return callback(null, confirmations);
-                        }
-
-                    });
+            if (confirmations.length > 0) {
+                for (var confirmId in confirmations) {
+                    if (confirmations.hasOwnProperty(confirmId)) {
+                        confirmations[confirmId].respond(time, self.generateMobileConfirmationCode(time, "allow"), true, function (err) {
+                            confirmedTrades.push(confirmations[confirmId]);
+                            if (confirmedTrades.length == confirmations.length) {
+                                // Everything went smooth
+                                return callback(null, confirmations);
+                            }
+                        });
+                    }
                 }
+            } else {
+                callback(null, []);
             }
         }
     });
