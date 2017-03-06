@@ -3,7 +3,7 @@ A bot management tool for [Steam Community](http://www.steamcommunity.com) built
 
 
 
-Version 1.0.37
+Version 1.0.38
 
 [![forthebadge](http://forthebadge.com/images/badges/uses-js.svg)](http://forthebadge.com)
 [![forthebadge](http://forthebadge.com/images/badges/built-with-love.svg)](http://forthebadge.com)

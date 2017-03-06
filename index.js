@@ -270,7 +270,7 @@ BotManager.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                         case 0:
                             botAccount.getUserInventory(friendsList[menuEntry].accountSid, self.config.appid, 2, true, function (err, inventory, currencies) {
                                 if (err) {
-                                    self.errorDebug(err);
+                                    self.errorDebug("User does not have game - " + err);
                                     self.displayMenu(botAccount);
                                 }
                                 else {

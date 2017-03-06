@@ -89,9 +89,14 @@ DataControl.prototype.getFile = function (filePath, expectedForm, callback) {
                 });
             }
             else {
-                fs.writeFile(filePath, JSON.stringify(expectedForm), function (err) {
-                    self.getFile(filePath, expectedForm, callback);
+                fs.rename(filePath, filePath + "_backup", function (err) {
+                    if (err) throw err;
+                    console.log('Renamed a possibly faulty file - please check and determine issue using an online JSON parser');
+                    fs.writeFile(filePath, JSON.stringify(expectedForm), function (err) {
+                        self.getFile(filePath, expectedForm, callback);
+                    });
                 });
+
             }
         } catch (e) {
             callback(e, null);
@@ -115,6 +120,7 @@ DataControl.prototype.loadAccounts = function (callback) {
             }
             callback(null, accountList);
         } catch (e) {
+            self.errorDebug("Failed to read account data - check file for any malformation using a JSON parser");
             callback(e, null);
         }
     });
