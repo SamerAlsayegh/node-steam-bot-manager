@@ -3,7 +3,6 @@ var SteamCommunity = require('steamcommunity');
 var SteamStore = require('steamstore');
 var TradeOfferManager = require('steam-tradeoffer-manager');
 var SteamTotp = require('steam-totp');
-
 BotAccount.prototype.__proto__ = require('events').EventEmitter.prototype;
 
 
@@ -19,7 +18,6 @@ function BotAccount(accountDetails, settings) {
     self.settings = settings;
     self.community = new SteamCommunity();
     self.client = new SteamUser();
-
 
     if (!self.settings.hasOwnProperty("tradeCancelTime"))
         self.settings.tradeCancelTime = 60 * 60 * 24;
@@ -47,147 +45,15 @@ function BotAccount(accountDetails, settings) {
         "pollInterval": 5000 // We want to poll every 5 seconds since we don't have Steam notifying us of offers
     });
     self.SteamID = TradeOfferManager.SteamID;
-    self.request = require('request');
+    self.request = self.community.request;
+
     self.store = new SteamStore();
     self.accountDetails = accountDetails;
     self.loggedIn = false;
     self.rateLimited = false;
     self.delayedTasks = [];
-
-
-    self.client.on('loggedOn', function (details) {
-        self.client.setPersona(SteamUser.Steam.EPersonaState.Online);
-        self.emit('loggedOn', details);
-        if (self.getTempSetting('displayBotMenu') != null) {
-            self.emit('displayBotMenu');
-            self.deleteTempSetting('displayBotMenu');
-        }
-
-
-    });
-    self.client.on('webSession', function (sessionID, cookies) {
-        if (self.accountDetails.sessionID != sessionID || self.accountDetails.cookies != cookies) {
-            self.accountDetails.sessionID = sessionID;
-            self.accountDetails.cookies = cookies;
-            delete self.accountDetails.twoFactorCode;
-            /**
-             * Updated an account's details (such as: username, password, sessionid, cookies...)
-             *
-             * @event BotAccount#updatedAccountDetails
-             */
-            self.emit('updatedAccountDetails');
-        }
-
-        if (self.accountDetails.cookies) {
-            self.community.setCookies(cookies);
-            self.store.setCookies(cookies);
-            self.trade.setCookies(cookies);
-        }
-        self.loggedIn = true;
-        self.processQueue(function (err) {
-            if (!err) {
-
-
-                self.client.on('friendOrChatMessage', function (senderID, message, room) {
-                    if (self.currentChatting != null && senderID == self.currentChatting.sid) {
-                        console.log(("\n" + self.currentChatting.accountName + ": " + message).green);
-                    }
-                    /**
-                     * Emitted when a friend message or chat room message is received.
-                     *
-                     * @event BotAccount#friendOrChatMessage
-                     * @type {object}
-                     * @property {SteamID} senderID - The message sender, as a SteamID object
-                     * @property {String} message - The message text
-                     * @property {SteamID} room - The room to which the message was sent. This is the user's SteamID if it was a friend message
-                     */
-                    self.emit('friendOrChatMessage', senderID, message, room);
-                });
-
-                self.trade.on('sentOfferChanged', function (offer, oldState) {
-                    /**
-                     * Emitted when a trade offer changes state (Ex. accepted, pending, escrow, etc...)
-                     *
-                     * @event BotAccount#offerChanged
-                     * @type {object}
-                     * @property {TradeOffer} offer - The new offer's details
-                     * @property {TradeOffer} oldState - The old offer's details
-                     */
-                    self.emit('offerChanged', offer, oldState);
-                });
-
-                self.trade.on('receivedOfferChanged', function (offer, oldState) {
-                    self.emit('offerChanged', offer, oldState);
-                });
-
-                self.trade.on('newOffer', function (offer) {
-                    /**
-                     * Emitted when we receive a new trade offer
-                     *
-                     * @event BotAccount#newOffer
-                     * @type {object}
-                     * @property {TradeOffer} offer - The offer's details
-                     */
-                    self.emit('newOffer', offer);
-                });
-
-                self.client.on('tradeOffers', function (count) {
-                    /**
-                     * Emitted when we receive a new trade offer notification (only provides amount of offers and no other details)
-                     *
-                     * @event BotAccount#tradeOffers
-                     * @type {object}
-                     * @property {Integer} count - The amount of active trade offers (can be 0).
-                     */
-                    self.emit('tradeOffers', count);
-                });
-
-                self.client.on('steamGuard', function (domain, callback, lastCodeWrong) {
-                    /**
-                     * Emitted when Steam requests a Steam Guard code from us. You should collect the code from the user somehow and then call the callback with the code as the sole argument.
-                     *
-                     * @event BotAccount#steamGuard
-                     * @type {object}
-                     * @property {String} domain - If an email code is needed, the domain name of the address where the email was sent. null if an app code is needed.
-                     * @property {Callback} callbackSteamGuard - Should be called when the code is available.
-                     * @property {Boolean} lastCodeWrong - true if you're using 2FA and the last code you provided was wrong, false otherwise
-                     */
-                    self.emit('steamGuard', domain, callback, lastCodeWrong);
-                });
-                /**
-                 * Emitted when we fully sign into Steam and all functions are usable.
-                 *
-                 * @event BotAccount#loggedIn
-                 */
-                self.emit('loggedIn');
-            }
-        })
-    });
-
-
-    self.client.on('error', function (e) {
-        // Some error occurred during logon
-        self.emit('error', e);
-        switch (e.eresult) {
-            case 84:
-                // RateLimitExceeded - Any future events based on rate limits will be queued.
-                self.rateLimited = true;
-                break;
-            case 5:
-                self.emit('incorrectCredentials', self.accountDetails);
-                var tempAccountDetails = {
-                    accountName: self.accountDetails.accountName,
-                    password: self.accountDetails.password
-                };
-                delete self.accountDetails;// Clearing any non-auth details we may have had saved.
-                self.accountDetails = tempAccountDetails;
-                self.emit('updatedAccountDetails');
-                break;
-        }
-        self.emit('displayBotMenu');
-    });
-
-}
+    self.emit('displayBotMenu');
+};
 
 /**
  * Get the account's username, used to login to Steam
@@ -197,7 +63,6 @@ BotAccount.prototype.getAccountName = function () {
     var self = this;
     return self.accountDetails.accountName;
 };
-
 /**
  * Generate two-factor-authentication code used for logging in.
  * @returns {Error | String}
@@ -253,14 +118,37 @@ BotAccount.prototype.getAccount = function () {
 };
 
 /**
- * Send a chat message to a steam user
+ * Send a chat message to a receipient with callback
+ * @param {SteamID} recipient - Recipient of the message
+ * @param {String} message - Message to send
+ * @param {String} type - saytest or typing (message ignored for 'typing')
+ * @param {messageCallback} callback - Callback upon sending the message (null, or Error)
+ */
+BotAccount.prototype.sendMessage = function (recipient, message, type, callback) {
+    var self = this;
+    return self.community.chatMessage(recipient, message, type, callback);
+};
+
+/**
+ * Send a chat message to a receipient with callback
+ * @param {SteamID} recipient - Recipient of the message
+ * @param {String} message - Message to send
+ * @param {messageCallback} callback - Callback upon sending the message (null, or Error)
+ */
+BotAccount.prototype.sendMessage = function (recipient, message, callback) {
+    var self = this;
+    return self.community.chatMessage(recipient, message, callback);
+};
+/**
+ * Send a chat message to a receipient without callback
  * @param {SteamID} recipient - Recipient of the message
  * @param {String} message - Message to send
  */
 BotAccount.prototype.sendMessage = function (recipient, message) {
     var self = this;
-    return self.client.chatMessage(recipient, message, 1);
+    return self.community.chatMessage(recipient, message);
 };
+
 /**
  * @callback confirmationsCallback
  * @param {Error} error - An error message if the process failed, null if successful
@@ -522,26 +410,147 @@ BotAccount.prototype.verifyPhoneNumber = function (code, callback) {
         }
     });
 };
+
+
+BotAccount.prototype.getRequest = function (url, callback) {
+    var self = this;
+    self.request({
+        url: url,
+        method: "GET",
+        json: true
+    }, function (err, response, body) {
+        callback(err, body);
+    });
+}
+
+BotAccount.prototype.getRequestAPI = function (interface, version, method, options, callback) {
+    var self = this;
+    //http://api.steampowered.com/ISteamUser/GetFriendList/v0001/?key=CE2825A59C978C4102AB07EA52F225CD&steamid=76561197960435530&relationship=friend
+
+    var string = '?';
+    var x = 0
+    for (var option in options)
+        string += option + "=" + options[option] + (x++ < Object.keys(options).length - 1 ? "&" : '');
+    self.community.request({
+        url: 'http://api.steampowered.com/' + interface + '/' + method + '/' + version + '/' + string,
+        method: "GET",
+        json: true,
+        // body: options
+    }, function (err, response, body) {
+        callback(err, body);
+    });
+}
+
+BotAccount.prototype.getFriendsSummariesNonAPI = function (friends, atCount, friendsCompiled, callback) {
+    var self = this;
+    var steamids = ""
+    var maxCount = atCount + 100;
+    if (atCount + 100 > friends.length)
+        maxCount = friends.length;
+    for (var x = 0 + atCount; x < (maxCount); x++)
+        steamids += friends[x].steamid + (x < maxCount - 1 ? ',' : "");
+
+
+    self.getRequestAPI('ISteamUser', 'v2', 'GetPlayerSummaries', {
+        key: self.settings.api_key,
+        steamids: steamids
+    }, function (err, body) {
+        if (err)
+            return callback(err, friendsCompiled);
+        var compiledFriends = body.response.players;
+
+        if (maxCount < friends.length) {
+            self.getFriendsSummaries(friends, atCount + 100, friendsCompiled.concat(compiledFriends), function (err, friendsSummaries) {
+                return callback(null, compiled);
+            });
+        }
+        else
+            return callback(null, friendsCompiled.concat(compiledFriends));
+
+    })
+};
+BotAccount.prototype.getFriendsSummaries = function (friends, atCount, friendsCompiled, callback) {
+    var self = this;
+    var steamids = ""
+    var maxCount = atCount + 100;
+    if (atCount + 100 > friends.length)
+        maxCount = friends.length;
+    for (var x = 0 + atCount; x < (maxCount); x++)
+        steamids += friends[x].steamid + (x < maxCount - 1 ? ',' : "");
+
+
+    self.getRequestAPI('ISteamUser', 'v2', 'GetPlayerSummaries', {
+        key: self.settings.api_key,
+        steamids: steamids
+    }, function (err, body) {
+        if (err)
+            return callback(err, friendsCompiled);
+        var compiledFriends = body.response.players;
+
+        if (maxCount < friends.length) {
+            self.getFriendsSummaries(friends, atCount + 100, friendsCompiled.concat(compiledFriends), function (err, friendsSummaries) {
+                return callback(null, compiled);
+            });
+        }
+        else
+            return callback(null, friendsCompiled.concat(compiledFriends));
+
+    })
+};
+
 BotAccount.prototype.getFriends = function (callback) {
     var self = this;
     var onlineFriendsList = [];
-    // We need to convert SteamID to names... To do that, we need SteamCommunity package.
-    for (var id in Object.keys(self.client.users)) {
-        onlineFriendsList.push({
-            accountName: self.client.users[Object.keys(self.client.users)[id]].player_name,
-            accountSid: Object.keys(self.client.users)[id]
-        });
+    if (self.cachedFriendsList && (typeof self.cachedFriendsList == 'object') && ((new Date().getTime() / 1000) - (self.cachedFriendsList.cacheTime)) < (60 * 10)) {
+        onlineFriendsList = self.cachedFriendsList.friendsList.slice();
+        return callback(null, onlineFriendsList);
+    } else {
+        // Due to the fact that we must submit an API call everytime we need friends list, we will cach the data for 5 minutes. Clear cach on force.
+        if (!self.loggedIn) {
+            self.addToQueue(self.getFriends, [callback]);
+        }
+        else {
+            self.getRequestAPI('ISteamUser', 'v1', 'GetFriendList', {
+                key: self.settings.api_key,
+                relationship: 'friend',
+                steamid: self.community.steamID
+            }, function (err, body) {
+                if (err)
+                    return callback(err, null);
+                var friends = body.friendslist.friends;
+                self.getFriendsSummaries(friends, 0, [], function (err, friendsSummaries) {
+                    // We need to convert SteamID to names... To do that, we need SteamCommunity package.
+                    for (var id in friendsSummaries) {
+                        onlineFriendsList.push({
+                            accountName: friendsSummaries[id].personaname,
+                            accountSid: friendsSummaries[id].steamid
+                        });
+                    }
+                    self.cachedFriendsList = {friendsList: onlineFriendsList, cacheTime: new Date().getTime() / 1000};
+
+                    return callback(null, onlineFriendsList.slice());
+                });
+
+            })
+
+            // self.emit('loadedFriends', onlineFriendsList);
+            // onlineFriendsList.splice(0, 1);//First entry is usually the bot's name. So just delete it
+            // callback({Error: new Error("Failed to find all friends?")}, onlineFriendsList);
+        }
     }
-    self.emit('loadedFriends', onlineFriendsList);
-    onlineFriendsList.splice(0, 1);//First entry is usually the bot's name. So just delete it
-    callback({Error: new Error("Failed to find all friends?")}, onlineFriendsList);
 };
+
+
+// self.emit('loadedFriends', onlineFriendsList);
+// onlineFriendsList.splice(0, 1);//First entry is usually the bot's name. So just delete it
+// callback({Error: new Error("Failed to find all friends?")}, onlineFriendsList);
+
 
 BotAccount.prototype.createOffer = function (sid, callback) {
     var self = this;
-    self.emit('debug', 'Checking for overflow in trades');
 
     if (self.settings.cancelTradeOnOverflow) {
+        self.emit('debug', 'Checking for overflow in trades');
         self.trade.getOffers(1, null, function (err, sent, received) {
             if (err)
                 return callback(err, null);
@@ -557,7 +566,6 @@ BotAccount.prototype.createOffer = function (sid, callback) {
                 allTrades.push(received[tradeIndex]);
             }
             var savedTradesCounts = {};
-            self.emit('debug', 'Checking for overflow in trades');
             for (var tradeIndex in allTrades) {
                 var trade = allTrades[tradeIndex];
                 if (!savedTradesCounts.hasOwnProperty(trade.partner))
@@ -570,7 +578,6 @@ BotAccount.prototype.createOffer = function (sid, callback) {
                     tradeToCancelDueToTotalLimit = trade;
                 }
             }
-            console.log(savedTradesCounts);
             if (tradeToCancelDueToPersonalLimit.length >= 0 && self.settings.cancelTradeOnOverflow) {
                 for (var tradeIndex in tradeToCancelDueToPersonalLimit) {
                     self.emit('debug', "Cancelled trade #" + tradeToCancelDueToPersonalLimit[tradeIndex].id + " due to overload in personal trade requests");
@@ -582,10 +589,12 @@ BotAccount.prototype.createOffer = function (sid, callback) {
                 tradeToCancelDueToTotalLimit.cancel();
             }
             self.emit('createdOffer', sid);
+            self.emit('debug', 'Sent trade offer');
             return callback(null, self.trade.createOffer(sid));
 
         });
     } else {
+        self.emit('debug', 'Sent trade offer');
         self.emit('createdOffer', sid);
         // Before we create an offer, we will get previous offers and ensure it meets the limitations, to avoid errors.
         return callback(null, self.trade.createOffer(sid));
@@ -597,7 +606,9 @@ BotAccount.prototype.has_shared_secret = function () {
     return (self.accountDetails.shared_secret ? true : false);
 };
 
-BotAccount.prototype.loginAccount = function (authCode) {
+
+BotAccount.prototype.loginAccount = function (details, loginCallback) {
+
     var self = this;
     self.emit('loggingIn');
     var accountDetailsModified = self.accountDetails;
@@ -607,11 +618,157 @@ BotAccount.prototype.loginAccount = function (authCode) {
     }
     accountDetailsModified.rememberPassword = true;
     accountDetailsModified.logonId = 100;
-    if (authCode != undefined) {
-        accountDetailsModified.authCode = authCode;
-    }
 
-    self.client.logOn(accountDetailsModified);
+    if (details != null) {
+        if (details.authCode != null)
+            accountDetailsModified.authCode = authCode;
+        if (details.captcha != null)
+            accountDetailsModified.captcha = details.captcha;
+    }
+    self.community.login(accountDetailsModified, function (err, sessionID, cookies, steamguard, oAuthToken) {
+        if (err) {
+            if (err.Error == "SteamGuardMobile" && self.accountDetails.shared_secret) {
+                return self.login(details, loginCallback);
+            }
+            else
+                return loginCallback(err);
+        }
+
+        self.chatLogon(500, 'web');
+
+        if (self.accountDetails.sessionID != sessionID || self.accountDetails.cookies != cookies) {
+            self.accountDetails.sessionID = sessionID;
+            self.accountDetails.cookies = cookies;
+            delete self.accountDetails.twoFactorCode;
+            /**
+             * Updated an account's details (such as: username, password, sessionid, cookies...)
+             *
+             * @event BotAccount#updatedAccountDetails
+             */
+            self.emit('updatedAccountDetails');
+        }
+
+        if (self.accountDetails.cookies) {
+            self.community.setCookies(cookies);
+            self.store.setCookies(cookies);
+            self.trade.setCookies(cookies);
+        }
+        self.loggedIn = true;
+        self.processQueue(function (err) {
+            if (err)
+                return loginCallback(err);
+
+            self.community.on('chatTyping', function (senderID) {
+                self.emit('chatTyping', senderID);
+            });
+            self.community.on('chatLoggedOff', function () {
+                self.emit('chatLoggedOff');
+            });
+            self.community.on('chatMessage', function (senderID, message) {
+                if (self.currentChatting != null && senderID == self.currentChatting.sid) {
+                    console.log(("\n" + self.currentChatting.accountName + ": " + message).green);
+                }
+                /**
+                 * Emitted when a friend message or chat room message is received.
+                 *
+                 * @event BotAccount#friendOrChatMessage
+                 * @type {object}
+                 * @property {SteamID} senderID - The message sender, as a SteamID object
+                 * @property {String} message - The message text
+                 * @property {SteamID} room - The room to which the message was sent. This is the user's SteamID if it was a friend message
+                 */
+                self.emit('chatMessage', senderID, message);
+            });
+
+            self.trade.on('sentOfferChanged', function (offer, oldState) {
+                /**
+                 * Emitted when a trade offer changes state (Ex. accepted, pending, escrow, etc...)
+                 *
+                 * @event BotAccount#offerChanged
+                 * @type {object}
+                 * @property {TradeOffer} offer - The new offer's details
+                 * @property {TradeOffer} oldState - The old offer's details
+                 */
+                self.emit('offerChanged', offer, oldState);
+            });
+
+            self.trade.on('receivedOfferChanged', function (offer, oldState) {
+                self.emit('offerChanged', offer, oldState);
+            });
+
+            self.trade.on('newOffer', function (offer) {
+                /**
+                 * Emitted when we receive a new trade offer
+                 *
+                 * @event BotAccount#newOffer
+                 * @type {object}
+                 * @property {TradeOffer} offer - The offer's details
+                 */
+                self.emit('newOffer', offer);
+            });
+
+            self.trade.on('sentOfferChanged', function (offer) {
+                /**
+                 * Emitted when we receive a new trade offer notification (only provides amount of offers and no other details)
+                 *
+                 * @event BotAccount#tradeOffers
+                 * @type {object}
+                 * @property {Integer} count - The amount of active trade offers (can be 0).
+                 */
+                self.emit('sentOfferChanged', offer);
+            });
+            self.trade.on('realTimeTradeConfirmationRequired', function (offer) {
+                /**
+                 * Emitted when a trade offer is cancelled
+                 *
+                 * @event BotAccount#tradeOffers
+                 * @type {object}
+                 * @property {Integer} count - The amount of active trade offers (can be 0).
+                 */
+                self.emit('realTimeTradeConfirmationRequired', offer);
+            });
+            self.trade.on('realTimeTradeCompleted', function (offer) {
+                /**
+                 * Emitted when a trade offer is cancelled
+                 *
+                 * @event BotAccount#tradeOffers
+                 * @type {object}
+                 * @property {Integer} count - The amount of active trade offers (can be 0).
+                 */
+                self.emit('realTimeTradeCompleted', offer);
+            });
+            self.trade.on('sentOfferCanceled', function (offer) {
+                /**
+                 * Emitted when a trade offer is cancelled
+                 *
+                 * @event BotAccount#tradeOffers
+                 * @type {object}
+                 * @property {Integer} count - The amount of active trade offers (can be 0).
+                 */
+                self.emit('sentOfferCanceled', offer);
+            });
+
+            // self.client.on('steamGuard', function (domain, callback, lastCodeWrong) {
+            //     /**
+            //      * Emitted when Steam requests a Steam Guard code from us. You should collect the code from the user somehow and then call the callback with the code as the sole argument.
+            //      *
+            //      * @event BotAccount#steamGuard
+            //      * @type {object}
+            //      * @property {String} domain - If an email code is needed, the domain name of the address where the email was sent. null if an app code is needed.
+            //      * @property {Callback} callbackSteamGuard - Should be called when the code is available.
+            //      * @property {Boolean} lastCodeWrong - true if you're using 2FA and the last code you provided was wrong, false otherwise
+            //      */
+            //     self.emit('steamGuard', domain, callback, lastCodeWrong);
+            // });
+            /**
+             * Emitted when we fully sign into Steam and all functions are usable.
+             *
+             * @event BotAccount#loggedIn
+             */
+            self.emit('loggedIn');
+            return loginCallback(null);
+        });
+    });
 };
 BotAccount.prototype.hasPhone = function (callback) {
     var self = this;
@@ -619,22 +776,48 @@ BotAccount.prototype.hasPhone = function (callback) {
         callback(err, hasPhone, lastDigits);
     });
 };
-
+BotAccount.prototype.canReloginWithoutPrompt = function () {
+    var self = this;
+    return self.accountDetails.shared_secret ? true : false;
+};
 BotAccount.prototype.finalizeTwoFactor = function (shared_secret, activationCode, callback) {
     var self = this;
     self.emit('finalizedTwoFactorAuth');
-    self.client.finalizeTwoFactor(shared_secret, activationCode, callback);
+    self.community.finalizeTwoFactor(shared_secret, activationCode, function (err) {
+        callback(err);
+    });
 };
 
 BotAccount.prototype.enableTwoFactor = function (callback) {
     var self = this;
     self.emit('enablingTwoFactorAuth');
-    self.client.enableTwoFactor(function (response) {
+    self.community.enableTwoFactor(function (err, response) {
+        if (err)
+            return callback(err, null);
+
         self.accountDetails.shared_secret = response.shared_secret;
         self.accountDetails.identity_secret = response.identity_secret;
         self.accountDetails.revocation_code = response.revocation_code;
         self.emit('enabledTwoFactorAuth', response);
-        callback(response);
+        return callback(err, response);
+    });
+};
+
+BotAccount.prototype.disableTwoFactor = function (callback) {
+    var self = this;
+    self.emit('disablingTwoFactorAuth');
+    if (!self.accountDetails.revocation_code)
+        return callback({Error: "There is no revocation code saved."}, null);
+
+    self.community.disableTwoFactor(self.accountDetails.revocation_code, function (err, response) {
+        if (err)
+            return callback(err, null);
+
+        self.accountDetails.shared_secret = response.shared_secret;
+        self.accountDetails.identity_secret = response.identity_secret;
+        self.accountDetails.revocation_code = response.revocation_code;
+        self.emit('enabledTwoFactorAuth', response);
+        return callback(null, response);
     });
 };
 
@@ -658,10 +841,17 @@ BotAccount.prototype.deleteTempSetting = function (tempSetting) {
         delete self.tempSettings[tempSetting];
 };
 
-
+BotAccount.prototype.chatLogon = function (interval, uiMode) {
+    var self = this;
+    if (interval == null)
+        interval = 500;
+    if (uiMode == null)
+        uiMode = 'web';
+    self.community.chatLogon(interval, uiMode);
+};
 BotAccount.prototype.logoutAccount = function () {
     var self = this;
-    self.client.logOff();
+    self.community.chatLogoff();
 };
 
 

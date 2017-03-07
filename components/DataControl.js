@@ -69,10 +69,6 @@ DataControl.prototype.validateConfig = function (config, callback) {
     callback(null, config);
 };
 
-DataControl.prototype.registerAccount = function (accountDetails) {
-    var self = this;
-    self.emit('loadedAccount', accountDetails);
-};
 
 
 DataControl.prototype.getFile = function (filePath, expectedForm, callback) {
@@ -133,6 +129,7 @@ DataControl.prototype.loadConfig = function (callback) {
         bot_prefix: "__BOT_SHARED_PREFIX__",
         api_port: null,
         settings: {
+            api_key: "",
             tradeCancelTime: 3600,
             tradePendingCancelTime: 3600,
             language: "en",
