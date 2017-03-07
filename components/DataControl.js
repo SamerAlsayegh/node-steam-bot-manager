@@ -120,7 +120,7 @@ DataControl.prototype.loadAccounts = function (callback) {
             }
             callback(null, accountList);
         } catch (e) {
-            self.errorDebug("Failed to read account data - check file for any malformation using a JSON parser");
+            self.emit('error', "Failed to read account data - check file for any malformation using a JSON parser");
             callback(e, null);
         }
     });

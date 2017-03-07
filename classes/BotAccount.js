@@ -537,10 +537,15 @@ BotAccount.prototype.getFriends = function (callback) {
     callback({Error: new Error("Failed to find all friends?")}, onlineFriendsList);
 };
 
-BotAccount.prototype.createOffer = function (sid) {
+BotAccount.prototype.createOffer = function (sid, callback) {
     var self = this;
+    self.emit('debug', 'Checking for overflow in trades');
+
     if (self.settings.cancelTradeOnOverflow) {
         self.trade.getOffers(1, null, function (err, sent, received) {
+            if (err)
+                return callback(err, null);
+
             var allTrades = [];
             var tradeToCancelDueToTotalLimit = null;
             var tradeToCancelDueToPersonalLimit = [];
@@ -552,11 +557,12 @@ BotAccount.prototype.createOffer = function (sid) {
                 allTrades.push(received[tradeIndex]);
             }
             var savedTradesCounts = {};
+            self.emit('debug', 'Checking for overflow in trades');
             for (var tradeIndex in allTrades) {
                 var trade = allTrades[tradeIndex];
                 if (!savedTradesCounts.hasOwnProperty(trade.partner))
                     savedTradesCounts[trade.partner] = 0;
-                savedTradesCounts[trade.partner] = savedTradesCounts[trade.partner]++;
+                savedTradesCounts[trade.partner] = savedTradesCounts[trade.partner] + 1;
                 if (savedTradesCounts[trade.partner] >= 5)
                     tradeToCancelDueToPersonalLimit.push(trade);
 
@@ -564,25 +570,25 @@ BotAccount.prototype.createOffer = function (sid) {
                     tradeToCancelDueToTotalLimit = trade;
                 }
             }
+            console.log(savedTradesCounts);
             if (tradeToCancelDueToPersonalLimit.length >= 0 && self.settings.cancelTradeOnOverflow) {
                 for (var tradeIndex in tradeToCancelDueToPersonalLimit) {
-                    self.infoDebug("Cancelled trade #" + tradeToCancelDueToPersonalLimit[tradeIndex].tradeID + " due to overload in personal trade requests");
+                    self.emit('debug', "Cancelled trade #" + tradeToCancelDueToPersonalLimit[tradeIndex].id + " due to overload in personal trade requests");
                     tradeToCancelDueToPersonalLimit[tradeIndex].cancel();
-
                 }
             }
             if (allTrades.length >= 30 && self.settings.cancelTradeOnOverflow) {
-                self.infoDebug("Cancelled trade #" + tradeToCancelDueToTotalLimit.tradeID + " due to overload in total trade requests");
+                self.emit('debug', "Cancelled trade #" + tradeToCancelDueToTotalLimit.id + " due to overload in total trade requests");
                 tradeToCancelDueToTotalLimit.cancel();
             }
             self.emit('createdOffer', sid);
-            // Before we create an offer, we will get previous offers and ensure it meets the limitations, to avoid errors.
-            return self.trade.createOffer(sid);
+            return callback(null, self.trade.createOffer(sid));
+
         });
     } else {
         self.emit('createdOffer', sid);
         // Before we create an offer, we will get previous offers and ensure it meets the limitations, to avoid errors.
-        return self.trade.createOffer(sid);
+        return callback(null, self.trade.createOffer(sid));
     }
 };
 

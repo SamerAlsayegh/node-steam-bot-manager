@@ -65,7 +65,13 @@ BotManager.prototype.startManager = function (callbackManager) {
         botAccount.on('newOffer', function (offer) {
             self.emit('newOffer', botAccount, offer);
         });
+        botAccount.on('debug', function (msg) {
+            self.infoDebug(msg);
+        });
 
+        botAccount.on('error', function (err) {
+            self.errorDebug(err);
+        });
 
         botAccount.on('loggedIn', function () {
             // User just logged in
@@ -151,24 +157,85 @@ BotManager.prototype.displayBotMenu = function () {
         switch (result.accountName) {
 
             case 'register':
+                var tempList = [];
+                tempList.push("new account");
+                tempList.push(new inquirer.Separator());
+                tempList.push("import account");
 
-                var questions = [
+                var optionList = [
                     {
-                        type: 'input',
-                        name: 'accountName',
-                        message: 'What\'s the bot username?'
-                    },
-                    {
-                        type: 'password',
-                        name: 'password',
-                        message: 'What\'s the bot password?'
+                        type: 'list',
+                        name: 'registerOption',
+                        message: 'Choose how you would like to register?:',
+                        choices: tempList
                     }
                 ];
+                inquirer.prompt(optionList, function (result) {
+                    var accountQuestions = [
+                        {
+                            type: 'input',
+                            name: 'accountName',
+                            message: 'What\'s the bot username?'
+                        },
+                        {
+                            type: 'password',
+                            name: 'password',
+                            message: 'What\'s the bot password?'
+                        }
+                    ];
+                    switch (result.registerOption) {
+                        case 'new account':
+                            inquirer.prompt(accountQuestions, function (result) {
+                                self.dataControl.registerAccount({
+                                    accountName: result.accountName,
+                                    password: result.password
+                                });
+                                self.displayBotMenu();
+                            });
+                            break;
+                        case 'import account':
+                            accountQuestions = [
+                                {
+                                    type: 'input',
+                                    name: 'accountName',
+                                    message: 'What\'s the bot username?'
+                                },
+                                {
+                                    type: 'password',
+                                    name: 'password',
+                                    message: 'What\'s the bot password?'
+                                },
+                                {
+                                    type: 'input',
+                                    name: 'shared_secret',
+                                    message: 'What\'s the shared_secret?'
+                                },
+                                {
+                                    type: 'input',
+                                    name: 'identity_secret',
+                                    message: 'What\'s the identity_secret?'
+                                },
+                                {
+                                    type: 'input',
+                                    name: 'revocation',
+                                    message: 'What\'s the revocation code?'
+                                }
+                            ];
 
-                inquirer.prompt(questions, function (result) {
-                    self.dataControl.registerAccount({accountName: result.accountName, password: result.password});
-                    self.displayBotMenu();
+                            inquirer.prompt(accountQuestions, function (result) {
+                                self.dataControl.registerAccount({
+                                    accountName: result.accountName,
+                                    password: result.password,
+                                    shared_secret: result.shared_secret,
+                                    identity_secret: result.identity_secret,
+                                    revocation: result.revocation
+                                });
+                                self.displayBotMenu();
+                            });
+                            break;
+                    }
                 });
+
 
                 break;
             case 'exit':
@@ -265,19 +332,81 @@ BotManager.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                     break;
                 default:
                     // Trade with user selected.
-                    var currentOffer = botAccount.createOffer(friendsList[menuEntry].accountSid);
-                    switch (tradeMenuOption) {
-                        case 0:
-                            botAccount.getUserInventory(friendsList[menuEntry].accountSid, self.config.appid, 2, true, function (err, inventory, currencies) {
-                                if (err) {
-                                    self.errorDebug("User does not have game - " + err);
-                                    self.displayMenu(botAccount);
-                                }
-                                else {
+                    botAccount.createOffer(friendsList[menuEntry].accountSid, function (err, currentOffer) {
+
+                        switch (tradeMenuOption) {
+                            case 0:
+                                botAccount.getUserInventory(friendsList[menuEntry].accountSid, self.config.appid, 2, true, function (err, inventory, currencies) {
+                                    if (err) {
+                                        self.errorDebug("User does not have game - " + err);
+                                        self.displayMenu(botAccount);
+                                    }
+                                    else {
 
 
+                                        if (inventory == null || inventory.length < 1) {
+                                            self.infoDebug("Other user has no items in inventory. Redirecting to menu...");
+                                            self.initTradeMenu(botAccount);
+                                            return;
+                                        }
+
+                                        var nameList = [];
+                                        for (var id in inventory) {
+                                            if (inventory.hasOwnProperty(id)) {
+                                                nameList.push(inventory[id].name);
+                                            }
+                                        }
+
+
+                                        var tradeMenu = [
+                                            {
+                                                type: 'checkbox',
+                                                name: 'tradeOption',
+                                                message: 'What would you like to take? (\'Enter\' to send trade)',
+                                                choices: nameList,
+                                                validate: function (answer) {
+                                                    if (answer.length < 1) {
+                                                        self.tradeMenu(botAccount, tradeMenuOption);
+                                                        return false;
+                                                    }
+                                                    return true;
+                                                }
+                                            }
+
+                                        ];
+                                        inquirer.prompt(tradeMenu, function (result) {
+                                            for (var itemNameIndex in result.tradeOption) {
+                                                if (result.tradeOption.hasOwnProperty(itemNameIndex)) {
+                                                    var itemName = result.tradeOption[itemNameIndex];
+                                                    currentOffer.addTheirItem(inventory[nameList.indexOf(itemName)]);
+                                                    nameList[nameList.indexOf(itemName)] = {
+                                                        name: itemName,
+                                                        displayed: true
+                                                    };
+                                                }
+                                            }
+                                            currentOffer.send("Manual offer triggered by Bot Manager.", null, function (err, status) {
+                                                if (err) {
+                                                    self.errorDebug(err);
+                                                    self.displayMenu(botAccount);
+                                                } else {
+                                                    botAccount.confirmOutstandingTrades(function (err, confirmedTrades) {
+                                                        if (err)
+                                                            self.errorDebug(err);
+                                                        self.infoDebug("Confirmed and sent offer.");
+                                                        self.displayMenu(botAccount);
+                                                    });
+                                                }
+                                            });
+                                        });
+                                    }
+                                });
+
+                                break;
+                            case 1:
+                                botAccount.getInventory(self.config.appid, 2, true, function (err, inventory, currencies) {
                                     if (inventory == null || inventory.length < 1) {
-                                        self.infoDebug("Other user has no items in inventory. Redirecting to menu...");
+                                        self.infoDebug("Bot has no items in inventory. Redirecting to menu...");
                                         self.initTradeMenu(botAccount);
                                         return;
                                     }
@@ -294,7 +423,7 @@ BotManager.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                                         {
                                             type: 'checkbox',
                                             name: 'tradeOption',
-                                            message: 'What would you like to take? (\'Enter\' to send trade)',
+                                            message: 'What would you like to offer? (\'Enter\' to send trade)',
                                             choices: nameList,
                                             validate: function (answer) {
                                                 if (answer.length < 1) {
@@ -310,7 +439,7 @@ BotManager.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                                         for (var itemNameIndex in result.tradeOption) {
                                             if (result.tradeOption.hasOwnProperty(itemNameIndex)) {
                                                 var itemName = result.tradeOption[itemNameIndex];
-                                                currentOffer.addTheirItem(inventory[nameList.indexOf(itemName)]);
+                                                currentOffer.addMyItem(inventory[nameList.indexOf(itemName)]);
                                                 nameList[nameList.indexOf(itemName)] = {
                                                     name: itemName,
                                                     displayed: true
@@ -331,70 +460,14 @@ BotManager.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                                             }
                                         });
                                     });
-                                }
-                            });
-
-                            break;
-                        case 1:
-                            botAccount.getInventory(self.config.appid, 2, true, function (err, inventory, currencies) {
-                                if (inventory == null || inventory.length < 1) {
-                                    self.infoDebug("Bot has no items in inventory. Redirecting to menu...");
-                                    self.initTradeMenu(botAccount);
-                                    return;
-                                }
-
-                                var nameList = [];
-                                for (var id in inventory) {
-                                    if (inventory.hasOwnProperty(id)) {
-                                        nameList.push(inventory[id].name);
-                                    }
-                                }
-
-
-                                var tradeMenu = [
-                                    {
-                                        type: 'checkbox',
-                                        name: 'tradeOption',
-                                        message: 'What would you like to offer? (\'Enter\' to send trade)',
-                                        choices: nameList,
-                                        validate: function (answer) {
-                                            if (answer.length < 1) {
-                                                self.tradeMenu(botAccount, tradeMenuOption);
-                                                return false;
-                                            }
-                                            return true;
-                                        }
-                                    }
-
-                                ];
-                                inquirer.prompt(tradeMenu, function (result) {
-                                    for (var itemNameIndex in result.tradeOption) {
-                                        if (result.tradeOption.hasOwnProperty(itemNameIndex)) {
-                                            var itemName = result.tradeOption[itemNameIndex];
-                                            currentOffer.addMyItem(inventory[nameList.indexOf(itemName)]);
-                                            nameList[nameList.indexOf(itemName)] = {name: itemName, displayed: true};
-                                        }
-                                    }
-                                    currentOffer.send("Manual offer triggered by Bot Manager.", null, function (err, status) {
-                                        if (err) {
-                                            self.errorDebug(err);
-                                            self.displayMenu(botAccount);
-                                        } else {
-                                            botAccount.confirmOutstandingTrades(function (err, confirmedTrades) {
-                                                if (err)
-                                                    self.errorDebug(err);
-                                                self.infoDebug("Confirmed and sent offer.");
-                                                self.displayMenu(botAccount);
-                                            });
-                                        }
-                                    });
                                 });
-                            });
-                            break;
-                        default:
-                            self.tradeMenu(botAccount, tradeMenuOption);
-                            break;
-                    }
+                                break;
+                            default:
+                                self.tradeMenu(botAccount, tradeMenuOption);
+                                break;
+                        }
+
+                    });
                     break;
             }
         });
