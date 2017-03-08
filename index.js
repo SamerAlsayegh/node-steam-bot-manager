@@ -61,6 +61,13 @@ BotManager.prototype.startManager = function (callbackManager) {
                 callbackManager(err);
         }
         else {
+            for (var botIndex in botAccountsList) {
+                self.registerAccount(botAccountsList[botIndex], function (err, botAccount) {
+                    if (err)
+                        self.errorDebug("Error while loading bot info - " + err);
+                });
+            }
+
             // Finished loading...
             self.displayBotMenu();
             if (callbackManager)
@@ -137,10 +144,12 @@ BotManager.prototype.displayBotMenu = function () {
                                 self.registerAccount({
                                     accountName: result.accountName,
                                     password: result.password
-                                }, function (err) {
+                                }, function (err, botAccount) {
                                     if (err)
                                         self.errorDebug("The following details are incorrect: \nusername: {0}\npassword: {1}".format(result.accountName, result.password));
+                                    self.emit('updatedAccountDetails', botAccount);
                                     self.displayBotMenu();
+
                                 });
                             });
                             break;
@@ -185,6 +194,7 @@ BotManager.prototype.displayBotMenu = function () {
                                     if (err)
                                         self.errorDebug("The following details are incorrect: \nusername: {0}\npassword: {1}".format(result.accountName, result.password));
                                     self.displayBotMenu();
+
                                 });
                             });
                             break;
@@ -642,10 +652,14 @@ BotManager.prototype.displayMenu = function (botAccount) {
                             self.unregisterAccount(botAccount, function (err) {
                                 if (err) {
                                     // Failed...
-                                    self.errorDebug(err);
+                                    self.errorDebug("Failed to unregister the account - " + err);
                                 }
                                 else {
-                                    self.displayBotMenu();
+                                    self.saveAccounts(function (err) {
+                                        if (err)
+                                            self.errorDebug("Error deleting the account info... " + err);
+                                        self.displayBotMenu();
+                                    });
                                 }
                             });
                         }
@@ -783,7 +797,6 @@ BotManager.prototype.enableTwoFactor = function (botAccount) {
     });
 };
 
-
 /**
  *
  * @param {BotAccount} accountDetails - The bot information chosen as part of the random choice
@@ -813,7 +826,7 @@ BotManager.prototype.registerAccount = function (accountDetails, callback) {
         self.errorDebug(err);
     });
 
-    botAccount.on('loggedIn', function () {
+    botAccount.on('loggedIn', function (botAccount) {
         // User just logged in
         if (botAccount.getDisplayName() != null) {
             botAccount.changeName(botAccount.getDisplayName(), self.config.bot_prefix, function (err) {
@@ -837,13 +850,84 @@ BotManager.prototype.registerAccount = function (accountDetails, callback) {
 
     self.emit('loadedAccount', accountDetails);
     self.BotAccounts.push(botAccount);
-    if (botAccount.canReloginWithoutPrompt()) {
-        botAccount.loginAccount(null, function (err) {
-            callback(err);
+    self.saveAccounts(function (err) {
+        if (err)
+            self.errorDebug("Error saving account info... " + err);
+        if (botAccount.canReloginWithoutPrompt()) {
+            botAccount.loginAccount({}, function (err) {
+                callback(err, botAccount);
+            });
+        }
+        else
+            callback(null, botAccount);
+    });
+
+};
+/**
+ *
+ * @param {BotAccount} accountDetails - The bot information chosen as part of the random choice
+ * @param {errorCallback} errorCallback - A callback returned with possible errors
+ */
+BotManager.prototype.registerAccount = function (accountDetails, callback) {
+    var self = this;
+    var botAccount = new BotAccount(accountDetails, self.config.settings);
+
+    botAccount.on('displayBotMenu', function () {
+        self.displayBotMenu();
+    });
+    botAccount.on('offerChanged', function (offer, oldState) {
+        self.emit('offerChanged', botAccount, offer, oldState);
+    });
+    botAccount.on('newOffer', function (offer) {
+        self.emit('newOffer', botAccount, offer);
+    });
+    if (self.config.debug) {
+        botAccount.on('debug', function (msg) {
+            self.infoDebug(msg);
         });
     }
-    else
-        callback(null)
+
+
+    botAccount.on('error', function (err) {
+        self.errorDebug(err);
+    });
+
+    botAccount.on('loggedIn', function (botAccount) {
+        // User just logged in
+        if (botAccount.getDisplayName() != null) {
+            botAccount.changeName(botAccount.getDisplayName(), self.config.bot_prefix, function (err) {
+                if (err) {
+                    self.errorDebug("Failed to change name. Error: " + err);
+                }
+            })
+        }
+        self.emit('loggedIn', botAccount);
+    });
+
+
+    botAccount.on('updatedAccountDetails', function () {
+        self.saveAccounts(function (err) {
+            if (err)
+                self.errorDebug("Error saving account info... " + err);
+        });
+        self.emit('updatedAccountDetails', botAccount);
+    });
+
+
+    self.emit('loadedAccount', accountDetails);
+    self.BotAccounts.push(botAccount);
+    self.saveAccounts(function (err) {
+        if (err)
+            self.errorDebug("Error saving account info... " + err);
+        if (botAccount.canReloginWithoutPrompt()) {
+            botAccount.loginAccount({}, function (err) {
+                callback(err, botAccount);
+            });
+        }
+        else
+            callback(null, botAccount);
+    });
+
 };
 
 
@@ -884,9 +968,9 @@ BotManager.prototype.saveAccounts = function (errorCallback) {
     var self = this;
     self.dataControl.saveAccounts(self.getAccounts(), function (err) {
         if (err) {
-            errorCallback(err);
+            return errorCallback(err);
         }
-        errorCallback(null);
+        return errorCallback(null);
     });
 };
 

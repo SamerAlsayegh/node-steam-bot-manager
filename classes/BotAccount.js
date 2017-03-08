@@ -607,168 +607,174 @@ BotAccount.prototype.has_shared_secret = function () {
 
 
 BotAccount.prototype.loginAccount = function (details, loginCallback) {
-
     var self = this;
     self.emit('loggingIn');
-    var accountDetailsModified = self.accountDetails;
-    if (self.accountDetails.shared_secret) {
-        self.client.setOption("promptSteamGuardCode", false);
-        accountDetailsModified.twoFactorCode = self.generateMobileAuthenticationCode();
+    if (self.canReloginWithoutPrompt()) {
+        // self.client.setOption("promptSteamGuardCode", false);
+        self.accountDetails.twoFactorCode = self.generateMobileAuthenticationCode();
     }
-    accountDetailsModified.rememberPassword = true;
-    accountDetailsModified.logonId = 100;
 
     if (details != null) {
         if (details.authCode != null)
-            accountDetailsModified.authCode = authCode;
+            self.accountDetails.authCode = authCode;
         if (details.captcha != null)
-            accountDetailsModified.captcha = details.captcha;
+            self.accountDetails.captcha = details.captcha;
     }
-    self.community.login(accountDetailsModified, function (err, sessionID, cookies, steamguard, oAuthToken) {
-        if (err) {
-            if (err.Error == "SteamGuardMobile" && self.accountDetails.shared_secret) {
-                return self.login(details, loginCallback);
-            }
-            else
+    if (self.accountDetails.steamguard && self.accountDetails.oAuthToken) {
+        self.community.oAuthLogin(self.accountDetails.steamguard, self.accountDetails.oAuthToken, function (err, sessionID, cookies) {
+            if (err)
                 return loginCallback(err);
-        }
-
-        self.chatLogon(500, 'web');
-
-        if (self.accountDetails.sessionID != sessionID || self.accountDetails.cookies != cookies) {
-            self.accountDetails.sessionID = sessionID;
-            self.accountDetails.cookies = cookies;
-            delete self.accountDetails.twoFactorCode;
-            /**
-             * Updated an account's details (such as: username, password, sessionid, cookies...)
-             *
-             * @event BotAccount#updatedAccountDetails
-             */
-            self.emit('updatedAccountDetails');
-        }
-
-        if (self.accountDetails.cookies) {
-            self.community.setCookies(cookies);
-            self.store.setCookies(cookies);
-            self.trade.setCookies(cookies);
-        }
-        self.loggedIn = true;
-        self.processQueue(function (err) {
+            self.loggedInAccount(cookies, sessionID, function (err) {
+                return loginCallback(err);
+            });
+        });
+    }
+    else {
+        self.community.login(self.accountDetails, function (err, sessionID, cookies, steamguard, oAuthToken) {
             if (err)
                 return loginCallback(err);
 
-            self.community.on('chatTyping', function (senderID) {
-                self.emit('chatTyping', senderID);
-            });
-            self.community.on('chatLoggedOff', function () {
-                self.emit('chatLoggedOff');
-            });
-            self.community.on('chatMessage', function (senderID, message) {
-                if (self.currentChatting != null && senderID == self.currentChatting.sid) {
-                    console.log(("\n" + self.currentChatting.accountName + ": " + message).green);
-                }
-                /**
-                 * Emitted when a friend message or chat room message is received.
-                 *
-                 * @event BotAccount#friendOrChatMessage
-                 * @type {object}
-                 * @property {SteamID} senderID - The message sender, as a SteamID object
-                 * @property {String} message - The message text
-                 * @property {SteamID} room - The room to which the message was sent. This is the user's SteamID if it was a friend message
-                 */
-                self.emit('chatMessage', senderID, message);
+            self.accountDetails.steamguard = steamguard;
+            self.accountDetails.oAuthToken = oAuthToken;
+            self.loggedInAccount(cookies, sessionID, function (err) {
+                return loginCallback(err);
             });
 
-            self.trade.on('sentOfferChanged', function (offer, oldState) {
-                /**
-                 * Emitted when a trade offer changes state (Ex. accepted, pending, escrow, etc...)
-                 *
-                 * @event BotAccount#offerChanged
-                 * @type {object}
-                 * @property {TradeOffer} offer - The new offer's details
-                 * @property {TradeOffer} oldState - The old offer's details
-                 */
-                self.emit('offerChanged', offer, oldState);
-            });
-
-            self.trade.on('receivedOfferChanged', function (offer, oldState) {
-                self.emit('offerChanged', offer, oldState);
-            });
-
-            self.trade.on('newOffer', function (offer) {
-                /**
-                 * Emitted when we receive a new trade offer
-                 *
-                 * @event BotAccount#newOffer
-                 * @type {object}
-                 * @property {TradeOffer} offer - The offer's details
-                 */
-                self.emit('newOffer', offer);
-            });
-
-            self.trade.on('sentOfferChanged', function (offer) {
-                /**
-                 * Emitted when we receive a new trade offer notification (only provides amount of offers and no other details)
-                 *
-                 * @event BotAccount#tradeOffers
-                 * @type {object}
-                 * @property {Integer} count - The amount of active trade offers (can be 0).
-                 */
-                self.emit('sentOfferChanged', offer);
-            });
-            self.trade.on('realTimeTradeConfirmationRequired', function (offer) {
-                /**
-                 * Emitted when a trade offer is cancelled
-                 *
-                 * @event BotAccount#tradeOffers
-                 * @type {object}
-                 * @property {Integer} count - The amount of active trade offers (can be 0).
-                 */
-                self.emit('realTimeTradeConfirmationRequired', offer);
-            });
-            self.trade.on('realTimeTradeCompleted', function (offer) {
-                /**
-                 * Emitted when a trade offer is cancelled
-                 *
-                 * @event BotAccount#tradeOffers
-                 * @type {object}
-                 * @property {Integer} count - The amount of active trade offers (can be 0).
-                 */
-                self.emit('realTimeTradeCompleted', offer);
-            });
-            self.trade.on('sentOfferCanceled', function (offer) {
-                /**
-                 * Emitted when a trade offer is cancelled
-                 *
-                 * @event BotAccount#tradeOffers
-                 * @type {object}
-                 * @property {Integer} count - The amount of active trade offers (can be 0).
-                 */
-                self.emit('sentOfferCanceled', offer);
-            });
-
-            // self.client.on('steamGuard', function (domain, callback, lastCodeWrong) {
-            //     /**
-            //      * Emitted when Steam requests a Steam Guard code from us. You should collect the code from the user somehow and then call the callback with the code as the sole argument.
-            //      *
-            //      * @event BotAccount#steamGuard
-            //      * @type {object}
-            //      * @property {String} domain - If an email code is needed, the domain name of the address where the email was sent. null if an app code is needed.
-            //      * @property {Callback} callbackSteamGuard - Should be called when the code is available.
-            //      * @property {Boolean} lastCodeWrong - true if you're using 2FA and the last code you provided was wrong, false otherwise
-            //      */
-            //     self.emit('steamGuard', domain, callback, lastCodeWrong);
-            // });
-            /**
-             * Emitted when we fully sign into Steam and all functions are usable.
-             *
-             * @event BotAccount#loggedIn
-             */
-            self.emit('loggedIn');
-            return loginCallback(null);
         });
-    });
+    }
 };
+BotAccount.prototype.loggedInAccount = function (cookies, sessionID, loginCallback) {
+    var self = this;
+    self.chatLogon(500, 'web');
+
+
+    if (self.accountDetails.sessionID != sessionID || self.accountDetails.cookies != cookies) {
+        self.accountDetails.sessionID = sessionID;
+        self.accountDetails.cookies = cookies;
+        delete self.accountDetails.twoFactorCode;
+    }
+    self.emit('loggedIn', self);
+
+    if (self.accountDetails.cookies) {
+        self.community.setCookies(cookies);
+        self.store.setCookies(cookies);
+        self.trade.setCookies(cookies);
+    }
+    self.loggedIn = true;
+    self.processQueue(function (err) {
+        if (err)
+            return loginCallback(err);
+
+        self.community.on('chatTyping', function (senderID) {
+            self.emit('chatTyping', senderID);
+        });
+        self.community.on('chatLoggedOff', function () {
+            self.emit('chatLoggedOff');
+        });
+        self.community.on('chatMessage', function (senderID, message) {
+            if (self.currentChatting != null && senderID == self.currentChatting.sid) {
+                console.log(("\n" + self.currentChatting.accountName + ": " + message).green);
+            }
+            /**
+             * Emitted when a friend message or chat room message is received.
+             *
+             * @event BotAccount#friendOrChatMessage
+             * @type {object}
+             * @property {SteamID} senderID - The message sender, as a SteamID object
+             * @property {String} message - The message text
+             * @property {SteamID} room - The room to which the message was sent. This is the user's SteamID if it was a friend message
+             */
+            self.emit('chatMessage', senderID, message);
+        });
+
+        self.trade.on('sentOfferChanged', function (offer, oldState) {
+            /**
+             * Emitted when a trade offer changes state (Ex. accepted, pending, escrow, etc...)
+             *
+             * @event BotAccount#offerChanged
+             * @type {object}
+             * @property {TradeOffer} offer - The new offer's details
+             * @property {TradeOffer} oldState - The old offer's details
+             */
+            self.emit('offerChanged', offer, oldState);
+        });
+
+        self.trade.on('receivedOfferChanged', function (offer, oldState) {
+            self.emit('offerChanged', offer, oldState);
+        });
+
+        self.trade.on('newOffer', function (offer) {
+            /**
+             * Emitted when we receive a new trade offer
+             *
+             * @event BotAccount#newOffer
+             * @type {object}
+             * @property {TradeOffer} offer - The offer's details
+             */
+            self.emit('newOffer', offer);
+        });
+
+        self.trade.on('sentOfferChanged', function (offer) {
+            /**
+             * Emitted when we receive a new trade offer notification (only provides amount of offers and no other details)
+             *
+             * @event BotAccount#tradeOffers
+             * @type {object}
+             * @property {Integer} count - The amount of active trade offers (can be 0).
+             */
+            self.emit('sentOfferChanged', offer);
+        });
+        self.trade.on('realTimeTradeConfirmationRequired', function (offer) {
+            /**
+             * Emitted when a trade offer is cancelled
+             *
+             * @event BotAccount#tradeOffers
+             * @type {object}
+             * @property {Integer} count - The amount of active trade offers (can be 0).
+             */
+            self.emit('realTimeTradeConfirmationRequired', offer);
+        });
+        self.trade.on('realTimeTradeCompleted', function (offer) {
+            /**
+             * Emitted when a trade offer is cancelled
+             *
+             * @event BotAccount#tradeOffers
+             * @type {object}
+             * @property {Integer} count - The amount of active trade offers (can be 0).
+             */
+            self.emit('realTimeTradeCompleted', offer);
+        });
+        self.trade.on('sentOfferCanceled', function (offer) {
+            /**
+             * Emitted when a trade offer is cancelled
+             *
+             * @event BotAccount#tradeOffers
+             * @type {object}
+             * @property {Integer} count - The amount of active trade offers (can be 0).
+             */
+            self.emit('sentOfferCanceled', offer);
+        });
+
+        // self.client.on('steamGuard', function (domain, callback, lastCodeWrong) {
+        //     /**
+        //      * Emitted when Steam requests a Steam Guard code from us. You should collect the code from the user somehow and then call the callback with the code as the sole argument.
+        //      *
+        //      * @event BotAccount#steamGuard
+        //      * @type {object}
+        //      * @property {String} domain - If an email code is needed, the domain name of the address where the email was sent. null if an app code is needed.
+        //      * @property {Callback} callbackSteamGuard - Should be called when the code is available.
+        //      * @property {Boolean} lastCodeWrong - true if you're using 2FA and the last code you provided was wrong, false otherwise
+        //      */
+        //     self.emit('steamGuard', domain, callback, lastCodeWrong);
+        // });
+        /**
+         * Emitted when we fully sign into Steam and all functions are usable.
+         *
+         * @event BotAccount#loggedIn
+         */
+        return loginCallback(null);
+    });
+}
 BotAccount.prototype.hasPhone = function (callback) {
     var self = this;
     self.store.hasPhone(function (err, hasPhone, lastDigits) {

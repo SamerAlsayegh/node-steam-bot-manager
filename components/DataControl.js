@@ -157,7 +157,13 @@ DataControl.prototype.saveAccounts = function (botAccounts, callback) {
     var botAccountList = [];
     for (var botAccount in botAccounts) {
         if (botAccounts.hasOwnProperty(botAccount)) {
-            botAccountList.push(botAccounts[botAccount].getAccount());
+            var cleanedData = botAccounts[botAccount].getAccount();
+            delete cleanedData.cookies;
+            delete cleanedData.rememberPassword;
+            delete cleanedData.logonId;
+            delete cleanedData.sessionID;
+
+            botAccountList.push(cleanedData);
         }
     }
     fs.writeFile(this.localURI + "/accounts.json", JSON.stringify(botAccountList), callback);
