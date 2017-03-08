@@ -62,7 +62,7 @@ DataControl.prototype.validateConfig = function (config, callback) {
         config.tradeCancelOfferCountMinAge = 60 * 60;
     if (!config.hasOwnProperty("cancelTradeOnOverflow"))
         config.cancelTradeOnOverflow = true;
-    
+
     //if (!config.hasOwnProperty("api_port")) // Removed = disable api system
     //    config.api_port = 1338;// Default api port
 
@@ -70,32 +70,27 @@ DataControl.prototype.validateConfig = function (config, callback) {
 };
 
 
-
 DataControl.prototype.getFile = function (filePath, expectedForm, callback) {
     var self = this;
     try {
         var rawContents = fs.readFileSync(filePath);
-        callback(null, rawContents);
+        callback(null, JSON.parse(rawContents));
     } catch (e) {
         try {
-            if (typeof expectedForm == "string") {
-                var stream = fs.createReadStream(expectedForm).pipe(fs.createWriteStream(filePath));
-                stream.on('finish', function () {
+            fs.statSync(filePath);
+            fs.rename(filePath, filePath + "_backup_" + (new Date().getTime() / 1000), function (err) {
+                if (err) throw err;
+                console.log('Renamed a possibly faulty file - please check and determine issue using an online JSON parser');
+                fs.writeFile(filePath, JSON.stringify(expectedForm), function (err) {
                     self.getFile(filePath, expectedForm, callback);
                 });
-            }
-            else {
-                fs.rename(filePath, filePath + "_backup", function (err) {
-                    if (err) throw err;
-                    console.log('Renamed a possibly faulty file - please check and determine issue using an online JSON parser');
-                    fs.writeFile(filePath, JSON.stringify(expectedForm), function (err) {
-                        self.getFile(filePath, expectedForm, callback);
-                    });
-                });
-
-            }
-        } catch (e) {
-            callback(e, null);
+            });
+        }
+        catch (e) {
+            fs.writeFile(filePath, JSON.stringify(expectedForm), function (err) {
+                if (err) throw err;
+                self.getFile(filePath, expectedForm, callback);
+            });
         }
     }
 };
@@ -104,10 +99,9 @@ DataControl.prototype.getFile = function (filePath, expectedForm, callback) {
 DataControl.prototype.loadAccounts = function (callback) {
     var self = this;
     var accountList = [];
-    self.getFile(this.localURI + "/accounts.json", [], function (err, rawAccounts) {
+    self.getFile(this.localURI + "/accounts.json", [], function (err, accountsJSON) {
 
         try {
-            var accountsJSON = JSON.parse(rawAccounts);
             for (var accountIndex in accountsJSON) {
                 if (accountsJSON.hasOwnProperty(accountIndex)) {
                     self.emit('loadedAccount', accountsJSON[accountIndex]);
@@ -138,10 +132,9 @@ DataControl.prototype.loadConfig = function (callback) {
             tradeCancelOfferCountMinAge: 60,
             cancelTradeOnOverflow: true
         }
-    }, function (err, rawConfig) {
+    }, function (err, configJSON) {
 
         try {
-            var configJSON = JSON.parse(rawConfig);
             self.validateConfig(configJSON, callback)
         } catch (e) {
             callback(e, null);

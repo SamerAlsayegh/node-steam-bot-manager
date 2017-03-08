@@ -18,7 +18,6 @@ function BotAccount(accountDetails, settings) {
     self.settings = settings;
     self.community = new SteamCommunity();
     self.client = new SteamUser();
-
     if (!self.settings.hasOwnProperty("tradeCancelTime"))
         self.settings.tradeCancelTime = 60 * 60 * 24;
     if (!self.settings.hasOwnProperty("tradePendingCancelTime"))

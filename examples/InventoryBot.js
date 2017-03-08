@@ -30,7 +30,10 @@ function InventoryBot() {
                         console.log(err);
 
                     // Since we (the bot) is giving away items, it must authorize the trades...
-                    activeAccount.confirmOutstandingTrades();// This will not ACCEPT or DECLINE Trades, it will simply authorize them, as you would with your phone/steam app.
+                    // This will not ACCEPT or DECLINE Trades, it will simply authorize them, as you would with your phone/steam app.
+                    activeAccount.confirmOutstandingTrades(function (err, confirmedTrades) {
+                        callback(err, confirmedTrades);
+                    });
                 });
             }
             else {
@@ -57,7 +60,13 @@ function InventoryBot() {
             });
         }
     });
-    botsManager.startManager();// You must start the manager at the end so that all the hooks above it, are registered.
+    botsManager.infoDebug("Starting Bot Manager");
+    botsManager.startManager(function (err) {
+        if (err) {
+            botsManager.errorDebug("Failed to start Bot Manager");
+
+        }
+    });// You must start the manager at the end so that all the hooks above it, are registered.
 }
 
 new InventoryBot();// Run the code above.
