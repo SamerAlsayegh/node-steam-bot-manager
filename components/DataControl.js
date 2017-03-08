@@ -115,8 +115,6 @@ DataControl.prototype.loadAccounts = function (callback) {
         }
     });
 };
-
-
 DataControl.prototype.loadConfig = function (callback) {
     var self = this;
     self.getFile(this.localURI + "/config.json", {
