@@ -843,8 +843,8 @@ BotManager.prototype.enableTwoFactor = function (botAccount) {
  */
 BotManager.prototype.registerAccount = function (accountDetails, errorCallback) {
     var self = this;
-    var botAccount = new BotAccount(accountInfo, self.config.settings);
-    if (botAccount.getAccount().shared_secret) {
+    var botAccount = new BotAccount(accountDetails, self.config.settings);
+    if (accountDetails.shared_secret) {
         botAccount.loginAccount(null, function (err) {
             if (err)
                 self.errorDebug("Failed to login to account, check authentication.");
