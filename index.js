@@ -38,11 +38,10 @@ BotManager.prototype.startManager = function (callbackManager) {
         }
     });
 
-    if (self.config.debug) {
         self.dataControl.on('debug', function (msg) {
             self.infoDebug(msg);
         });
-    }
+
 
     self.dataControl.on('error', function (err) {
         self.errorDebug(err);
@@ -51,7 +50,6 @@ BotManager.prototype.startManager = function (callbackManager) {
     self.dataControl.on('config', function (configSetting) {
         self.config[configSetting.name] = configSetting.value;
     });
-
 
 
     self.dataControl.initData(function (err, botAccountsList) {
@@ -818,11 +816,9 @@ BotManager.prototype.registerAccount = function (accountDetails, callback) {
     botAccount.on('newOffer', function (offer) {
         self.emit('newOffer', botAccount, offer);
     });
-    if (self.config.debug) {
         botAccount.on('debug', function (msg) {
             self.infoDebug(msg);
         });
-    }
 
 
     botAccount.on('error', function (err) {
@@ -982,7 +978,8 @@ BotManager.prototype.saveAccounts = function (errorCallback) {
  * @param {string} message - Informational message to log
  */
 BotManager.prototype.infoDebug = function (message) {
-    console.log((message + " ").grey);
+    if (self.config.debug)
+        console.log((message + " ").grey);
 };
 
 /**

@@ -118,8 +118,10 @@ DataControl.prototype.loadAccounts = function (callback) {
 DataControl.prototype.loadConfig = function (callback) {
     var self = this;
     self.getFile(this.localURI + "/config.json", {
-        bot_prefix: "__BOT_SHARED_PREFIX__",
+        bot_prefix: null,
         api_port: null,
+        debug: false,
+        appid: 730,
         settings: {
             api_key: "",
             tradeCancelTime: 3600,

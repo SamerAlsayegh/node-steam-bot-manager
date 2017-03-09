@@ -23,70 +23,19 @@ You can check examples of bots you can build by navigating to the 'examples' fol
 - GUI-Messaging
 - GUI-Trading
 - 2-Factor Authentication Support + Enabling
-- Enable API-Access
+- Enable API-Key 
 - Manage multiple bots simultaneously
 - API Support for third-party systems (Betting, Trading, and so on..)
 - Even based interactions of a single bot or multiple
-- Ability to upvote/downvote attachments on SteamCommunity (Please don't abuse)
+- Ability to upvote/downvote attachments on Steam Community
 
 
 ## TODO:
-- Add registration account checking
-- Add further error checking
+- Add more functionality
+- Expand API access
+- Add more examples
 
-## Set-up
-### Prerequisites:
- - NodeJS
- - npm
-
-[![NPM](https://nodei.co/npm/node-steam-bot-manager.png)](https://www.npmjs.com/package/node-steam-bot-manager)
-
-### Install and run (using Example bot):
-Using npm:
-~~~
-npm i node-steam-bot-manager --save
-~~~
-Copy 'InventoryBot.js' found in 'examples' folder.
-[Link to raw-file](https://raw.githubusercontent.com/Undeadkillz/node-steam-bot-manager/master/examples/InventoryBot.js)
-~~~
-node InventoryBot.js # Run the example bot
-~~~
-That's it! If you encounter issues, just post in 'Issues' or contact me on Steam (link below)
-
-### How to run 24/7 (Linux - using Example bot)
-
-- 'yum install screen' or 'apt-get install screen' (Use based on your distro)
-- Create a 'server.sh' file wherever the bot you would like to run is (ex. InventoryBot.js) and paste the following:
-~~~
-#!/bin/bash
-screen -dmLS BotManager node InventoryBot.js
-~~~
-- Make sure permissions are set appropriately
-~~~
-chmod 755 server.sh
-~~~
-- Finally, just run the script with
-~~~
-./server.sh
-~~~
-- You may then access it, by typing 'screen -x BotManager'
-
-## Configuration:
-On first run, a config file will be be generated using the template file. Simply close the bot and edit the config.json
-
-Once completed, you may run the bot again with the changes taking effect.
-
----
-### Registering a Bot:
-- Choose 'register' option from main menu (use arrow keys to navigate the menu)
-- Enter the username of the bot [The credentials are not yet checked, so be sure of the credentials.]
-- Enter the password of the bot [The credentials are not yet checked, so be sure of the credentials.]
-- Main menu will appear with new bot.
-- Use arrow keys to choose the bot you want to manage.
-
-
-
-
+Visit the [wiki](https://github.com/Undeadkillz/node-steam-bot-manager/wiki) for set-up, registration and docs.
 
 ## Libraries used:
 - [colors.js](https://github.com/marak/colors.js/)
