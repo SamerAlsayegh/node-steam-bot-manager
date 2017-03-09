@@ -38,6 +38,7 @@
     "steam-tradeoffer-manager": "^1.21.3",
     "steam-user": "^3.3.4",
     "steamcommunity": "^3.19.3",
-    "steamstore": "^1.4.0"
+    "steamstore": "^1.4.0",
+    "winston": "^2.3.1"
   }
 }

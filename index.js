@@ -20,11 +20,12 @@ BotManager.prototype.BotAccounts = [];
  */
 function BotManager() {
 
-
 }
 BotManager.prototype.startManager = function (callbackManager) {
     var self = this;
     self.config = {};
+    self.logger = self.dataControl.getLogger();
+
 
     self.dataControl.on('loadedConfig', function (configResponse) {
         self.config = configResponse;
@@ -805,14 +806,26 @@ BotManager.prototype.enableTwoFactor = function (botAccount) {
  */
 BotManager.prototype.registerAccount = function (accountDetails, callback) {
     var self = this;
-    var botAccount = new BotAccount(accountDetails, self.config.settings);
+    var botAccount = new BotAccount(accountDetails, self.config, self.logger);
 
     botAccount.on('displayBotMenu', function () {
         self.displayBotMenu();
     });
+
     botAccount.on('offerChanged', function (offer, oldState) {
         self.emit('offerChanged', botAccount, offer, oldState);
     });
+
+    botAccount.on('sessionExpired', function (offer, oldState) {
+        self.emit('sessionExpired', botAccount);
+        botAccount.loginAccount({}, function (err) {
+            if (err)
+                self.errorDebug("Failed to login to account - " + err);
+            else
+                self.infoDebug("Logged back in due to session expiry");
+        });
+    });
+
     botAccount.on('newOffer', function (offer) {
         self.emit('newOffer', botAccount, offer);
     });
@@ -862,72 +875,7 @@ BotManager.prototype.registerAccount = function (accountDetails, callback) {
     });
 
 };
-/**
- *
- * @param {BotAccount} accountDetails - The bot information chosen as part of the random choice
- * @param {errorCallback} errorCallback - A callback returned with possible errors
- */
-BotManager.prototype.registerAccount = function (accountDetails, callback) {
-    var self = this;
-    var botAccount = new BotAccount(accountDetails, self.config.settings);
 
-    botAccount.on('displayBotMenu', function () {
-        self.displayBotMenu();
-    });
-    botAccount.on('offerChanged', function (offer, oldState) {
-        self.emit('offerChanged', botAccount, offer, oldState);
-    });
-    botAccount.on('newOffer', function (offer) {
-        self.emit('newOffer', botAccount, offer);
-    });
-    if (self.config.debug) {
-        botAccount.on('debug', function (msg) {
-            self.infoDebug(msg);
-        });
-    }
-
-
-    botAccount.on('error', function (err) {
-        self.errorDebug(err);
-    });
-
-    botAccount.on('loggedIn', function (botAccount) {
-        // User just logged in
-        if (botAccount.getDisplayName() != null) {
-            botAccount.changeName(botAccount.getDisplayName(), self.config.bot_prefix, function (err) {
-                if (err) {
-                    self.errorDebug("Failed to change name. Error: " + err);
-                }
-            })
-        }
-        self.emit('loggedIn', botAccount);
-    });
-
-
-    botAccount.on('updatedAccountDetails', function () {
-        self.saveAccounts(function (err) {
-            if (err)
-                self.errorDebug("Error saving account info... " + err);
-        });
-        self.emit('updatedAccountDetails', botAccount);
-    });
-
-
-    self.emit('loadedAccount', accountDetails);
-    self.BotAccounts.push(botAccount);
-    self.saveAccounts(function (err) {
-        if (err)
-            self.errorDebug("Error saving account info... " + err);
-        if (botAccount.canReloginWithoutPrompt()) {
-            botAccount.loginAccount({}, function (err) {
-                callback(err, botAccount);
-            });
-        }
-        else
-            callback(null, botAccount);
-    });
-
-};
 
 
 /**
@@ -978,8 +926,8 @@ BotManager.prototype.saveAccounts = function (errorCallback) {
  * @param {string} message - Informational message to log
  */
 BotManager.prototype.infoDebug = function (message) {
-    if (self.config.debug)
-        console.log((message + " ").grey);
+    var self = this;
+    self.dataControl.logger.log('debug', message);
 };
 
 /**
@@ -987,7 +935,9 @@ BotManager.prototype.infoDebug = function (message) {
  * @param {string} message - Error message to log
  */
 BotManager.prototype.errorDebug = function (message) {
+    var self = this;
     console.log((message + " ").red);
+    self.dataControl.logger.log('error', message);
 };
 
 /**
@@ -995,7 +945,9 @@ BotManager.prototype.errorDebug = function (message) {
  * @param {String} message - Success message to log
  */
 BotManager.prototype.successDebug = function (message) {
+    var self = this;
     console.log((message + " ").green);
+    self.dataControl.logger.log('success', message);
 };
 
 /**

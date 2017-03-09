@@ -1,14 +1,31 @@
 var fs = require('fs');
 var index = require('../index.js');
+var Winston = require('winston');
 
 
 DataControl.prototype.config = {};
 
 DataControl.prototype.__proto__ = require('events').EventEmitter.prototype;
 
-
 function DataControl(localURI) {
     var self = this;
+    self.logger = new (Winston.Logger)({
+        transports: [
+            new (Winston.transports.Console)({
+                level: 'error',
+                timestamp: true,
+                colorize: true
+            }),
+            new (Winston.transports.File)({
+                level: 'debug',
+                timestamp: true,
+                filename: 'debug.log',
+                json: false
+            })
+        ]
+    });
+
+
     self.localURI = localURI;
     try {
         self.emit('debug', "Creating missing folder.");
@@ -18,6 +35,10 @@ function DataControl(localURI) {
     }
 }
 
+DataControl.prototype.getLogger = function () {
+    var self = this;
+    return self.logger;
+};
 
 DataControl.prototype.initData = function (callback) {
     var self = this;
@@ -48,24 +69,48 @@ DataControl.prototype.initData = function (callback) {
 DataControl.prototype.validateConfig = function (config, callback) {
     if (!config.hasOwnProperty("bot_prefix"))
         config.bot_prefix = "";// Default bot prefix
-    if (!config.hasOwnProperty("tradeCancelTime"))
-        config.tradeCancelTime = 60 * 60 * 24;
-    if (!config.hasOwnProperty("tradePendingCancelTime"))
-        config.tradePendingCancelTime = 60 * 60 * 24;
-    if (!config.hasOwnProperty("language"))
-        config.language = 60 * 60 * 24;
-    if (!config.hasOwnProperty("tradePollInterval"))
-        config.tradePollInterval = 60 * 60 * 24;
-    if (!config.hasOwnProperty("tradeCancelOfferCount"))
-        config.tradeCancelOfferCount = 60 * 60 * 24;
-    if (!config.hasOwnProperty("tradeCancelOfferCountMinAge"))
-        config.tradeCancelOfferCountMinAge = 60 * 60;
-    if (!config.hasOwnProperty("cancelTradeOnOverflow"))
-        config.cancelTradeOnOverflow = true;
 
-    //if (!config.hasOwnProperty("api_port")) // Removed = disable api system
-    //    config.api_port = 1338;// Default api port
+    if (!config.hasOwnProperty("appid"))
+        config.appid = 730;
 
+    if (config.hasOwnProperty("settings")) {
+        if (!config.settings.hasOwnProperty("tradeCancelTime"))
+            config.tradeCancelTime = 60 * 60 * 24;
+        else
+            config.tradeCancelTime = config.settings.tradeCancelTime;
+
+        if (!config.settings.hasOwnProperty("tradePendingCancelTime"))
+            config.tradePendingCancelTime = 60 * 60 * 24;
+        else
+            config.tradePendingCancelTime = config.settings.tradePendingCancelTime;
+
+        if (!config.settings.hasOwnProperty("language"))
+            config.settings.language = "en";
+        else
+            config.language = config.settings.language;
+
+        if (!config.settings.hasOwnProperty("tradePollInterval"))
+            config.tradePollInterval = 60 * 60 * 24;
+        else
+            config.tradePollInterval = config.settings.tradePollInterval;
+
+        if (!config.settings.hasOwnProperty("tradeCancelOfferCount"))
+            config.tradeCancelOfferCount = 60 * 60 * 24;
+        else
+            config.tradeCancelOfferCount = config.settings.tradeCancelOfferCount;
+
+        if (!config.settings.hasOwnProperty("tradeCancelOfferCountMinAge"))
+            config.tradeCancelOfferCountMinAge = 60 * 60;
+        else
+            config.tradeCancelOfferCountMinAge = config.settings.tradeCancelOfferCountMinAge;
+
+        if (!config.settings.hasOwnProperty("cancelTradeOnOverflow"))
+            config.cancelTradeOnOverflow = true;
+        else
+            config.cancelTradeOnOverflow = config.settings.cancelTradeOnOverflow;
+
+
+    }
     callback(null, config);
 };
 
