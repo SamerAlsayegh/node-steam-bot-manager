@@ -85,7 +85,10 @@ BotManager.prototype.restartAPI = function () {
     var self = this;
     self.APIControl.restartAPI();
 };
-
+BotManager.prototype.getAppID = function () {
+    var self = this;
+    return self.config.appid;
+};
 
 BotManager.prototype.displayBotMenu = function () {
     var self = this;
