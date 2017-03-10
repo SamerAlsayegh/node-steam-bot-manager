@@ -609,22 +609,33 @@ BotAccount.prototype.loginAccount = function (details, loginCallback) {
     }
     if (self.accountDetails.steamguard && self.accountDetails.oAuthToken) {
         self.community.oAuthLogin(self.accountDetails.steamguard, self.accountDetails.oAuthToken, function (err, sessionID, cookies) {
-            if (err)
+            if (err) {
+                self.logger.log('error', "Failed to login into account via oAuth due to " + err);
                 return loginCallback(err);
+            }
             self.loggedInAccount(cookies, sessionID, function (err) {
-                return loginCallback(err);
+                if (err) {
+                    self.logger.log('error', "Failed to mark account as logged in");
+                    return loginCallback(err);
+                } else
+                    return loginCallback(null);
             });
         });
     }
     else {
         self.community.login(self.accountDetails, function (err, sessionID, cookies, steamguard, oAuthToken) {
-            if (err)
+            if (err) {
+                self.logger.log('error', "Failed to login into account due to " + err);
                 return loginCallback(err);
-
+            }
             self.accountDetails.steamguard = steamguard;
             self.accountDetails.oAuthToken = oAuthToken;
             self.loggedInAccount(cookies, sessionID, function (err) {
-                return loginCallback(err);
+                if (err) {
+                    self.logger.log('error', "Failed to mark account as logged in");
+                    loginCallback(null);
+                } else
+                    return loginCallback(null);
             });
 
         });
@@ -674,8 +685,8 @@ BotAccount.prototype.loggedInAccount = function (cookies, sessionID, loginCallba
             self.emit('chatMessage', senderID, message);
         });
         self.community.on('sessionExpired', function (err) {
-            self.logger.log('debug', "Login session expired");
-            self.emit('sessionExpired');
+            self.logger.log('debug', "Login session expired due to " + err);
+            self.emit('sessionExpired', err);
         });
         self.trade.on('sentOfferChanged', function (offer, oldState) {
             /**
@@ -690,9 +701,11 @@ BotAccount.prototype.loggedInAccount = function (cookies, sessionID, loginCallba
         });
 
         self.trade.on('receivedOfferChanged', function (offer, oldState) {
-            self.emit('offerChanged', offer, oldState);
+            self.emit('receivedOfferChanged', offer, oldState);
         });
-
+        self.trade.on('offerList', function (filter, sent, received) {
+            self.emit('offerList', filter, sent, received);
+        });
         self.trade.on('newOffer', function (offer) {
             /**
              * Emitted when we receive a new trade offer
@@ -840,7 +853,22 @@ BotAccount.prototype.chatLogon = function (interval, uiMode) {
 };
 BotAccount.prototype.logoutAccount = function () {
     var self = this;
-    self.community.chatLogoff();
+    self.community = new SteamCommunity();
+    self.client = new SteamUser();
+    self.trade = new TradeOfferManager({
+        "steam": self.client,
+        "community": self.community,
+        "cancelTime": self.settings.tradeCancelTime, // Keep offers upto 1 day, and then just cancel them.
+        "pendingCancelTime": self.settings.tradePendingCancelTime, // Keep offers upto 30 mins, and then cancel them if they still need confirmation
+        "cancelOfferCount": self.settings.tradeCancelOfferCount,// Cancel offers once we hit 7 day threshold
+        "cancelOfferCountMinAge": self.settings.tradeCancelOfferCountMinAge,// Keep offers until 7 days old
+        "language": self.settings.language, // We want English item descriptions
+        "pollInterval": 5000 // We want to poll every 5 seconds since we don't have Steam notifying us of offers
+    });
+    self.SteamID = TradeOfferManager.SteamID;
+    self.request = self.community.request;
+    self.store = new SteamStore();
+    self.loggedIn = false;
 };
 
 

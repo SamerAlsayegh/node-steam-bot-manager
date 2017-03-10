@@ -812,18 +812,23 @@ BotManager.prototype.registerAccount = function (accountDetails, callback) {
         self.displayBotMenu();
     });
 
-    botAccount.on('offerChanged', function (offer, oldState) {
-        self.emit('offerChanged', botAccount, offer, oldState);
+    botAccount.on('sentOfferChanged', function (offer, oldState) {
+        self.emit('sentOfferChanged', botAccount, offer, oldState);
     });
-
-    botAccount.on('sessionExpired', function (offer, oldState) {
+    botAccount.on('receivedOfferChanged', function (offer, oldState) {
+        self.emit('receivedOfferChanged', botAccount, offer, oldState);
+    });
+    botAccount.on('offerList', function (filter, sent, received) {
+        self.emit('offerList', botAccount, filter, sent, received);
+    });
+    botAccount.on('sessionExpired', function () {
         self.emit('sessionExpired', botAccount);
-        botAccount.loginAccount({}, function (err) {
-            if (err)
-                self.errorDebug("Failed to login to account - " + err);
-            else
-                self.infoDebug("Logged back in due to session expiry");
-        });
+        // botAccount.loginAccount({}, function (err) {
+        //     if (err)
+        //         self.errorDebug("Failed to login to account - " + err);
+        //     else
+        //         self.infoDebug("Logged back in due to session expiry");
+        // });
     });
 
     botAccount.on('newOffer', function (offer) {
