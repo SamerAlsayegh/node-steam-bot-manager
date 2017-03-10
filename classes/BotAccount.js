@@ -19,21 +19,6 @@ function BotAccount(accountDetails, settings, logger) {
     self.logger = logger;
     self.community = new SteamCommunity();
     self.client = new SteamUser();
-    if (!self.settings.hasOwnProperty("tradeCancelTime"))
-        self.settings.tradeCancelTime = 60 * 60 * 24;
-    if (!self.settings.hasOwnProperty("tradePendingCancelTime"))
-        self.settings.tradePendingCancelTime = 60 * 60 * 24;
-    if (!self.settings.hasOwnProperty("language"))
-        self.settings.language = 60 * 60 * 24;
-    if (!self.settings.hasOwnProperty("tradePollInterval"))
-        self.settings.tradePollInterval = 60 * 60 * 24;
-    if (!self.settings.hasOwnProperty("tradeCancelOfferCount"))
-        self.settings.tradeCancelOfferCount = 60 * 60 * 24;
-    if (!self.settings.hasOwnProperty("tradeCancelOfferCountMinAge"))
-        self.settings.tradeCancelOfferCountMinAge = 60 * 60;
-    if (!self.settings.hasOwnProperty("cancelTradeOnOverflow"))
-        self.settings.cancelTradeOnOverflow = true;
-
     self.trade = new TradeOfferManager({
         "steam": self.client,
         "community": self.community,
@@ -429,6 +414,7 @@ BotAccount.prototype.getRequestAPI = function (interface, version, method, optio
     var x = 0
     for (var option in options)
         string += option + "=" + options[option] + (x++ < Object.keys(options).length - 1 ? "&" : '');
+    self.logger.log('debug', "Sending GET request to " + string);
     self.community.request({
         url: 'http://api.steampowered.com/' + interface + '/' + method + '/' + version + '/' + string,
         method: "GET",
@@ -498,15 +484,19 @@ BotAccount.prototype.getFriendsSummaries = function (friends, atCount, friendsCo
 BotAccount.prototype.getFriends = function (callback) {
     var self = this;
     var onlineFriendsList = [];
+    self.logger.log('debug', "Getting friends list");
     if (self.cachedFriendsList && (typeof self.cachedFriendsList == 'object') && ((new Date().getTime() / 1000) - (self.cachedFriendsList.cacheTime)) < (60 * 10)) {
         onlineFriendsList = self.cachedFriendsList.friendsList.slice();
+        self.logger.log('debug', "Used cached friendslist");
         return callback(null, onlineFriendsList);
     } else {
         // Due to the fact that we must submit an API call everytime we need friends list, we will cach the data for 5 minutes. Clear cach on force.
         if (!self.loggedIn) {
+            self.logger.log('debug', "Queued getFriends method until login.");
             self.addToQueue(self.getFriends, [callback]);
         }
         else {
+            self.logger.log('debug', "Getting a fresh list of friends");
             self.getRequestAPI('ISteamUser', 'v1', 'GetFriendList', {
                 key: self.settings.api_key,
                 relationship: 'friend',
@@ -514,7 +504,6 @@ BotAccount.prototype.getFriends = function (callback) {
             }, function (err, body) {
                 if (err)
                     return callback(err, null);
-                self.logger.log('debug', {msg: body});
 
                 if (body.hasOwnProperty("friendslist")) {
                     var friends = body.friendslist.friends;
@@ -534,6 +523,7 @@ BotAccount.prototype.getFriends = function (callback) {
                         return callback(null, onlineFriendsList.slice());
                     });
                 } else {
+                    self.logger.log('debug', body);
                     self.logger.log('debug', "Failed to fetch friends - API call failed");
                     return callback(null, onlineFriendsList.slice());
                 }

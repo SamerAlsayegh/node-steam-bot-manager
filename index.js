@@ -39,9 +39,9 @@ BotManager.prototype.startManager = function (callbackManager) {
         }
     });
 
-        self.dataControl.on('debug', function (msg) {
-            self.infoDebug(msg);
-        });
+    self.dataControl.on('debug', function (msg) {
+        self.infoDebug(msg);
+    });
 
 
     self.dataControl.on('error', function (err) {
@@ -829,9 +829,10 @@ BotManager.prototype.registerAccount = function (accountDetails, callback) {
     botAccount.on('newOffer', function (offer) {
         self.emit('newOffer', botAccount, offer);
     });
-        botAccount.on('debug', function (msg) {
-            self.infoDebug(msg);
-        });
+
+    botAccount.on('debug', function (msg) {
+        self.infoDebug(msg);
+    });
 
 
     botAccount.on('error', function (err) {
@@ -875,7 +876,6 @@ BotManager.prototype.registerAccount = function (accountDetails, callback) {
     });
 
 };
-
 
 
 /**

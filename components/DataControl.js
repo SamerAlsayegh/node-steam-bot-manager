@@ -26,6 +26,22 @@ function DataControl(localURI) {
     });
 
 
+    self.defaultConfig = {
+        bot_prefix: null,
+        api_port: null,
+        debug: false,
+        appid: 730,
+        settings: {
+            api_key: "",
+            tradeCancelTime: 60 * 60 * 24,
+            tradePendingCancelTime: 60 * 60 * 24,
+            language: "en",
+            tradePollInterval: 5000,
+            tradeCancelOfferCount: 30,
+            tradeCancelOfferCountMinAge: 60 * 60,
+            cancelTradeOnOverflow: true
+        }
+    };
     self.localURI = localURI;
     try {
         self.emit('debug', "Creating missing folder.");
@@ -67,50 +83,25 @@ DataControl.prototype.initData = function (callback) {
 
 
 DataControl.prototype.validateConfig = function (config, callback) {
-    if (!config.hasOwnProperty("bot_prefix"))
-        config.bot_prefix = "";// Default bot prefix
-
-    if (!config.hasOwnProperty("appid"))
-        config.appid = 730;
-
-    if (config.hasOwnProperty("settings")) {
-        if (!config.settings.hasOwnProperty("tradeCancelTime"))
-            config.tradeCancelTime = 60 * 60 * 24;
-        else
-            config.tradeCancelTime = config.settings.tradeCancelTime;
-
-        if (!config.settings.hasOwnProperty("tradePendingCancelTime"))
-            config.tradePendingCancelTime = 60 * 60 * 24;
-        else
-            config.tradePendingCancelTime = config.settings.tradePendingCancelTime;
-
-        if (!config.settings.hasOwnProperty("language"))
-            config.settings.language = "en";
-        else
-            config.language = config.settings.language;
-
-        if (!config.settings.hasOwnProperty("tradePollInterval"))
-            config.tradePollInterval = 60 * 60 * 24;
-        else
-            config.tradePollInterval = config.settings.tradePollInterval;
-
-        if (!config.settings.hasOwnProperty("tradeCancelOfferCount"))
-            config.tradeCancelOfferCount = 60 * 60 * 24;
-        else
-            config.tradeCancelOfferCount = config.settings.tradeCancelOfferCount;
-
-        if (!config.settings.hasOwnProperty("tradeCancelOfferCountMinAge"))
-            config.tradeCancelOfferCountMinAge = 60 * 60;
-        else
-            config.tradeCancelOfferCountMinAge = config.settings.tradeCancelOfferCountMinAge;
-
-        if (!config.settings.hasOwnProperty("cancelTradeOnOverflow"))
-            config.cancelTradeOnOverflow = true;
-        else
-            config.cancelTradeOnOverflow = config.settings.cancelTradeOnOverflow;
-
-
+    var self = this;
+    for (var settingName in self.defaultConfig) {
+        if (!config.hasOwnProperty(settingName) && self.defaultConfig.hasOwnProperty(settingName))
+            config[settingName] = self.defaultConfig[settingName];
     }
+
+    // Old version
+    if (config.hasOwnProperty("settings")) {
+        for (settingName in config.settings) {
+            if (config.settings.hasOwnProperty(settingName))
+                config[settingName] = config.settings[settingName];
+        }
+
+        for (settingName in self.defaultConfig.settings) {
+            if (!config.hasOwnProperty(settingName) && self.defaultConfig.settings.hasOwnProperty(settingName))
+                config[settingName] = self.defaultConfig.settings[settingName];
+        }
+    }
+    delete config.settings;
     callback(null, config);
 };
 
@@ -162,22 +153,7 @@ DataControl.prototype.loadAccounts = function (callback) {
 };
 DataControl.prototype.loadConfig = function (callback) {
     var self = this;
-    self.getFile(this.localURI + "/config.json", {
-        bot_prefix: null,
-        api_port: null,
-        debug: false,
-        appid: 730,
-        settings: {
-            api_key: "",
-            tradeCancelTime: 3600,
-            tradePendingCancelTime: 3600,
-            language: "en",
-            tradePollInterval: 5000,
-            tradeCancelOfferCount: 30,
-            tradeCancelOfferCountMinAge: 60,
-            cancelTradeOnOverflow: true
-        }
-    }, function (err, configJSON) {
+    self.getFile(this.localURI + "/config.json", self.defaultConfig, function (err, configJSON) {
 
         try {
             self.validateConfig(configJSON, callback)
