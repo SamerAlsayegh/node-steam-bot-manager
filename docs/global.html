@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Global</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Global</h1>
+
+
+    <section>
+
+        <header>
+
+            <h2></h2>
+
+
+        </header>
+
+        <article>
+            <div class="container-overview">
+
+
+                <dl class="details">
+
+
+                </dl>
+
+
+            </div>
+
+
+            <h3 class="subsection-title">Methods</h3>
+
+
+            <h4 class="name" id="loggedInAccount"><span class="type-signature"></span>loggedInAccount<span
+                    class="signature">(cookies, sessionID, loginCallback)</span><span class="type-signature"></span>
+            </h4>
+
+
+            <div class="description">
+                This is a private method - but incase you would like to edit it for your own usage...
+            </div>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>cookies</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last">Cookies sent by Steam when logged in</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>sessionID</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last">Session ID as sent by Steam</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>loginCallback</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type"><a href="global.html#loginCallback">loginCallback</a></span>
+
+
+                    </td>
+
+
+                    <td class="description last">Login details (refer to loginCallback for more info.)</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line716">line 716</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h3 class="subsection-title">Type Definitions</h3>
+
+
+            <h4 class="name" id="acceptedTradesCallback"><span class="type-signature"></span>acceptedTradesCallback<span
+                    class="signature">(error, acceptedTrades)</span><span class="type-signature"></span></h4>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>error</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Error</span>
+
+
+                    </td>
+
+
+                    <td class="description last">An error message if the process failed, null if successful</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>acceptedTrades</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Array</span>
+
+
+                    </td>
+
+
+                    <td class="description last">An array of trades that were confirmed in the process.</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line342">line 342</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="callbackRequestAPI"><span class="type-signature"></span>callbackRequestAPI<span
+                    class="signature">(error, body)</span><span class="type-signature"></span></h4>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>error</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Error</span>
+
+
+                    </td>
+
+
+                    <td class="description last">An error message if the process failed, null if successful</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>body</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Object</span>
+
+
+                    </td>
+
+
+                    <td class="description last">An object of the parsed response (null if failed)</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line442">line 442</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="confirmationsCallback"><span class="type-signature"></span>confirmationsCallback<span
+                    class="signature">(error, confirmations)</span><span class="type-signature"></span></h4>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>error</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Error</span>
+
+
+                    </td>
+
+
+                    <td class="description last">An error message if the process failed, null if successful</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>confirmations</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Array</span>
+
+
+                    </td>
+
+
+                    <td class="description last">An array of Confirmations</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line155">line 155</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="errorCallback"><span class="type-signature"></span>errorCallback<span
+                    class="signature">(error)</span><span class="type-signature"></span></h4>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>error</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Error</span>
+
+
+                    </td>
+
+
+                    <td class="description last">An error message if the process failed, null if successful</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="index.js.html">index.js</a>, <a href="index.js.html#line924">line 924</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="inventoryCallback"><span class="type-signature"></span>inventoryCallback<span
+                    class="signature">(error, inventory, currencies)</span><span class="type-signature"></span></h4>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>error</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Error</span>
+
+
+                    </td>
+
+
+                    <td class="description last">An error message if the process failed, null if successful</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>inventory</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Array</span>
+
+
+                    </td>
+
+
+                    <td class="description last">An array of Items returned via fetch (if null, then game is not owned
+                        by user)
+                    </td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>currencies</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Array</span>
+
+
+                    </td>
+
+
+                    <td class="description last">An array of currencies (Only a few games use this) - (if null, then
+                        game is not owned by user)
+                    </td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line290">line 290</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="loginCallback"><span class="type-signature"></span>loginCallback<span
+                    class="signature">(error)</span><span class="type-signature"></span></h4>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>error</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Error</span>
+
+
+                    </td>
+
+
+                    <td class="description last">An error message if the login processing failed, null if successful
+                    </td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line705">line 705</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+        </article>
+
+    </section>
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2>
+    <h3>Classes</h3>
+    <ul>
+        <li><a href="BotAccount.html">BotAccount</a></li>
+        <li><a href="BotManager.html">BotManager</a></li>
+    </ul>
+    <h3>Events</h3>
+    <ul>
+        <li><a href="BotAccount.html#event:friendOrChatMessage">friendOrChatMessage</a></li>
+        <li><a href="BotAccount.html#event:loggedIn">loggedIn</a></li>
+        <li><a href="BotAccount.html#event:newOffer">newOffer</a></li>
+        <li><a href="BotAccount.html#event:offerChanged">offerChanged</a></li>
+        <li><a href="BotAccount.html#event:tradeOffers">tradeOffers</a></li>
+    </ul>
+    <h3>Global</h3>
+    <ul>
+        <li><a href="global.html#loggedInAccount">loggedInAccount</a></li>
+    </ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Sun Mar 12 2017 12:14:57
+    GMT+0400 (Arabian Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

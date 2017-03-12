@@ -1,0 +1,2705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Class: BotAccount</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Class: BotAccount</h1>
+
+
+    <section>
+
+        <header>
+
+            <h2>BotAccount</h2>
+
+
+        </header>
+
+        <article>
+            <div class="container-overview">
+
+
+                <h4 class="name" id="BotAccount"><span class="type-signature"></span>new BotAccount<span
+                        class="signature">()</span><span class="type-signature"></span></h4>
+
+
+                <div class="description">
+                    Creates a new BotAccount instance for a bot.
+                </div>
+
+
+                <dl class="details">
+
+
+                    <dt class="tag-source">Source:</dt>
+                    <dd class="tag-source">
+                        <ul class="dummy">
+                            <li>
+                                <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                    href="classes_BotAccount.js.html#line13">line 13</a>
+                            </li>
+                        </ul>
+                    </dd>
+
+
+                </dl>
+
+
+            </div>
+
+
+            <h3 class="subsection-title">Methods</h3>
+
+
+            <h4 class="name" id="addPhoneNumber"><span class="type-signature"></span>addPhoneNumber<span
+                    class="signature">(phoneNumber, errorCallback)</span><span class="type-signature"></span></h4>
+
+
+            <div class="description">
+                Add a phone-number to the account (For example before setting up 2-factor authentication)
+            </div>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>phoneNumber</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last">Certain format must be followed</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>errorCallback</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type"><a href="global.html#errorCallback">errorCallback</a></span>
+
+
+                    </td>
+
+
+                    <td class="description last">A callback returned with possible errors</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line334">line 334</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="addToQueue"><span class="type-signature"></span>addToQueue<span class="signature">(functionV, functionData)</span><span
+                    class="type-signature"></span></h4>
+
+
+            <div class="description">
+                Add a function to the queue which runs when we login usually.
+            </div>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>functionV</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last"></td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>functionData</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last"></td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line207">line 207</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="changeName"><span class="type-signature"></span>changeName<span class="signature">(newName, namePrefix, errorCallback)</span><span
+                    class="type-signature"></span></h4>
+
+
+            <div class="description">
+                Change the display name of the account (with prefix)
+            </div>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>newName</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type"><a href="String.html">String</a></span>
+
+
+                    </td>
+
+
+                    <td class="description last">The new display name</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>namePrefix</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type"><a href="String.html">String</a></span>
+
+
+                    </td>
+
+
+                    <td class="description last">The prefix if there is one (Nullable)</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>errorCallback</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type"><a href="global.html#errorCallback">errorCallback</a></span>
+
+
+                    </td>
+
+
+                    <td class="description last">A callback returned with possible errors</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line272">line 272</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="confirmOutstandingTrades"><span
+                    class="type-signature"></span>confirmOutstandingTrades<span class="signature">()</span><span
+                    class="type-signature"></span></h4>
+
+
+            <div class="description">
+                Confirm (not accept) all outstanding trades that were sent out, regardless of trade target via the
+                two-factor authenticator.
+            </div>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line387">line 387</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="confirmTradesFromUser"><span class="type-signature"></span>confirmTradesFromUser<span
+                    class="signature">(steamID, acceptedTradesCallback)</span><span class="type-signature"></span></h4>
+
+
+            <div class="description">
+                Confirm (not accept) all sent trades associated with a certain SteamID via the two-factor authenticator.
+            </div>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>steamID</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">SteamID</span>
+
+
+                    </td>
+
+
+                    <td class="description last">SteamID to use for lookup of inventory</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>acceptedTradesCallback</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type"><a href="global.html#acceptedTradesCallback">acceptedTradesCallback</a></span>
+
+
+                    </td>
+
+
+                    <td class="description last">Inventory details (refer to inventoryCallback for more info.)</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line353">line 353</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="fromIndividualAccountID"><span
+                    class="type-signature"></span>fromIndividualAccountID<span class="signature">()</span><span
+                    class="type-signature"> &rarr; {Error|<a href="String.html">String</a>}</span></h4>
+
+
+            <div class="description">
+                Fetch SteamID Object from the SteamID.
+            </div>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line85">line 85</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h5>Returns:</h5>
+
+
+            <dl>
+                <dt>
+                    Type
+                </dt>
+                <dd>
+
+                    <span class="param-type">Error</span>
+                    |
+
+                    <span class="param-type"><a href="String.html">String</a></span>
+
+
+                </dd>
+            </dl>
+
+
+            <h4 class="name" id="generateMobileAuthenticationCode"><span class="type-signature"></span>generateMobileAuthenticationCode<span
+                    class="signature">()</span><span class="type-signature"> &rarr; {Error|<a
+                    href="String.html">String</a>}</span></h4>
+
+
+            <div class="description">
+                Generate two-factor-authentication code used for logging in.
+            </div>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line73">line 73</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h5>Returns:</h5>
+
+
+            <dl>
+                <dt>
+                    Type
+                </dt>
+                <dd>
+
+                    <span class="param-type">Error</span>
+                    |
+
+                    <span class="param-type"><a href="String.html">String</a></span>
+
+
+                </dd>
+            </dl>
+
+
+            <h4 class="name" id="generateMobileConfirmationCode"><span class="type-signature"></span>generateMobileConfirmationCode<span
+                    class="signature">(time, tag)</span><span class="type-signature"> &rarr; {Error}</span></h4>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>time</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last">Current time of trade (Please use getUnixTime())</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>tag</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last">Type of confirmation required ("conf" to load the confirmations page,
+                        "details" to load details about a trade, "allow" to confirm a trade, "cancel" to cancel it.)
+                    </td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line97">line 97</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h5>Returns:</h5>
+
+
+            <dl>
+                <dt>
+                    Type
+                </dt>
+                <dd>
+
+                    <span class="param-type">Error</span>
+
+
+                </dd>
+            </dl>
+
+
+            <h4 class="name" id="getAccount"><span class="type-signature"></span>getAccount<span
+                    class="signature">()</span><span class="type-signature"> &rarr; {*|Object}</span></h4>
+
+
+            <div class="description">
+                Get account details
+            </div>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line118">line 118</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h5>Returns:</h5>
+
+
+            <dl>
+                <dt>
+                    Type
+                </dt>
+                <dd>
+
+                    <span class="param-type">*</span>
+                    |
+
+                    <span class="param-type">Object</span>
+
+
+                </dd>
+            </dl>
+
+
+            <h4 class="name" id="getAccountName"><span class="type-signature"></span>getAccountName<span
+                    class="signature">()</span><span class="type-signature"> &rarr; {<a
+                    href="String.html">String</a>}</span></h4>
+
+
+            <div class="description">
+                Get the account's username, used to login to Steam
+            </div>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line47">line 47</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h5>Returns:</h5>
+
+
+            <div class="param-desc">
+                accountName
+            </div>
+
+
+            <dl>
+                <dt>
+                    Type
+                </dt>
+                <dd>
+
+                    <span class="param-type"><a href="String.html">String</a></span>
+
+
+                </dd>
+            </dl>
+
+
+            <h4 class="name" id="getConfirmations"><span class="type-signature"></span>getConfirmations<span
+                    class="signature">(time, key, confirmationsCallback)</span><span class="type-signature"></span></h4>
+
+
+            <div class="description">
+                Get outstanding confirmations
+            </div>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>time</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last"></td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>key</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last"></td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>confirmationsCallback</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last"></td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line167">line 167</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="getDisplayName"><span class="type-signature"></span>getDisplayName<span
+                    class="signature">()</span><span class="type-signature"> &rarr; {<a href="String.html">String</a>|null}</span>
+            </h4>
+
+
+            <div class="description">
+                Get the display name of the account
+            </div>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line185">line 185</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h5>Returns:</h5>
+
+
+            <div class="param-desc">
+                displayName - Display name of the account
+            </div>
+
+
+            <dl>
+                <dt>
+                    Type
+                </dt>
+                <dd>
+
+                    <span class="param-type"><a href="String.html">String</a></span>
+                    |
+
+                    <span class="param-type">null</span>
+
+
+                </dd>
+            </dl>
+
+
+            <h4 class="name" id="getInventory"><span class="type-signature"></span>getInventory<span class="signature">(appid, contextid, tradableOnly, inventoryCallback)</span><span
+                    class="type-signature"></span></h4>
+
+
+            <div class="description">
+                Retrieve account inventory based on filters
+            </div>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>appid</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Integer</span>
+
+
+                    </td>
+
+
+                    <td class="description last">appid by-which to fetch inventory based on.</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>contextid</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Integer</span>
+
+
+                    </td>
+
+
+                    <td class="description last">contextid of lookup (1 - Gifts, 2 - In-game Items, 3 - Coupons, 6 -
+                        Game Cards, Profile Backgrounds & Emoticons)
+                    </td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>tradableOnly</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Boolean</span>
+
+
+                    </td>
+
+
+                    <td class="description last">Items retrieved must be tradable</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>inventoryCallback</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type"><a href="global.html#inventoryCallback">inventoryCallback</a></span>
+
+
+                    </td>
+
+
+                    <td class="description last">Inventory details (refer to inventoryCallback for more info.)</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line304">line 304</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="getRateLimited"><span class="type-signature"></span>getRateLimited<span
+                    class="signature">()</span><span class="type-signature"> &rarr; {Boolean}</span></h4>
+
+
+            <div class="description">
+                Get if the API/account is rate limited by SteamAPI
+            </div>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line56">line 56</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h5>Returns:</h5>
+
+
+            <div class="param-desc">
+                rateLimited
+            </div>
+
+
+            <dl>
+                <dt>
+                    Type
+                </dt>
+                <dd>
+
+                    <span class="param-type">Boolean</span>
+
+
+                </dd>
+            </dl>
+
+
+            <h4 class="name" id="getRequestAPI"><span class="type-signature"></span>getRequestAPI<span
+                    class="signature">(apiInterface, version, method, options, callbackRequestAPI)</span><span
+                    class="type-signature"></span></h4>
+
+
+            <div class="description">
+                Send GET Request to SteamAPI with details
+            </div>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>apiInterface</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last">(String) - Interface name</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>version</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last">(String) - Interface version (v1 or v2 depending on interface)</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>method</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last">(String) - method to access</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>options</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last">Data to attach to request</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>callbackRequestAPI</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last">-</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line456">line 456</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="getUnixTime"><span class="type-signature"></span>getUnixTime<span
+                    class="signature">()</span><span class="type-signature"> &rarr; {number}</span></h4>
+
+
+            <div class="description">
+                Get Unix time for usage with mobile confirmations.
+            </div>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line109">line 109</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h5>Returns:</h5>
+
+
+            <dl>
+                <dt>
+                    Type
+                </dt>
+                <dd>
+
+                    <span class="param-type">number</span>
+
+
+                </dd>
+            </dl>
+
+
+            <h4 class="name" id="getUserInventory"><span class="type-signature"></span>getUserInventory<span
+                    class="signature">(steamID, appid, contextid, tradableOnly, inventoryCallback)</span><span
+                    class="type-signature"></span></h4>
+
+
+            <div class="description">
+                Retrieve account inventory based on filters and provided steamID
+            </div>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>steamID</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">SteamID</span>
+
+
+                    </td>
+
+
+                    <td class="description last">SteamID to use for lookup of inventory</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>appid</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Integer</span>
+
+
+                    </td>
+
+
+                    <td class="description last">appid by-which to fetch inventory based on.</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>contextid</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Integer</span>
+
+
+                    </td>
+
+
+                    <td class="description last">contextid of lookup (1 - Gifts, 2 - In-game Items, 3 - Coupons, 6 -
+                        Game Cards, Profile Backgrounds & Emoticons)
+                    </td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>tradableOnly</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Boolean</span>
+
+
+                    </td>
+
+
+                    <td class="description last">Items retrieved must be tradableOnly</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>inventoryCallback</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type"><a href="global.html#inventoryCallback">inventoryCallback</a></span>
+
+
+                    </td>
+
+
+                    <td class="description last">Inventory details (refer to inventoryCallback for more info.)</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line321">line 321</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="loginAccount"><span class="type-signature"></span>loginAccount<span class="signature">(details, loginCallback)</span><span
+                    class="type-signature"></span></h4>
+
+
+            <div class="description">
+                Login to account using supplied details (2FactorCode, authcode, or captcha)
+            </div>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>details</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last"></td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>loginCallback</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last"></td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line647">line 647</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="processQueue"><span class="type-signature"></span>processQueue<span class="signature">(queueName, callback)</span><span
+                    class="type-signature"></span></h4>
+
+
+            <div class="description">
+                Process the queue to run tasks that were delayed.
+            </div>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>queueName</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last"></td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>callback</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last"></td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line219">line 219</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="sendMessage"><span class="type-signature"></span>sendMessage<span class="signature">(recipient, message)</span><span
+                    class="type-signature"></span></h4>
+
+
+            <div class="description">
+                Send a chat message to a receipient without callback
+            </div>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>recipient</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">SteamID</span>
+
+
+                    </td>
+
+
+                    <td class="description last">Recipient of the message</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>message</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type"><a href="String.html">String</a></span>
+
+
+                    </td>
+
+
+                    <td class="description last">Message to send</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line150">line 150</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="sendMessage"><span class="type-signature"></span>sendMessage<span class="signature">(recipient, message, callback)</span><span
+                    class="type-signature"></span></h4>
+
+
+            <div class="description">
+                Send a chat message to a receipient with callback
+            </div>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>recipient</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">SteamID</span>
+
+
+                    </td>
+
+
+                    <td class="description last">Recipient of the message</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>message</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type"><a href="String.html">String</a></span>
+
+
+                    </td>
+
+
+                    <td class="description last">Message to send</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>callback</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">messageCallback</span>
+
+
+                    </td>
+
+
+                    <td class="description last">Callback upon sending the message (null, or Error)</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line141">line 141</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="sendMessage"><span class="type-signature"></span>sendMessage<span class="signature">(recipient, message, type, callback)</span><span
+                    class="type-signature"></span></h4>
+
+
+            <div class="description">
+                Send a chat message to a receipient with callback
+            </div>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>recipient</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">SteamID</span>
+
+
+                    </td>
+
+
+                    <td class="description last">Recipient of the message</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>message</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type"><a href="String.html">String</a></span>
+
+
+                    </td>
+
+
+                    <td class="description last">Message to send</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>type</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type"><a href="String.html">String</a></span>
+
+
+                    </td>
+
+
+                    <td class="description last">saytest or typing (message ignored for 'typing')</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>callback</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">messageCallback</span>
+
+
+                    </td>
+
+
+                    <td class="description last">Callback upon sending the message (null, or Error)</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line130">line 130</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="setChatting"><span class="type-signature"></span>setChatting<span class="signature">(chattingUserInfo)</span><span
+                    class="type-signature"></span></h4>
+
+
+            <div class="description">
+                Set the user we are chatting with
+            </div>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>chattingUserInfo</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">*</span>
+                        |
+
+                        <span class="param-type">Object</span>
+
+
+                    </td>
+
+
+                    <td class="description last"></td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line176">line 176</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="setRateLimited"><span class="type-signature"></span>setRateLimited<span
+                    class="signature">()</span><span class="type-signature"> &rarr; {Boolean}</span></h4>
+
+
+            <div class="description">
+                Get if the API/account is rate limited by SteamAPI
+            </div>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line65">line 65</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h5>Returns:</h5>
+
+
+            <div class="param-desc">
+                rateLimited
+            </div>
+
+
+            <dl>
+                <dt>
+                    Type
+                </dt>
+                <dd>
+
+                    <span class="param-type">Boolean</span>
+
+
+                </dd>
+            </dl>
+
+
+            <h4 class="name" id="wrapFunction"><span class="type-signature"></span>wrapFunction<span class="signature">(fn, context, params)</span><span
+                    class="type-signature"> &rarr; {function}</span></h4>
+
+
+            <div class="description">
+                Function wrapper used to delay function calls by name and paramters
+            </div>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>fn</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last">function reference</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>context</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last">Context to use for call</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>params</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last">Parameters in arraylist to send with function</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line197">line 197</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h5>Returns:</h5>
+
+
+            <dl>
+                <dt>
+                    Type
+                </dt>
+                <dd>
+
+                    <span class="param-type">function</span>
+
+
+                </dd>
+            </dl>
+
+
+            <h3 class="subsection-title">Events</h3>
+
+
+            <h4 class="name" id="event:friendOrChatMessage">friendOrChatMessage</h4>
+
+
+            <div class="description">
+                Emitted when a friend message or chat room message is received.
+            </div>
+
+
+            <h5>Type:</h5>
+            <ul>
+                <li>
+
+                    <span class="param-type">object</span>
+
+
+                </li>
+            </ul>
+
+
+            <h5 class="subsection-title">Properties:</h5>
+
+
+            <table class="props">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>senderID</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">SteamID</span>
+
+
+                    </td>
+
+
+                    <td class="description last">The message sender, as a SteamID object</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>message</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type"><a href="String.html">String</a></span>
+
+
+                    </td>
+
+
+                    <td class="description last">The message text</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>room</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">SteamID</span>
+
+
+                    </td>
+
+
+                    <td class="description last">The room to which the message was sent. This is the user's SteamID if
+                        it was a friend message
+                    </td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line748">line 748</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="event:loggedIn">loggedIn</h4>
+
+
+            <div class="description">
+                Emitted when we fully sign into Steam and all functions are usable.
+            </div>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line833">line 833</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="event:newOffer">newOffer</h4>
+
+
+            <div class="description">
+                Emitted when we receive a new trade offer
+            </div>
+
+
+            <h5>Type:</h5>
+            <ul>
+                <li>
+
+                    <span class="param-type">object</span>
+
+
+                </li>
+            </ul>
+
+
+            <h5 class="subsection-title">Properties:</h5>
+
+
+            <table class="props">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>offer</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">TradeOffer</span>
+
+
+                    </td>
+
+
+                    <td class="description last">The offer's details</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line782">line 782</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="event:offerChanged">offerChanged</h4>
+
+
+            <div class="description">
+                Emitted when a trade offer changes state (Ex. accepted, pending, escrow, etc...)
+            </div>
+
+
+            <h5>Type:</h5>
+            <ul>
+                <li>
+
+                    <span class="param-type">object</span>
+
+
+                </li>
+            </ul>
+
+
+            <h5 class="subsection-title">Properties:</h5>
+
+
+            <table class="props">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>offer</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">TradeOffer</span>
+
+
+                    </td>
+
+
+                    <td class="description last">The new offer's details</td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>oldState</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">TradeOffer</span>
+
+
+                    </td>
+
+
+                    <td class="description last">The old offer's details</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line764">line 764</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="event:tradeOffers">tradeOffers</h4>
+
+
+            <div class="description">
+                Emitted when a trade offer is cancelled
+            </div>
+
+
+            <h5>Type:</h5>
+            <ul>
+                <li>
+
+                    <span class="param-type">object</span>
+
+
+                </li>
+            </ul>
+
+
+            <h5 class="subsection-title">Properties:</h5>
+
+
+            <table class="props">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>count</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Integer</span>
+
+
+                    </td>
+
+
+                    <td class="description last">The amount of active trade offers (can be 0).</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line803">line 803</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="event:tradeOffers">tradeOffers</h4>
+
+
+            <div class="description">
+                Emitted when we receive a new trade offer notification (only provides amount of offers and no other
+                details)
+            </div>
+
+
+            <h5>Type:</h5>
+            <ul>
+                <li>
+
+                    <span class="param-type">object</span>
+
+
+                </li>
+            </ul>
+
+
+            <h5 class="subsection-title">Properties:</h5>
+
+
+            <table class="props">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>count</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Integer</span>
+
+
+                    </td>
+
+
+                    <td class="description last">The amount of active trade offers (can be 0).</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line793">line 793</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="event:tradeOffers">tradeOffers</h4>
+
+
+            <div class="description">
+                Emitted when a trade offer is cancelled
+            </div>
+
+
+            <h5>Type:</h5>
+            <ul>
+                <li>
+
+                    <span class="param-type">object</span>
+
+
+                </li>
+            </ul>
+
+
+            <h5 class="subsection-title">Properties:</h5>
+
+
+            <table class="props">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>count</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Integer</span>
+
+
+                    </td>
+
+
+                    <td class="description last">The amount of active trade offers (can be 0).</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line813">line 813</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="event:tradeOffers">tradeOffers</h4>
+
+
+            <div class="description">
+                Emitted when a trade offer is cancelled
+            </div>
+
+
+            <h5>Type:</h5>
+            <ul>
+                <li>
+
+                    <span class="param-type">object</span>
+
+
+                </li>
+            </ul>
+
+
+            <h5 class="subsection-title">Properties:</h5>
+
+
+            <table class="props">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>count</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">Integer</span>
+
+
+                    </td>
+
+
+                    <td class="description last">The amount of active trade offers (can be 0).</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="classes_BotAccount.js.html">classes/BotAccount.js</a>, <a
+                                href="classes_BotAccount.js.html#line823">line 823</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+        </article>
+
+    </section>
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2>
+    <h3>Classes</h3>
+    <ul>
+        <li><a href="BotAccount.html">BotAccount</a></li>
+        <li><a href="BotManager.html">BotManager</a></li>
+    </ul>
+    <h3>Events</h3>
+    <ul>
+        <li><a href="BotAccount.html#event:friendOrChatMessage">friendOrChatMessage</a></li>
+        <li><a href="BotAccount.html#event:loggedIn">loggedIn</a></li>
+        <li><a href="BotAccount.html#event:newOffer">newOffer</a></li>
+        <li><a href="BotAccount.html#event:offerChanged">offerChanged</a></li>
+        <li><a href="BotAccount.html#event:tradeOffers">tradeOffers</a></li>
+    </ul>
+    <h3>Global</h3>
+    <ul>
+        <li><a href="global.html#loggedInAccount">loggedInAccount</a></li>
+    </ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Sun Mar 12 2017 12:14:57
+    GMT+0400 (Arabian Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>
