@@ -15,7 +15,7 @@ node_modules
 .npm
 
 .idea
-out
+docs
 # Config files
 private
 
