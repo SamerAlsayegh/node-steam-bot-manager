@@ -8,16 +8,6 @@ Version 1.0.46
 [![forthebadge](http://forthebadge.com/images/badges/uses-js.svg)](http://forthebadge.com)
 [![forthebadge](http://forthebadge.com/images/badges/built-with-love.svg)](http://forthebadge.com)
 
-## Demo:
-##### No demo's currently exist. If you would like a quick demo, please contact Undeadkillz on Steam.
-
-To showcase a demo of your use, pm Undeadkillz on Steam or Github with your website using this bot.
-
-
-
-## Examples:
-You can check examples of bots you can build by navigating to the 'examples' folder in the root of the project.
-
 ## Features:
 - GUI-based control
 - GUI-Messaging
@@ -30,12 +20,20 @@ You can check examples of bots you can build by navigating to the 'examples' fol
 - Ability to upvote/downvote attachments on Steam Community
 
 
+## WIKI
+Visit the [wiki](https://github.com/Undeadkillz/node-steam-bot-manager/wiki) for set-up, registration.
+
+For Docs, please visit [our docs](http://undeadkillz.github.io/node-steam-bot-manager/docs)
+
+## Examples:
+You can check examples of bots you can build by navigating to the 'examples' folder in the root of the project.
+
+
 ## TODO:
 - Add more functionality
 - Expand API access
 - Add more examples
 
-Visit the [wiki](https://github.com/Undeadkillz/node-steam-bot-manager/wiki) for set-up, registration and docs.
 
 ## Libraries used:
 - [colors.js](https://github.com/marak/colors.js/)

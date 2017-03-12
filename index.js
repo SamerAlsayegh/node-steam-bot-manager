@@ -855,7 +855,21 @@ BotManager.prototype.registerAccount = function (accountDetails, callback) {
         }
         self.emit('loggedIn', botAccount);
     });
+    botAccount.on('rateLimitedSteam', function () {
+        for (var botAccountIndex in self.BotAccounts) {
+            if (self.BotAccounts.hasOwnProperty(botAccountIndex)) {
+                self.BotAccounts[botAccountIndex].setRateLimited(true);
+            }
+        }
+        setTimeout(function () {
+            for (var botAccountIndex in self.BotAccounts) {
+                if (self.BotAccounts.hasOwnProperty(botAccountIndex)) {
+                    self.BotAccounts[botAccountIndex].setRateLimited(false);
+                }
+            }
+        }, 60000);
 
+    });
 
     botAccount.on('updatedAccountDetails', function () {
         self.saveAccounts(function (err) {

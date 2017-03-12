@@ -35,7 +35,7 @@ function BotAccount(accountDetails, settings, logger) {
     self.store = new SteamStore();
     self.accountDetails = accountDetails;
     self.loggedIn = false;
-    self.rateLimited = false;
+    self.rateLimited = true;
     self.delayedTasks = [];
     self.emit('displayBotMenu');
 };
@@ -47,6 +47,24 @@ function BotAccount(accountDetails, settings, logger) {
 BotAccount.prototype.getAccountName = function () {
     var self = this;
     return self.accountDetails.accountName;
+};
+
+/**
+ * Get if the API/account is rate limited by SteamAPI
+ * @returns {Boolean} rateLimited
+ */
+BotAccount.prototype.getRateLimited = function () {
+    var self = this;
+    return self.rateLimited;
+};
+
+/**
+ * Get if the API/account is rate limited by SteamAPI
+ * @returns {Boolean} rateLimited
+ */
+BotAccount.prototype.setRateLimited = function (rateLimited) {
+    var self = this;
+    return self.rateLimited = rateLimited;
 };
 /**
  * Generate two-factor-authentication code used for logging in.
@@ -159,6 +177,7 @@ BotAccount.prototype.setChatting = function (chattingUserInfo) {
     var self = this;
     self.currentChatting = chattingUserInfo;
 };
+
 /**
  * Get the display name of the account
  * @returns {String|null} displayName - Display name of the account
@@ -168,6 +187,13 @@ BotAccount.prototype.getDisplayName = function () {
     return (self.accountDetails.hasOwnProperty("displayName") ? self.accountDetails.displayName : null);
 };
 
+/**
+ * Function wrapper used to delay function calls by name and paramters
+ * @param fn - function reference
+ * @param context - Context to use for call
+ * @param params - Parameters in arraylist to send with function
+ * @returns {Function}
+ */
 BotAccount.prototype.wrapFunction = function (fn, context, params) {
     return function () {
         fn.apply(context, params);
@@ -178,19 +204,24 @@ BotAccount.prototype.wrapFunction = function (fn, context, params) {
  * @param functionV
  * @param functionData
  */
-BotAccount.prototype.addToQueue = function (functionV, functionData) {
+BotAccount.prototype.addToQueue = function (queueName, functionV, functionData) {
     var self = this;
     var functionVal = self.wrapFunction(functionV, self, functionData);
-    self.delayedTasks.push(functionVal);
+    if (!self.delayedTasks.hasOwnProperty(queueName))
+        self.delayedTasks[queueName] = [];
+    self.delayedTasks[queueName].push(functionVal);
 };
 /**
  * Process the queue to run tasks that were delayed.
+ * @param queueName
  * @param callback
  */
-BotAccount.prototype.processQueue = function (callback) {
+BotAccount.prototype.processQueue = function (queueName, callback) {
     var self = this;
-    while (self.delayedTasks.length > 0) {
-        (self.delayedTasks.shift())();
+    if (self.delayedTasks.hasOwnProperty(queueName)) {
+        while (self.delayedTasks[queueName].length > 0) {
+            (self.delayedTasks[queueName].shift())();
+        }
     }
     callback(null);
 };
@@ -241,7 +272,7 @@ BotAccount.prototype.downvoteSharedFile = function (sharedFileId, callback) {
 BotAccount.prototype.changeName = function (newName, namePrefix, errorCallback) {
     var self = this;
     if (!self.loggedIn) {
-        self.addToQueue(self.changeName, [newName, namePrefix, errorCallback]);
+        self.addToQueue('login', self.changeName, [newName, namePrefix, errorCallback]);
     }
     else {
         if (namePrefix == null) namePrefix = '';
@@ -273,7 +304,7 @@ BotAccount.prototype.changeName = function (newName, namePrefix, errorCallback) 
 BotAccount.prototype.getInventory = function (appid, contextid, tradableOnly, inventoryCallback) {
     var self = this;
     if (!self.loggedIn) {
-        self.addToQueue(self.getInventory, [appid, contextid, tradableOnly, inventoryCallback]);
+        self.addToQueue('login', self.getInventory, [appid, contextid, tradableOnly, inventoryCallback]);
     }
     else
         self.trade.loadInventory(appid, contextid, tradableOnly, inventoryCallback);
@@ -290,7 +321,7 @@ BotAccount.prototype.getInventory = function (appid, contextid, tradableOnly, in
 BotAccount.prototype.getUserInventory = function (steamID, appid, contextid, tradableOnly, inventoryCallback) {
     var self = this;
     if (!self.loggedIn) {
-        self.addToQueue(self.getUserInventory, [steamID, appid, contextid, tradableOnly, inventoryCallback]);
+        self.addToQueue('login', self.getUserInventory, [steamID, appid, contextid, tradableOnly, inventoryCallback]);
     }
     else
         self.trade.loadUserInventory(steamID, appid, contextid, tradableOnly, inventoryCallback);
@@ -407,7 +438,22 @@ BotAccount.prototype.getRequest = function (url, callback) {
     });
 }
 
-BotAccount.prototype.getRequestAPI = function (interface, version, method, options, callback) {
+
+/**
+ * @callback callbackRequestAPI
+ * @param {Error} error - An error message if the process failed, null if successful
+ * @param {Object} body - An object of the parsed response (null if failed)
+ */
+
+/**
+ * Send GET Request to SteamAPI with details
+ * @param apiInterface (String) - Interface name
+ * @param version (String) - Interface version (v1 or v2 depending on interface)
+ * @param method (String) - method to access
+ * @param options - Data to attach to request
+ * @param callbackRequestAPI -
+ */
+BotAccount.prototype.getRequestAPI = function (apiInterface, version, method, options, callbackRequestAPI) {
     var self = this;
 
     var string = '?';
@@ -416,11 +462,11 @@ BotAccount.prototype.getRequestAPI = function (interface, version, method, optio
         string += option + "=" + options[option] + (x++ < Object.keys(options).length - 1 ? "&" : '');
     self.logger.log('debug', "Sending GET request to " + string);
     self.community.request({
-        url: 'http://api.steampowered.com/' + interface + '/' + method + '/' + version + '/' + string,
+        url: 'http://api.steampowered.com/' + apiInterface + '/' + method + '/' + version + '/' + string,
         method: "GET",
         json: true,
     }, function (err, response, body) {
-        callback(err, body);
+        callbackRequestAPI(err, body);
     });
 }
 
@@ -493,7 +539,7 @@ BotAccount.prototype.getFriends = function (callback) {
         // Due to the fact that we must submit an API call everytime we need friends list, we will cach the data for 5 minutes. Clear cach on force.
         if (!self.loggedIn) {
             self.logger.log('debug', "Queued getFriends method until login.");
-            self.addToQueue(self.getFriends, [callback]);
+            self.addToQueue('login', self.getFriends, [callback]);
         }
         else {
             self.logger.log('debug', "Getting a fresh list of friends");
@@ -593,10 +639,15 @@ BotAccount.prototype.has_shared_secret = function () {
     return (self.accountDetails.shared_secret ? true : false);
 };
 
-
+/**
+ * Login to account using supplied details (2FactorCode, authcode, or captcha)
+ * @param details
+ * @param loginCallback
+ */
 BotAccount.prototype.loginAccount = function (details, loginCallback) {
     var self = this;
     self.emit('loggingIn');
+
     if (self.canReloginWithoutPrompt()) {
         self.accountDetails.twoFactorCode = self.generateMobileAuthenticationCode();
     }
@@ -610,10 +661,15 @@ BotAccount.prototype.loginAccount = function (details, loginCallback) {
     if (self.accountDetails.steamguard && self.accountDetails.oAuthToken) {
         self.community.oAuthLogin(self.accountDetails.steamguard, self.accountDetails.oAuthToken, function (err, sessionID, cookies) {
             if (err) {
+                if (err != null && err.Error == "HTTP error 429") {
+                    self.emit('rateLimitedSteam');
+                    self.logger.log('error', "Rate limited by Steam - Delaying request.");
+                    self.addToQueue('ratelimit', self.loginAccount, [details, loginCallback]);
+                }
                 self.logger.log('error', "Failed to login into account via oAuth due to " + err);
                 return loginCallback(err);
             }
-            self.loggedInAccount(cookies, sessionID, function (err) {
+            loggedInAccount.call(this, cookies, sessionID, function (err) {
                 if (err) {
                     self.logger.log('error', "Failed to mark account as logged in");
                     return loginCallback(err);
@@ -625,12 +681,17 @@ BotAccount.prototype.loginAccount = function (details, loginCallback) {
     else {
         self.community.login(self.accountDetails, function (err, sessionID, cookies, steamguard, oAuthToken) {
             if (err) {
+                if (err != null && err.Error == "HTTP error 429") {
+                    self.emit('rateLimitedSteam');
+                    self.logger.log('error', "Rate limited by Steam - Delaying request.");
+                    self.addToQueue('ratelimit', self.loginAccount, [details, loginCallback]);
+                }
                 self.logger.log('error', "Failed to login into account due to " + err);
                 return loginCallback(err);
             }
             self.accountDetails.steamguard = steamguard;
             self.accountDetails.oAuthToken = oAuthToken;
-            self.loggedInAccount(cookies, sessionID, function (err) {
+            loggedInAccount.call(this, cookies, sessionID, function (err) {
                 if (err) {
                     self.logger.log('error', "Failed to mark account as logged in");
                     loginCallback(null);
@@ -641,7 +702,18 @@ BotAccount.prototype.loginAccount = function (details, loginCallback) {
         });
     }
 };
-BotAccount.prototype.loggedInAccount = function (cookies, sessionID, loginCallback) {
+/**
+ * @callback loginCallback
+ * @param {Error} error - An error message if the login processing failed, null if successful
+ */
+
+/**
+ * This is a private method - but incase you would like to edit it for your own usage...
+ * @param cookies - Cookies sent by Steam when logged in
+ * @param sessionID - Session ID as sent by Steam
+ * @param {loginCallback} loginCallback - Login details (refer to loginCallback for more info.)
+ */
+function loggedInAccount(cookies, sessionID, loginCallback) {
     var self = this;
     self.chatLogon(500, 'web');
     self.logger.log('debug', 'Logged into %j', self.getAccountName());
@@ -659,7 +731,7 @@ BotAccount.prototype.loggedInAccount = function (cookies, sessionID, loginCallba
         self.trade.setCookies(cookies);
     }
     self.loggedIn = true;
-    self.processQueue(function (err) {
+    self.processQueue('login', function (err) {
         if (err)
             return loginCallback(err);
 
