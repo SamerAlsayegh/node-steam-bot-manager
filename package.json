@@ -2,9 +2,9 @@
   "name": "node-steam-bot-manager",
   "version": "1.0.46",
   "description": "A NodeJS Steam Bot Management tool. ",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jasmine tests/BotAccountSpec.js"
   },
   "repository": {
     "type": "git",
@@ -31,6 +31,7 @@
     "express": "^4.13.4",
     "fs": "0.0.2",
     "inquirer": "^0.12.0",
+    "jasmine": "^2.5.3",
     "jsdoc": "^3.4.0",
     "jsdocs": "^0.1.0",
     "request": "^2.69.0",
