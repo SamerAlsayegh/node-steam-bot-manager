@@ -8,9 +8,9 @@
   },
   "source": {
     "include": [
-      "classes/",
-      "components/",
-      "index.js"
+      "classes",
+      "gui/",
+      "lib/"
     ]
   },
   "plugins": [],

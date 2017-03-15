@@ -3,8 +3,7 @@ var BotAccount = require('../classes/BotAccount.js');
 
 describe("BotAccount", function () {
     it("Initializing BotAccount", function () {
-        var fakeBot = new BotAccount();
-        expect(fakeBot).toThrow();
+        expect(new BotAccount()).toThrow();
         var fakeBotValid = new BotAccount("username", "password");
         expect(fakeBotValid).toBeDefined();
         var fakeBotWithDetailsNoLogger = new BotAccount("username", "password", null);
@@ -15,7 +14,7 @@ describe("BotAccount", function () {
 
     it("Set revocation code", function () {
         var fakeBot = new BotAccount("test", "test");
-        expect(fakeBot.setRevocationCode("R12345")).toBeDefined();
-        expect(fakeBot.setRevocationCode("1132123")).toBeUndefined();
+        expect(fakeBot.AuthManager.setRevocationCode("R12345")).toBeDefined();
+        expect(fakeBot.AuthManager.setRevocationCode("1132123")).toBeUndefined();
     });
 });

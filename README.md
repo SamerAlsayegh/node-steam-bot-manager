@@ -3,45 +3,51 @@ A bot management tool for [Steam Community](http://www.steamcommunity.com) built
 
 
 
-Version 1.0.46
+[![npm version](https://badge.fury.io/js/node-steam-bot-manager.svg)](https://badge.fury.io/js/node-steam-bot-manager)
+
+
 
 [![forthebadge](http://forthebadge.com/images/badges/uses-js.svg)](http://forthebadge.com)
 [![forthebadge](http://forthebadge.com/images/badges/built-with-love.svg)](http://forthebadge.com)
 
 ## Features:
-- GUI-based control
-- GUI-Messaging
-- GUI-Trading
-- 2-Factor Authentication Support + Enabling
+- GUI-Based Bot Control
+- GUI-Based Messaging
+- GUI-Based Trading
+- 2-Factor Authentication Support + Setup
 - Enable API-Key 
+- Generate authentication codes on demand (for login)
 - Manage multiple bots simultaneously
 - API Support for third-party systems (Betting, Trading, and so on..)
 - Even based interactions of a single bot or multiple
 - Ability to upvote/downvote attachments on Steam Community
-
+- Ability to import accounts into tool 
 
 ## WIKI
-Visit the [wiki](https://github.com/Undeadkillz/node-steam-bot-manager/wiki) for set-up, registration.
+#####Visit the [wiki](https://github.com/Undeadkillz/node-steam-bot-manager/wiki) for set-up, registration.
 
-For Docs, please visit [our docs](http://undeadkillz.github.io/node-steam-bot-manager/docs)
+#####For Docs, please visit [our docs](http://undeadkillz.github.io/node-steam-bot-manager/docs)
 
 ## Examples:
 You can check examples of bots you can build by navigating to the 'examples' folder in the root of the project.
 
 
 ## TODO:
-- Add more functionality
 - Expand API access
 - Add more examples
 
 
 ## Libraries used:
-- [colors.js](https://github.com/marak/colors.js/)
 - [node-steamstore](https://github.com/DoctorMcKay/node-steamstore)
 - [node-steam-totp](https://github.com/DoctorMcKay/node-steam-totp)
 - [node-steam-tradeoffer-manager](https://github.com/DoctorMcKay/node-steam-tradeoffer-manager)
 - [node-steamcommunity](https://github.com/DoctorMcKay/node-steamcommunity)
-
+- Glob
+- Jasmine
+- jsdocs
+- Winston
+- Request
+- Express
 ## How to contribute:
 ~~~
 git clone https://github.com/Undeadkillz/node-steam-bot-manager # Clone project files locally
@@ -63,7 +69,8 @@ Make sure to atleast include a log of the error message and if possible inform u
 I will ensure everything works, however I won't be building any unit-tests at this time.
 
 ---
-
+Stable versions via npm:
+- 1.0.46
 
 ## Credits:
 - [Undeadkillz](https://github.com/Undeadkillz) | Add me on: **[Steam](http://steamcommunity.com/profiles/76561198042954517/)**

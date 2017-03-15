@@ -49,7 +49,8 @@
                     <dd class="tag-source">
                         <ul class="dummy">
                             <li>
-                                <a href="index.js.html">GUI_Handler.js</a>, <a href="index.js.html#line21">line 21</a>
+                                <a href="lib_index.js.html">lib/index.js</a>, <a href="lib_index.js.html#line35">line
+                                35</a>
                             </li>
                         </ul>
                     </dd>
@@ -64,37 +65,12 @@
             <h3 class="subsection-title">Methods</h3>
 
 
-            <h4 class="name" id="chooseRandomBot"><span class="type-signature"></span>chooseRandomBot<span
-                    class="signature">()</span><span class="type-signature"></span></h4>
+            <h4 class="name" id="addEndpoint"><span class="type-signature"></span>addEndpoint<span class="signature">(method, url, callback)</span><span
+                    class="type-signature"></span></h4>
 
 
             <div class="description">
-                Choose a random bot
-            </div>
-
-
-            <dl class="details">
-
-
-                <dt class="tag-source">Source:</dt>
-                <dd class="tag-source">
-                    <ul class="dummy">
-                        <li>
-                            <a href="index.js.html">GUI_Handler.js</a>, <a href="index.js.html#line975">line 975</a>
-                        </li>
-                    </ul>
-                </dd>
-
-
-            </dl>
-
-
-            <h4 class="name" id="enableTwoFactor"><span class="type-signature"></span>enableTwoFactor<span
-                    class="signature">(botAccount)</span><span class="type-signature"></span></h4>
-
-
-            <div class="description">
-                Start the two-factor-authentication process using the GUI
+                Add an API Endpoint (via webserver) at chosen location.
             </div>
 
 
@@ -120,19 +96,43 @@
 
                 <tr>
 
-                    <td class="name"><code>botAccount</code></td>
+                    <td class="name"><code>method</code></td>
 
 
                     <td class="type">
 
+                    </td>
 
-                        <span class="param-type"><a href="BotAccount.html">BotAccount</a></span>
 
+                    <td class="description last"></td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>url</code></td>
+
+
+                    <td class="type">
 
                     </td>
 
 
-                    <td class="description last">The bot chosen to enable two-factor authentication for.</td>
+                    <td class="description last"></td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>callback</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last"></td>
                 </tr>
 
 
@@ -147,12 +147,155 @@
                 <dd class="tag-source">
                     <ul class="dummy">
                         <li>
-                            <a href="index.js.html">GUI_Handler.js</a>, <a href="index.js.html#line686">line 686</a>
+                            <a href="lib_index.js.html">lib/index.js</a>, <a href="lib_index.js.html#line107">line
+                            107</a>
                         </li>
                     </ul>
                 </dd>
 
 
+            </dl>
+
+
+            <h4 class="name" id="apiEndpoint"><span class="type-signature"></span>apiEndpoint<span class="signature">(method, url, callback)</span><span
+                    class="type-signature"></span></h4>
+
+
+            <div class="description">
+                Add an API Endpoint (via webserver) at chosen location.
+            </div>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>method</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last"></td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>url</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last"></td>
+                </tr>
+
+
+                <tr>
+
+                    <td class="name"><code>callback</code></td>
+
+
+                    <td class="type">
+
+                    </td>
+
+
+                    <td class="description last"></td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="important tag-deprecated">Deprecated:</dt>
+                <dd class="yes-def tag-deprecated">
+                    <ul class="dummy">
+                        <li>Yes</li>
+                    </ul>
+                </dd>
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="lib_index.js.html">lib/index.js</a>, <a href="lib_index.js.html#line125">line
+                            125</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="chooseRandomBot"><span class="type-signature"></span>chooseRandomBot<span
+                    class="signature">()</span><span class="type-signature"> &rarr; {*}</span></h4>
+
+
+            <div class="description">
+                Choose a random bot (not checked if online)
+            </div>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="lib_index.js.html">lib/index.js</a>, <a href="lib_index.js.html#line265">line
+                            265</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h5>Returns:</h5>
+
+
+            <dl>
+                <dt>
+                    Type
+                </dt>
+                <dd>
+
+                    <span class="param-type">*</span>
+
+
+                </dd>
             </dl>
 
 
@@ -214,7 +357,8 @@
                 <dd class="tag-source">
                     <ul class="dummy">
                         <li>
-                            <a href="index.js.html">GUI_Handler.js</a>, <a href="index.js.html#line956">line 956</a>
+                            <a href="lib_index.js.html">lib/index.js</a>, <a href="lib_index.js.html#line295">line
+                            295</a>
                         </li>
                     </ul>
                 </dd>
@@ -239,7 +383,8 @@
                 <dd class="tag-source">
                     <ul class="dummy">
                         <li>
-                            <a href="index.js.html">GUI_Handler.js</a>, <a href="index.js.html#line919">line 919</a>
+                            <a href="lib_index.js.html">lib/index.js</a>, <a href="lib_index.js.html#line185">line
+                            185</a>
                         </li>
                     </ul>
                 </dd>
@@ -327,7 +472,76 @@
                 <dd class="tag-source">
                     <ul class="dummy">
                         <li>
-                            <a href="index.js.html">GUI_Handler.js</a>, <a href="index.js.html#line947">line 947</a>
+                            <a href="lib_index.js.html">lib/index.js</a>, <a href="lib_index.js.html#line276">line
+                            276</a>
+                        </li>
+                    </ul>
+                </dd>
+
+
+            </dl>
+
+
+            <h4 class="name" id="logDebug"><span class="type-signature"></span>logDebug<span
+                    class="signature">(message)</span><span class="type-signature"></span></h4>
+
+
+            <div class="description">
+                Post/log an informational message.
+            </div>
+
+
+            <h5>Parameters:</h5>
+
+
+            <table class="params">
+                <thead>
+                <tr>
+
+                    <th>Name</th>
+
+
+                    <th>Type</th>
+
+
+                    <th class="last">Description</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+
+                <tr>
+
+                    <td class="name"><code>message</code></td>
+
+
+                    <td class="type">
+
+
+                        <span class="param-type">string</span>
+
+
+                    </td>
+
+
+                    <td class="description last">Informational message to log</td>
+                </tr>
+
+
+                </tbody>
+            </table>
+
+
+            <dl class="details">
+
+
+                <dt class="tag-source">Source:</dt>
+                <dd class="tag-source">
+                    <ul class="dummy">
+                        <li>
+                            <a href="lib_index.js.html">lib/index.js</a>, <a href="lib_index.js.html#line286">line
+                            286</a>
                         </li>
                     </ul>
                 </dd>
@@ -386,7 +600,7 @@
                     <td class="type">
 
 
-                        <span class="param-type"><a href="global.html#errorCallback">errorCallback</a></span>
+                        <span class="param-type">errorCallback</span>
 
 
                     </td>
@@ -407,141 +621,8 @@
                 <dd class="tag-source">
                     <ul class="dummy">
                         <li>
-                            <a href="index.js.html">GUI_Handler.js</a>, <a href="index.js.html#line807">line 807</a>
-                        </li>
-                    </ul>
-                </dd>
-
-
-            </dl>
-
-
-            <h4 class="name" id="saveAccounts"><span class="type-signature"></span>saveAccounts<span class="signature">(errorCallback)</span><span
-                    class="type-signature"></span></h4>
-
-
-            <div class="description">
-                Save bot accounts into json file
-            </div>
-
-
-            <h5>Parameters:</h5>
-
-
-            <table class="params">
-                <thead>
-                <tr>
-
-                    <th>Name</th>
-
-
-                    <th>Type</th>
-
-
-                    <th class="last">Description</th>
-                </tr>
-                </thead>
-
-                <tbody>
-
-
-                <tr>
-
-                    <td class="name"><code>errorCallback</code></td>
-
-
-                    <td class="type">
-
-
-                        <span class="param-type"><a href="global.html#errorCallback">errorCallback</a></span>
-
-
-                    </td>
-
-
-                    <td class="description last">A callback returned with possible errors</td>
-                </tr>
-
-
-                </tbody>
-            </table>
-
-
-            <dl class="details">
-
-
-                <dt class="tag-source">Source:</dt>
-                <dd class="tag-source">
-                    <ul class="dummy">
-                        <li>
-                            <a href="index.js.html">GUI_Handler.js</a>, <a href="index.js.html#line933">line 933</a>
-                        </li>
-                    </ul>
-                </dd>
-
-
-            </dl>
-
-
-            <h4 class="name" id="successDebug"><span class="type-signature"></span>successDebug<span class="signature">(message)</span><span
-                    class="type-signature"></span></h4>
-
-
-            <div class="description">
-                Post/log a success-type message
-            </div>
-
-
-            <h5>Parameters:</h5>
-
-
-            <table class="params">
-                <thead>
-                <tr>
-
-                    <th>Name</th>
-
-
-                    <th>Type</th>
-
-
-                    <th class="last">Description</th>
-                </tr>
-                </thead>
-
-                <tbody>
-
-
-                <tr>
-
-                    <td class="name"><code>message</code></td>
-
-
-                    <td class="type">
-
-
-                        <span class="param-type"><a href="String.html">String</a></span>
-
-
-                    </td>
-
-
-                    <td class="description last">Success message to log</td>
-                </tr>
-
-
-                </tbody>
-            </table>
-
-
-            <dl class="details">
-
-
-                <dt class="tag-source">Source:</dt>
-                <dd class="tag-source">
-                    <ul class="dummy">
-                        <li>
-                            <a href="index.js.html">GUI_Handler.js</a>, <a href="index.js.html#line966">line 966</a>
+                            <a href="lib_index.js.html">lib/index.js</a>, <a href="lib_index.js.html#line196">line
+                            196</a>
                         </li>
                     </ul>
                 </dd>
@@ -551,7 +632,7 @@
 
 
             <h4 class="name" id="unregisterAccount"><span class="type-signature"></span>unregisterAccount<span
-                    class="signature">(botAccount, errorCallback)</span><span class="type-signature"></span></h4>
+                    class="signature">(botAccount, unregisterCallback)</span><span class="type-signature"></span></h4>
 
 
             <h5>Parameters:</h5>
@@ -594,13 +675,13 @@
 
                 <tr>
 
-                    <td class="name"><code>errorCallback</code></td>
+                    <td class="name"><code>unregisterCallback</code></td>
 
 
                     <td class="type">
 
 
-                        <span class="param-type"><a href="global.html#errorCallback">errorCallback</a></span>
+                        <span class="param-type">callback</span>
 
 
                     </td>
@@ -621,7 +702,8 @@
                 <dd class="tag-source">
                     <ul class="dummy">
                         <li>
-                            <a href="index.js.html">GUI_Handler.js</a>, <a href="index.js.html#line905">line 905</a>
+                            <a href="lib_index.js.html">lib/index.js</a>, <a href="lib_index.js.html#line147">line
+                            147</a>
                         </li>
                     </ul>
                 </dd>
@@ -643,6 +725,7 @@
     <ul>
         <li><a href="BotAccount.html">BotAccount</a></li>
         <li><a href="BotManager.html">BotManager</a></li>
+        <li><a href="GUI_Handler.html">GUI_Handler</a></li>
     </ul>
     <h3>Events</h3>
     <ul>
@@ -654,14 +737,15 @@
     </ul>
     <h3>Global</h3>
     <ul>
-        <li><a href="global.html#loggedInAccount">loggedInAccount</a></li>
+        <li><a href="global.html#GUI">GUI</a></li>
+        <li><a href="global.html#Winston">Winston</a></li>
     </ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Sun Mar 12 2017 12:14:57
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Thu Mar 16 2017 00:46:25
     GMT+0400 (Arabian Standard Time)
 </footer>
 

@@ -107,7 +107,8 @@ BotAccount.prototype.setRateLimited = function (rateLimited) {
  */
 BotAccount.prototype.fromIndividualAccountID = function (id) {
     var self = this;
-    return self.SteamID.fromIndividualAccountID(id);
+    var SteamID = TradeOfferManager.SteamID;
+    return new self.SteamID(id);
 };
 
 
