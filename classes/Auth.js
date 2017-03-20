@@ -1,9 +1,9 @@
-AuthManager.prototype.__proto__ = require('events').EventEmitter.prototype;
+Auth.prototype.__proto__ = require('events').EventEmitter.prototype;
 const SteamTotp = require('steam-totp');
 
 
 //
-function AuthManager(BotAccount, logger) {
+function Auth(BotAccount, logger) {
     var self = this;
     self.logger = logger;
     self.BotAccount = BotAccount;
@@ -19,16 +19,16 @@ function AuthManager(BotAccount, logger) {
     self.oAuthToken = BotAccount.details.oAuthToken;
 
 }
-AuthManager.prototype.finalizeTwoFactor = function (shared_secret, activationCode, callback) {
+Auth.prototype.finalizeTwoFactor = function (shared_secret, activationCode, callbackErrorOnly) {
     var self = this;
     self.emit('finalizedTwoFactorAuth');
     self.community.finalizeTwoFactor(shared_secret, activationCode, function (err) {
-        callback(err);
+        callbackErrorOnly(err);
     });
 };
 
 
-AuthManager.prototype.has_shared_secret = function () {
+Auth.prototype.has_shared_secret = function () {
     var self = this;
     return (self.shared_secret ? true : false);
 };
@@ -41,9 +41,9 @@ AuthManager.prototype.has_shared_secret = function () {
 /**
  * Login to account using supplied details (2FactorCode, authcode, or captcha)
  * @param details
- * @param loginCallback
+ * @param callbackErrorOnly
  */
-AuthManager.prototype.loginAccount = function (details, loginCallback) {
+Auth.prototype.loginAccount = function (details, callbackErrorOnly) {
     var self = this;
     self.emit('loggingIn');
 
@@ -68,10 +68,11 @@ AuthManager.prototype.loginAccount = function (details, loginCallback) {
                     self.BotAccount.addToQueue('ratelimit', self.loginAccount, [details, loginCallback]);
                 }
                 self.logger.log('error', "Failed to login into account via oAuth due to " + err);
-                loginCallback(err);
+                if (callbackErrorOnly)
+                    callbackErrorOnly(err);
             }
             else
-                self.BotAccount.loggedInAccount(cookies, sessionID, loginCallback);
+                self.BotAccount.loggedInAccount(cookies, sessionID, callbackErrorOnly);
         });
     }
     else {
@@ -80,15 +81,16 @@ AuthManager.prototype.loginAccount = function (details, loginCallback) {
                 if (err != undefined && err.Error == "HTTP error 429") {
                     self.emit('rateLimitedSteam');
                     self.logger.log('error', "Rate limited by Steam - Delaying request.");
-                    self.BotAccount.addToQueue('ratelimit', self.loginAccount, [details, loginCallback]);
+                    self.BotAccount.addToQueue('ratelimit', self.loginAccount, [details, callbackErrorOnly]);
                 }
                 self.logger.log('error', "Failed to login into account due to " + err);
-                loginCallback(err);
+                if (callbackErrorOnly)
+                    callbackErrorOnly(err);
             }
             self.steamguard = steamguard;
             self.oAuthToken = oAuthToken;
             self.emit('updatedAccountDetails');
-            self.BotAccount.loggedInAccount(cookies, sessionID, loginCallback);
+            self.BotAccount.loggedInAccount(cookies, sessionID, callbackErrorOnly);
         });
     }
 };
@@ -97,7 +99,7 @@ AuthManager.prototype.loginAccount = function (details, loginCallback) {
  * @param revocationCode
  * @returns {String}
  */
-AuthManager.prototype.setRevocationCode = function (revocationCode) {
+Auth.prototype.setRevocationCode = function (revocationCode) {
     var self = this;
     if (revocationCode.indexOf("R") == 0 && revocationCode.length == 6)
         return self.revocationCode = revocationCode;
@@ -105,7 +107,7 @@ AuthManager.prototype.setRevocationCode = function (revocationCode) {
         return undefined;
 };
 
-AuthManager.prototype.enableTwoFactor = function (callback) {
+Auth.prototype.enableTwoFactor = function (callback) {
     var self = this;
     self.emit('enablingTwoFactorAuth');
     self.logger.log('debug', 'Enabling two factor authentication for %j', self.username);
@@ -123,13 +125,13 @@ AuthManager.prototype.enableTwoFactor = function (callback) {
     });
 };
 
-AuthManager.prototype.canReloginWithoutPrompt = function () {
+Auth.prototype.canReloginWithoutPrompt = function () {
     var self = this;
-    return self.shared_secret ? true : false;
+    return !!self.shared_secret;
 };
 
 
-AuthManager.prototype.disableTwoFactor = function (callback) {
+Auth.prototype.disableTwoFactor = function (callback) {
     var self = this;
     self.emit('disablingTwoFactorAuth');
     self.logger.log('debug', 'Disabling two factor authentication for %j', self.getAccountName());
@@ -154,7 +156,7 @@ AuthManager.prototype.disableTwoFactor = function (callback) {
  * @param timeOffset
  * @returns {*}
  */
-AuthManager.prototype.getTime = function (timeOffset) {
+Auth.prototype.getTime = function (timeOffset) {
     return Math.floor(Date.now() / 1000) + timeOffset;
 };
 
@@ -163,7 +165,7 @@ AuthManager.prototype.getTime = function (timeOffset) {
  * Generate two-factor-authentication code used for logging in.
  * @returns {Error | String}
  */
-AuthManager.prototype.generateMobileAuthenticationCode = function () {
+Auth.prototype.generateMobileAuthenticationCode = function () {
     var self = this;
     if (self.shared_secret)
         return SteamTotp.generateAuthCode(self.shared_secret);
@@ -176,7 +178,7 @@ AuthManager.prototype.generateMobileAuthenticationCode = function () {
  * @param tag - Type of confirmation required ("conf" to load the confirmations page, "details" to load details about a trade, "allow" to confirm a trade, "cancel" to cancel it.)
  * @returns {Error}
  */
-AuthManager.prototype.generateMobileConfirmationCode = function (time, tag) {
+Auth.prototype.generateMobileConfirmationCode = function (time, tag) {
     var self = this;
     if (self.identity_secret)
         return SteamTotp.generateConfirmationKey(self.identity_secret, time, tag);
@@ -198,8 +200,8 @@ AuthManager.prototype.generateMobileConfirmationCode = function (time, tag) {
  * @param key
  * @param confirmationsCallback
  */
-AuthManager.prototype.getConfirmations = function (time, key, confirmationsCallback) {
+Auth.prototype.getConfirmations = function (time, key, confirmationsCallback) {
     var self = this;
     self.community.getConfirmations(time, key, confirmationsCallback);
 };
-module.exports = AuthManager;
+module.exports = Auth;

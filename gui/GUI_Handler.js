@@ -158,8 +158,9 @@ GUI_Handler.prototype.processChat = function (botAccount, target) {
             self.displayMenu(botAccount);
         }
         else {
-            botAccount.sendMessage(target, result.message);
-            self.processChat(botAccount, target);
+            botAccount.Friends.sendMessage(target, result.message, function (err) {
+                self.processChat(botAccount, target);
+            });
         }
     });
 };
@@ -167,7 +168,7 @@ GUI_Handler.prototype.processChat = function (botAccount, target) {
 
 GUI_Handler.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
     var self = this;
-    botAccount.getFriends(function (err, friendsList) {
+    botAccount.Friends.getFriends(function (err, friendsList) {
         if (err) {
             self.logger.log("error", err);
             self.displayMenu(botAccount);
@@ -200,7 +201,7 @@ GUI_Handler.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                         break;
                     default:
                         // Trade with user selected.
-                        botAccount.TradeManager.createOffer(partner.accountSid, function (err, currentOffer) {
+                        botAccount.Trade.createOffer(partner.accountSid, function (err, currentOffer) {
                             if (err) {
                                 self.logger.log("error", "Failed to create offer due to ", err);
                                 return self.displayMenu(botAccount);
@@ -262,7 +263,7 @@ GUI_Handler.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                                                         self.logger.log("error", err);
                                                         self.displayMenu(botAccount);
                                                     } else {
-                                                        botAccount.TradeManager.confirmOutstandingTrades(function (err, confirmedTrades) {
+                                                        botAccount.Trade.confirmOutstandingTrades(function (err, confirmedTrades) {
                                                             if (err)
                                                                 self.logger.log("error", err);
                                                             self.logger.log("info", "Sent trade offer to %s.", partner.username);
@@ -323,7 +324,7 @@ GUI_Handler.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                                                     self.logger.log("error", err);
                                                     self.displayMenu(botAccount);
                                                 } else {
-                                                    botAccount.TradeManager.confirmOutstandingTrades(function (err, confirmedTrades) {
+                                                    botAccount.Trade.confirmOutstandingTrades(function (err, confirmedTrades) {
                                                         if (err)
                                                             self.logger.log("error", err);
                                                         self.logger.log("info", "Sent trade offer to %s.", partner.username);
@@ -404,7 +405,7 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
         var menuEntry = menuOptions.indexOf(result.menuOption);
         switch (menuEntry) {
             case 0:
-                botAccount.getFriends(function (err, friendsList) {
+                botAccount.Friends.getFriends(function (err, friendsList) {
                     if (err) {
                         self.logger.log("error", err);
                         self.displayMenu(botAccount);
@@ -455,7 +456,7 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
                 // Handle logout/login logic and return to menu.
                 if (!botAccount.loggedIn) {
                     self.logger.log("info", "Trying to authenticate into {0}".format(botAccount.getAccountName()));
-                    botAccount.AuthManager.loginAccount(null, function (err) {
+                    botAccount.Auth.loginAccount(null, function (err) {
                         if (err) {
                             if (err.Error == "SteamGuardMobile") {
                                 var authenticator = [
@@ -467,16 +468,16 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
                                 ];
 
                                 inquirer.prompt(authenticator, function (result) {
-                                    botAccount.AuthManager.loginAccount({twoFactorCode: result.code}, function (err) {
+                                    botAccount.Auth.loginAccount({twoFactorCode: result.code}, function (err) {
                                         if (err)
-                                            self.logger.log("error", "Failed to login due to %j", err.Error);
+                                            self.logger.log("error", "Failed to login due to %j", err);
 
                                         self.displayBotMenu();
 
                                     });
                                 });
                             } else {
-                                self.logger.log("error", "Failed to login due to %j", err.Error);
+                                self.logger.log("error", "Failed to login due to %j", err);
                             }
                         } else {
                             self.displayBotMenu();
@@ -491,7 +492,7 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
                 var authOptions = [];
                 authOptions.push("Edit Display name");
                 authOptions.push(new inquirer.Separator());
-                authOptions.push((botAccount.AuthManager.has_shared_secret() ? "[ON]" : "[OFF]") + " Two Factor Authentication");
+                authOptions.push((botAccount.Auth.has_shared_secret() ? "[ON]" : "[OFF]") + " Two Factor Authentication");
                 authOptions.push("Generate 2-factor-authentication code");
                 authOptions.push("Back");
 
@@ -517,12 +518,12 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
                                     type: 'confirm',
                                     name: 'prefix',
                                     default: true,
-                                    message: "Give default prefix of '{0}'?".format(self.main.ConfigManager.bot_prefix)
+                                    message: "Give default prefix of '{0}'?".format(self.main.config.bot_prefix)
                                 }
                             ];
 
                             inquirer.prompt(questions, function (result) {
-                                botAccount.changeName(result.newName, self.main.ConfigManager.bot_prefix, function (err) {
+                                botAccount.changeName(result.newName, self.main.config.bot_prefix, function (err) {
                                     if (err) {
                                         self.logger.log("error", "Failed to change name. Error: {0}".format(err));
                                     }
@@ -547,9 +548,9 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
                             break;
                         case 3:
                             self.displayMenu(botAccount);
-                            if (botAccount.AuthManager.has_shared_secret()) {
+                            if (botAccount.Auth.has_shared_secret()) {
                                 // Send the auth key.
-                                self.logger.log("info", "Your authentication code for {0} is {1}".format(botAccount.getAccountName(), botAccount.AuthManager.generateMobileAuthenticationCode()));
+                                self.logger.log("info", "Your authentication code for {0} is {1}".format(botAccount.getAccountName(), botAccount.Auth.generateMobileAuthenticationCode()));
                             } else {
                                 // Authn not enabled?
                                 self.logger.log("error", "2-factor-authentication is not enabled. Check your email.");
@@ -604,7 +605,7 @@ GUI_Handler.prototype.enableTwoFactor = function (botAccount) {
     var self = this;
     botAccount.hasPhone(function (err, hasPhone, lastDigits) {
         if (hasPhone) {
-            botAccount.AuthManager.enableTwoFactor(function (response) {
+            botAccount.Auth.enableTwoFactor(function (response) {
                 if (response.status == 84) {
                     // Rate limit exceeded. So delay the next request
                     self.logger.log("info", "Please wait 5 seconds to continue... Possibly blocked by Steam for sending out too many SMS's. Retry in 24 hours, please.");
@@ -625,7 +626,7 @@ GUI_Handler.prototype.enableTwoFactor = function (botAccount) {
                     inquirer.prompt(questions, function (result) {
                         if (result.code) {
                             var steamCode = result.code;
-                            botAccount.AuthManager.finalizeTwoFactor(response.shared_secret, steamCode, function (err, keyInformation) {
+                            botAccount.Auth.finalizeTwoFactor(response.shared_secret, steamCode, function (err, keyInformation) {
                                 if (err) {
                                     self.logger.log("error", "Failed to enable 2 factor auth - " + err);
                                 }

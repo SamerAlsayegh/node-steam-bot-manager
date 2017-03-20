@@ -28,6 +28,7 @@
   "homepage": "https://github.com/Undeadkillz/node-steam-bot-manager#readme",
   "dependencies": {
     "body-parser": "^1.15.0",
+    "child_process": "^1.0.2",
     "express": "^4.13.4",
     "fs": "0.0.2",
     "glob": "^7.1.1",
@@ -40,6 +41,7 @@
     "steam-user": "^3.3.4",
     "steamcommunity": "^3.19.3",
     "steamstore": "^1.4.0",
+    "threads": "^0.7.2",
     "winston": "^2.3.1"
   }
 }

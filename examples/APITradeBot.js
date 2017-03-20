@@ -42,8 +42,10 @@ function APITradeBot() {
         });
     });
 
-
     botsManager.infoDebug("Starting Bot Manager");
+
+
+    // We start the manager, and then load the API Endpoints, since we need the webserver running to add the endpoints.
     botsManager.startManager(function (err) {
         if (err) {
             return botsManager.errorDebug("Failed to start Bot Manager");

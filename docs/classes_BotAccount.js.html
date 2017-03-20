@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: classes/BotAccount.js</title>
+    <title>JSDoc: Source: classes/Bot.js</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -17,14 +17,14 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: classes/BotAccount.js</h1>
+    <h1 class="page-title">Source: classes/Bot.js</h1>
 
 
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>BotAccount.prototype.__proto__ = require('events').EventEmitter.prototype;
-const AuthManager = require('./AuthManager.js');
-const TradeHandler = require('./TradeManager.js');
+const AuthManager = require('./Auth.js');
+const TradeHandler = require('./Trade.js');
 const SteamCommunity = require('steamcommunity');
 const SteamUser = require('steam-user');
 const SteamStore = require('steamstore');

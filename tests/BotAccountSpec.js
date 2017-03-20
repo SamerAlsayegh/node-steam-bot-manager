@@ -1,4 +1,4 @@
-var BotAccount = require('../classes/BotAccount.js');
+var BotAccount = require('../classes/Bot.js');
 // TBC - Just a test run with unit-tests
 
 describe("BotAccount", function () {

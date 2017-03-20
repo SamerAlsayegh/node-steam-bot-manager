@@ -1,6 +1,6 @@
-TradeHandler.prototype.__proto__ = require('events').EventEmitter.prototype;
+Trade.prototype.__proto__ = require('events').EventEmitter.prototype;
 
-function TradeHandler(trade, auth, settings, logger) {
+function Trade(trade, auth, settings, logger) {
     var self = this;
     if (typeof trade != "object" || typeof auth != "object")
         throw Error("TradeOfferManager & AuthHandler must be passed respectively.");
@@ -16,15 +16,14 @@ function TradeHandler(trade, auth, settings, logger) {
         self.settings = settings;
 }
 
-
-TradeHandler.prototype.setAPIAccess = function (api_access) {
+Trade.prototype.setAPIAccess = function (api_access) {
     var self = this;
     self.api_access = api_access;
 };
 /**
  * Confirm (not accept) all outstanding trades that were sent out, regardless of trade target via the two-factor authenticator.
  */
-TradeHandler.prototype.confirmOutstandingTrades = function (callback) {
+Trade.prototype.confirmOutstandingTrades = function (callback) {
     var self = this;
     var time = self.auth.getTime();
     self.auth.getConfirmations(time, self.auth.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
@@ -60,7 +59,7 @@ TradeHandler.prototype.confirmOutstandingTrades = function (callback) {
  * @param callback
  * @returns {*}
  */
-TradeHandler.prototype.createOffer = function (sid, callback) {
+Trade.prototype.createOffer = function (sid, callback) {
     var self = this;
 
     if (self.settings.cancelTradeOnOverflow && self.api_access) {
@@ -120,4 +119,52 @@ TradeHandler.prototype.createOffer = function (sid, callback) {
     }
 };
 
-module.exports = TradeHandler;
+/**
+ * @callback acceptedTradesCallback
+ * @param {Error} error - An error message if the process failed, undefined if successful
+ * @param {Array} acceptedTrades - An array of trades that were confirmed in the process.
+ */
+
+/**
+ * Confirm (not accept) all sent trades associated with a certain SteamID via the two-factor authenticator.
+ * @param {SteamID} steamID - SteamID to use for lookup of inventory
+ * @param {acceptedTradesCallback} acceptedTradesCallback - Inventory details (refer to inventoryCallback for more info.)
+ */
+Trade.prototype.confirmTradesFromUser = function (SteamID, callback) {
+    var self = this;
+
+    self.trade.getOffers(1, undefined, function (err, sent, received) {
+        var acceptedTrades = [];
+        for (var sentOfferIndex in sent) {
+            if (sent.hasOwnProperty(sentOfferIndex)) {
+                var sentOfferInfo = sent[sentOfferIndex];
+                if (sentOfferInfo.partner.getSteamID64() == SteamID.getSteamID64) {
+                    sentOfferInfo.accept();
+                    acceptedTrades.push(sentOfferInfo);
+                }
+            }
+        }
+
+        for (var receivedOfferIndex in received) {
+            if (received.hasOwnProperty(receivedOfferIndex)) {
+                var receievedOfferInfo = received[receivedOfferIndex];
+                if (receievedOfferInfo.partner.getSteamID64() == SteamID.getSteamID64) {
+                    receievedOfferInfo.accept();
+                    acceptedTrades.push(receievedOfferInfo);
+                }
+            }
+        }
+        self.confirmOutstandingTrades(function (err, confirmedTrades) {
+            callback(err, acceptedTrades);
+        });
+    });
+};
+
+
+Trade.prototype.getStateName = function (state) {
+    var self = this;
+    return self.trade.getStateName(state);
+};
+
+
+module.exports = Trade;
