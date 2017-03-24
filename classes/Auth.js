@@ -117,7 +117,7 @@ function Auth(BotAccount, accountDetails, logger) {
                 }
                 privateStore[self.id].accountDetails.steamguard = steamguardGen;
                 privateStore[self.id].accountDetails.oAuthToken = oAuthTokenGen;
-                self.emit('updatedprivateStore[self.id].accountDetails');
+                self.emit('updatedAccountDetails', privateStore[self.id].accountDetails);
                 self.BotAccount.loggedInAccount(cookies, sessionID, callbackErrorOnly);
             });
         }
