@@ -64,11 +64,10 @@ function Bot(username, password, details, settings, logger) {
     self.loggedIn = false;
     self.rateLimited = true;
     self.delayedTasks = [];
-    self.details = details;
-    self.Auth = new Auth(self, logger);
+    self.Auth = new Auth(self, details, logger);
     self.Request = new Request(self.request, logger);
-    self.Auth.on('updatedAccountDetails', function () {
-        self.emit('updatedAccountDetails');
+    self.Auth.on('updatedAccountDetails', function (accountDetails) {
+        self.emit('updatedAccountDetails', accountDetails);
     });
 
     self.Friends = new Friends(self, self.Request, logger);
@@ -217,7 +216,7 @@ Bot.prototype.changeName = function (newName, namePrefix, callbackErrorOnly) {
             if (err)
                 return callbackErrorOnly(err.Error);
             self.displayName = newName;
-            self.emit('updatedAccountDetails');
+            self.Auth._updateAccountDetails({displayName: newName});
             callbackErrorOnly(undefined);
         });
     }

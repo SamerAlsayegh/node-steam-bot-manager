@@ -1,4 +1,28 @@
-const inquirer = require("inquirer");
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: gui/GUI_Handler.js</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: gui/GUI_Handler.js</h1>
+
+
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const inquirer = require("inquirer");
 GUI_Handler.prototype.__proto__ = require('events').EventEmitter.prototype;
 
 
@@ -158,9 +182,8 @@ GUI_Handler.prototype.processChat = function (botAccount, target) {
             self.displayMenu(botAccount);
         }
         else {
-            botAccount.Friends.sendMessage(target, result.message, function (err) {
-                self.processChat(botAccount, target);
-            });
+            botAccount.sendMessage(target, result.message);
+            self.processChat(botAccount, target);
         }
     });
 };
@@ -168,7 +191,7 @@ GUI_Handler.prototype.processChat = function (botAccount, target) {
 
 GUI_Handler.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
     var self = this;
-    botAccount.Friends.getFriends(function (err, friendsList) {
+    botAccount.getFriends(function (err, friendsList) {
         if (err) {
             self.logger.log("error", err);
             self.displayMenu(botAccount);
@@ -201,7 +224,7 @@ GUI_Handler.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                         break;
                     default:
                         // Trade with user selected.
-                        botAccount.Trade.createOffer(partner.accountSid, function (err, currentOffer) {
+                        botAccount.TradeManager.createOffer(partner.accountSid, function (err, currentOffer) {
                             if (err) {
                                 self.logger.log("error", "Failed to create offer due to ", err);
                                 return self.displayMenu(botAccount);
@@ -217,7 +240,7 @@ GUI_Handler.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                                         else {
 
 
-                                            if (inventory == null || inventory.length < 1) {
+                                            if (inventory == null || inventory.length &lt; 1) {
                                                 self.logger.log("info", "Other user has no items in inventory. Redirecting to menu...");
                                                 self.initTradeMenu(botAccount);
                                                 return;
@@ -238,7 +261,7 @@ GUI_Handler.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                                                     message: 'What would you like to take? (\'Enter\' to send trade)',
                                                     choices: nameList,
                                                     validate: function (answer) {
-                                                        if (answer.length < 1) {
+                                                        if (answer.length &lt; 1) {
                                                             self.tradeMenu(botAccount, tradeMenuOption);
                                                             return false;
                                                         }
@@ -263,7 +286,7 @@ GUI_Handler.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                                                         self.logger.log("error", err);
                                                         self.displayMenu(botAccount);
                                                     } else {
-                                                        botAccount.Trade.confirmOutstandingTrades(function (err, confirmedTrades) {
+                                                        botAccount.TradeManager.confirmOutstandingTrades(function (err, confirmedTrades) {
                                                             if (err)
                                                                 self.logger.log("error", err);
                                                             self.logger.log("info", "Sent trade offer to %s.", partner.username);
@@ -278,7 +301,7 @@ GUI_Handler.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                                     break;
                                 case 1:
                                     botAccount.getInventory(self.main.getAppID(), 2, true, function (err, inventory, currencies) {
-                                        if (inventory == null || inventory.length < 1) {
+                                        if (inventory == null || inventory.length &lt; 1) {
                                             self.logger.log("info", "Bot has no items in inventory. Redirecting to menu...");
                                             self.initTradeMenu(botAccount);
                                             return;
@@ -299,7 +322,7 @@ GUI_Handler.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                                                 message: 'What would you like to offer? (\'Enter\' to send trade)',
                                                 choices: nameList,
                                                 validate: function (answer) {
-                                                    if (answer.length < 1) {
+                                                    if (answer.length &lt; 1) {
                                                         self.tradeMenu(botAccount, tradeMenuOption);
                                                         return false;
                                                     }
@@ -324,7 +347,7 @@ GUI_Handler.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                                                     self.logger.log("error", err);
                                                     self.displayMenu(botAccount);
                                                 } else {
-                                                    botAccount.Trade.confirmOutstandingTrades(function (err, confirmedTrades) {
+                                                    botAccount.TradeManager.confirmOutstandingTrades(function (err, confirmedTrades) {
                                                         if (err)
                                                             self.logger.log("error", err);
                                                         self.logger.log("info", "Sent trade offer to %s.", partner.username);
@@ -405,7 +428,7 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
         var menuEntry = menuOptions.indexOf(result.menuOption);
         switch (menuEntry) {
             case 0:
-                botAccount.Friends.getFriends(function (err, friendsList) {
+                botAccount.getFriends(function (err, friendsList) {
                     if (err) {
                         self.logger.log("error", err);
                         self.displayMenu(botAccount);
@@ -456,7 +479,7 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
                 // Handle logout/login logic and return to menu.
                 if (!botAccount.loggedIn) {
                     self.logger.log("info", "Trying to authenticate into {0}".format(botAccount.getAccountName()));
-                    botAccount.Auth.loginAccount(null, function (err) {
+                    botAccount.AuthManager.loginAccount(null, function (err) {
                         if (err) {
                             if (err.Error == "SteamGuardMobile") {
                                 var authenticator = [
@@ -468,16 +491,16 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
                                 ];
 
                                 inquirer.prompt(authenticator, function (result) {
-                                    botAccount.Auth.loginAccount({twoFactorCode: result.code}, function (err) {
+                                    botAccount.AuthManager.loginAccount({twoFactorCode: result.code}, function (err) {
                                         if (err)
-                                            self.logger.log("error", "Failed to login due to %j", err);
+                                            self.logger.log("error", "Failed to login due to %j", err.Error);
 
                                         self.displayBotMenu();
 
                                     });
                                 });
                             } else {
-                                self.logger.log("error", "Failed to login due to %j", err);
+                                self.logger.log("error", "Failed to login due to %j", err.Error);
                             }
                         } else {
                             self.displayBotMenu();
@@ -492,7 +515,7 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
                 var authOptions = [];
                 authOptions.push("Edit Display name");
                 authOptions.push(new inquirer.Separator());
-                authOptions.push((botAccount.Auth.has_shared_secret() ? "[ON]" : "[OFF]") + " Two Factor Authentication");
+                authOptions.push((botAccount.AuthManager.has_shared_secret() ? "[ON]" : "[OFF]") + " Two Factor Authentication");
                 authOptions.push("Generate 2-factor-authentication code");
                 authOptions.push("Back");
 
@@ -518,12 +541,12 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
                                     type: 'confirm',
                                     name: 'prefix',
                                     default: true,
-                                    message: "Give default prefix of '{0}'?".format(self.main.config.bot_prefix)
+                                    message: "Give default prefix of '{0}'?".format(self.main.ConfigManager.bot_prefix)
                                 }
                             ];
 
                             inquirer.prompt(questions, function (result) {
-                                botAccount.changeName(result.newName, self.main.config.bot_prefix, function (err) {
+                                botAccount.changeName(result.newName, self.main.ConfigManager.bot_prefix, function (err) {
                                     if (err) {
                                         self.logger.log("error", "Failed to change name. Error: {0}".format(err));
                                     }
@@ -548,9 +571,9 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
                             break;
                         case 3:
                             self.displayMenu(botAccount);
-                            if (botAccount.Auth.has_shared_secret()) {
+                            if (botAccount.AuthManager.has_shared_secret()) {
                                 // Send the auth key.
-                                self.logger.log("info", "Your authentication code for {0} is {1}".format(botAccount.getAccountName(), botAccount.Auth.generateMobileAuthenticationCode()));
+                                self.logger.log("info", "Your authentication code for {0} is {1}".format(botAccount.getAccountName(), botAccount.AuthManager.generateMobileAuthenticationCode()));
                             } else {
                                 // Authn not enabled?
                                 self.logger.log("error", "2-factor-authentication is not enabled. Check your email.");
@@ -605,15 +628,15 @@ GUI_Handler.prototype.enableTwoFactor = function (botAccount) {
     var self = this;
     botAccount.hasPhone(function (err, hasPhone, lastDigits) {
         if (hasPhone) {
-            botAccount.Auth.enableTwoFactor(function (err, response) {
-                if (status == 84) {
+            botAccount.AuthManager.enableTwoFactor(function (response) {
+                if (response.status == 84) {
                     // Rate limit exceeded. So delay the next request
                     self.logger.log("info", "Please wait 5 seconds to continue... Possibly blocked by Steam for sending out too many SMS's. Retry in 24 hours, please.");
                     setTimeout(function () {
                         self.enableTwoFactor(botAccount);
                     }, 5000);
                 }
-                else if (status == 1) {
+                else if (response.status == 1) {
                     self.logger.log("info", "Make sure to save the following code saved somewhere secure: {0}".format(response.revocation_code));
                     var questions = [
                         {
@@ -626,12 +649,12 @@ GUI_Handler.prototype.enableTwoFactor = function (botAccount) {
                     inquirer.prompt(questions, function (result) {
                         if (result.code) {
                             var steamCode = result.code;
-                            botAccount.Auth.finalizeTwoFactor(steamCode, function (err, accountDetails) {
+                            botAccount.AuthManager.finalizeTwoFactor(response.shared_secret, steamCode, function (err, keyInformation) {
                                 if (err) {
                                     self.logger.log("error", "Failed to enable 2 factor auth - " + err);
                                 }
                                 else {
-                                    self.main.AccountsManager.saveAccount(accountDetails, function (err) {
+                                    self.saveAccounts(function (err) {
                                         if (err) {
                                             self.logger.log("error", "Failed to save accounts during 2 factor auth enable - " + err);
                                         }
@@ -724,7 +747,7 @@ GUI_Handler.prototype.enableTwoFactor = function (botAccount) {
  */
 String.prototype.format = function () {
     var content = this;
-    for (var i = 0; i < arguments.length; i++) {
+    for (var i = 0; i &lt; arguments.length; i++) {
         var replacement = '{' + i + '}';
         content = content.replace(replacement, arguments[i]);
     }
@@ -735,3 +758,44 @@ String.prototype.format = function () {
 module.exports = GUI_Handler;
 
 
+</code></pre>
+        </article>
+    </section>
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2>
+    <h3>Classes</h3>
+    <ul>
+        <li><a href="BotAccount.html">BotAccount</a></li>
+        <li><a href="BotManager.html">BotManager</a></li>
+        <li><a href="GUI_Handler.html">GUI_Handler</a></li>
+    </ul>
+    <h3>Events</h3>
+    <ul>
+        <li><a href="BotAccount.html#event:friendOrChatMessage">friendOrChatMessage</a></li>
+        <li><a href="BotAccount.html#event:loggedIn">loggedIn</a></li>
+        <li><a href="BotAccount.html#event:newOffer">newOffer</a></li>
+        <li><a href="BotAccount.html#event:offerChanged">offerChanged</a></li>
+        <li><a href="BotAccount.html#event:tradeOffers">tradeOffers</a></li>
+    </ul>
+    <h3>Global</h3>
+    <ul>
+        <li><a href="global.html#GUI">GUI</a></li>
+        <li><a href="global.html#Winston">Winston</a></li>
+    </ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Thu Mar 16 2017 00:46:25
+    GMT+0400 (Arabian Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>

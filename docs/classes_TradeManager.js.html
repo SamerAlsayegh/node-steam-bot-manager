@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: classes/Trade.js</title>
+
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: classes/Trade.js</h1>
+
+
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>TradeHandler.prototype.__proto__ = require('events').EventEmitter.prototype;
+
+function TradeHandler(trade, auth, settings, logger) {
+    var self = this;
+    if (typeof trade != "object" || typeof auth != "object")
+        throw Error("TradeOfferManager &amp; AuthHandler must be passed respectively.");
+    self.auth = auth;
+    self.trade = trade;
+    self.api_access = false;
+    self.logger = logger;
+    if (typeof settings != "object")
+        self.settings = {
+            cancelTradeOnOverflow: true
+        };
+    else
+        self.settings = settings;
+}
+
+
+TradeHandler.prototype.setAPIAccess = function (api_access) {
+    var self = this;
+    self.api_access = api_access;
+};
+/**
+ * Confirm (not accept) all outstanding trades that were sent out, regardless of trade target via the two-factor authenticator.
+ */
+TradeHandler.prototype.confirmOutstandingTrades = function (callback) {
+    var self = this;
+    var time = self.auth.getTime();
+    self.auth.getConfirmations(time, self.auth.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
+        if (err) {
+            if (self.logger != undefined)
+                self.logger.log('error', "Failed to confirm outstanding trades");
+            setTimeout(self.confirmOutstandingTrades(callback), 5000);
+        }
+        else {
+            var confirmedTrades = [];
+            if (confirmations.length > 0) {
+                for (var confirmId in confirmations) {
+                    if (confirmations.hasOwnProperty(confirmId)) {
+                        confirmations[confirmId].respond(time, self.auth.generateMobileConfirmationCode(time, "allow"), true, function (err) {
+                            confirmedTrades.push(confirmations[confirmId]);
+                            if (confirmedTrades.length == confirmations.length) {
+                                // Everything went smooth
+                                return callback(undefined, confirmations);
+                            }
+                        });
+                    }
+                }
+            } else {
+                callback(undefined, []);
+            }
+        }
+    });
+};
+
+/**
+ * Create a trade offer with the recipient
+ * @param steamid - SteamID id any form (SteamID2, SteamID3, SteamID64, or Tradeurl)
+ * @param callback
+ * @returns {*}
+ */
+TradeHandler.prototype.createOffer = function (sid, callback) {
+    var self = this;
+
+    if (self.settings.cancelTradeOnOverflow &amp;&amp; self.api_access) {
+        if (self.logger != undefined)
+            self.logger.log('debug', 'Checking for overflow in trades');
+        self.trade.getOffers(1, undefined, function (err, sent, received) {
+            if (err)
+                return callback(err, undefined);
+
+            var allTrades = [];
+            var tradeToCancelDueToTotalLimit = undefined;
+            var tradeToCancelDueToPersonalLimit = [];
+
+            for (var tradeIndex in sent) {
+                allTrades.push(sent[tradeIndex]);
+            }
+            for (var tradeIndex in received) {
+                allTrades.push(received[tradeIndex]);
+            }
+            var savedTradesCounts = {};
+            for (var tradeIndex in allTrades) {
+                var trade = allTrades[tradeIndex];
+                if (!savedTradesCounts.hasOwnProperty(trade.partner))
+                    savedTradesCounts[trade.partner] = 0;
+                savedTradesCounts[trade.partner] = savedTradesCounts[trade.partner] + 1;
+                if (savedTradesCounts[trade.partner] >= 5)
+                    tradeToCancelDueToPersonalLimit.push(trade);
+
+                if (tradeToCancelDueToTotalLimit == undefined || tradeToCancelDueToTotalLimit.updated.getTime() > trade.updated.getTime()) {
+                    tradeToCancelDueToTotalLimit = trade;
+                }
+            }
+            if (tradeToCancelDueToPersonalLimit.length >= 0 &amp;&amp; self.settings.cancelTradeOnOverflow) {
+                for (var tradeIndex in tradeToCancelDueToPersonalLimit) {
+                    if (self.logger != undefined)
+                        self.logger.log('debug', "Cancelled trade #" + tradeToCancelDueToPersonalLimit[tradeIndex].id + " due to overload in personal trade requests");
+                    tradeToCancelDueToPersonalLimit[tradeIndex].cancel();
+                }
+            }
+            if (allTrades.length >= 30 &amp;&amp; self.settings.cancelTradeOnOverflow) {
+                if (self.logger != undefined)
+                    self.logger.log('debug', "Cancelled trade #" + tradeToCancelDueToTotalLimit.id + " due to overload in total trade requests");
+                tradeToCancelDueToTotalLimit.cancel();
+            }
+            self.emit('createdOffer', sid);
+            if (self.logger != undefined)
+                self.logger.log('debug', 'Sent trade offer');
+            return callback(undefined, self.trade.createOffer(sid));
+
+        });
+    } else {
+        if (self.logger != undefined)
+            self.logger.log('debug', 'Sent trade offer');
+        self.emit('createdOffer', sid);
+        // Before we create an offer, we will get previous offers and ensure it meets the limitations, to avoid errors.
+        return callback(undefined, self.trade.createOffer(sid));
+    }
+};
+
+module.exports = TradeHandler;
+</code></pre>
+        </article>
+    </section>
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2>
+    <h3>Classes</h3>
+    <ul>
+        <li><a href="BotAccount.html">BotAccount</a></li>
+        <li><a href="BotManager.html">BotManager</a></li>
+        <li><a href="GUI_Handler.html">GUI_Handler</a></li>
+    </ul>
+    <h3>Events</h3>
+    <ul>
+        <li><a href="BotAccount.html#event:friendOrChatMessage">friendOrChatMessage</a></li>
+        <li><a href="BotAccount.html#event:loggedIn">loggedIn</a></li>
+        <li><a href="BotAccount.html#event:newOffer">newOffer</a></li>
+        <li><a href="BotAccount.html#event:offerChanged">offerChanged</a></li>
+        <li><a href="BotAccount.html#event:tradeOffers">tradeOffers</a></li>
+    </ul>
+    <h3>Global</h3>
+    <ul>
+        <li><a href="global.html#GUI">GUI</a></li>
+        <li><a href="global.html#Winston">Winston</a></li>
+    </ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Thu Mar 16 2017 00:46:25
+    GMT+0400 (Arabian Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"></script>
+</body>
+</html>
