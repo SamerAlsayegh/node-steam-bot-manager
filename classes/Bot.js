@@ -3,7 +3,9 @@ const Auth = require('./Auth.js');
 const Trade = require('./Trade.js');
 const Request = require('./Request.js');
 const Friends = require('./Friends.js');
+const Profile = require('./Profile.js');
 const Community = require('./Community.js');
+const TaskManager = require('../lib/TaskManager.js');
 const SteamCommunity = require('steamcommunity');
 const SteamUser = require('steam-user');
 const SteamStore = require('steamstore');
@@ -63,18 +65,19 @@ function Bot(username, password, details, settings, logger) {
     self.store = new SteamStore();
     self.loggedIn = false;
     self.rateLimited = true;
-    self.delayedTasks = [];
+    self.Tasks = new TaskManager(logger);
+
+
     self.Auth = new Auth(self, details, logger);
     self.Request = new Request(self.request, logger);
     self.Auth.on('updatedAccountDetails', function (accountDetails) {
         self.emit('updatedAccountDetails', accountDetails);
     });
-
+    self.Profile = new Profile(self.Tasks, self.community, self.Auth, logger);
     self.Friends = new Friends(self, self.Request, logger);
     self.Trade = new Trade(self.TradeOfferManager, self.Auth, self.settings, logger);
     self.Community = new Community(self.community, self.Auth, logger);
-
-};
+}
 
 /**
  * @callback callbackErrorOnly
@@ -157,44 +160,7 @@ Bot.prototype.getDisplayName = function () {
     return (self.displayName ? self.displayName : undefined);
 };
 
-/**
- * Function wrapper used to delay function calls by name and paramters
- * @param fn - function reference
- * @param context - Context to use for call
- * @param params - Parameters in arraylist to send with function
- * @returns {Function}
- */
-Bot.prototype.wrapFunction = function (fn, context, params) {
-    return function () {
-        fn.apply(context, params);
-    };
-};
-/**
- * Add a function to the queue which runs when we login usually.
- * @param functionV
- * @param functionData
- */
-Bot.prototype.addToQueue = function (queueName, functionV, functionData) {
-    var self = this;
-    var functionVal = self.wrapFunction(functionV, self, functionData);
-    if (!self.delayedTasks.hasOwnProperty(queueName))
-        self.delayedTasks[queueName] = [];
-    self.delayedTasks[queueName].push(functionVal);
-};
-/**
- * Process the queue to run tasks that were delayed.
- * @param queueName
- * @param callback
- */
-Bot.prototype.processQueue = function (queueName, callback) {
-    var self = this;
-    if (self.delayedTasks.hasOwnProperty(queueName)) {
-        while (self.delayedTasks[queueName].length > 0) {
-            (self.delayedTasks[queueName].shift())();
-        }
-    }
-    callback(undefined);
-};
+
 
 
 
@@ -203,31 +169,12 @@ Bot.prototype.processQueue = function (queueName, callback) {
  * @param {String} newName - The new display name
  * @param {String} namePrefix - The prefix if there is one (Nullable)
  * @param {callbackErrorOnly} callbackErrorOnly - A callback returned with possible errors
+ * @deprecated
  */
 Bot.prototype.changeName = function (newName, namePrefix, callbackErrorOnly) {
     var self = this;
-    if (!self.loggedIn) {
-        self.addToQueue('login', self.changeName, [newName, namePrefix, callbackErrorOnly]);
-    }
-    else {
-        if (namePrefix == undefined) namePrefix = '';
-
-        self.community.editProfile({name: namePrefix + newName}, function (err) {
-            if (err)
-                return callbackErrorOnly(err.Error);
-            self.displayName = newName;
-            self.Auth._updateAccountDetails({displayName: newName});
-            callbackErrorOnly(undefined);
-        });
-    }
+    self.Profile.changeDisplayName(newName, namePrefix, callbackErrorOnly);
 };
-
-/**
- * @callback inventoryCallback
- * @param {Error} error - An error message if the process failed, undefined if successful
- * @param {Array} inventory - An array of Items returned via fetch (if undefined, then game is not owned by user)
- * @param {Array} currencies - An array of currencies (Only a few games use this) - (if undefined, then game is not owned by user)
- */
 
 /**
  * Retrieve account inventory based on filters
@@ -235,14 +182,15 @@ Bot.prototype.changeName = function (newName, namePrefix, callbackErrorOnly) {
  * @param {Integer} contextid - contextid of lookup (1 - Gifts, 2 - In-game Items, 3 - Coupons, 6 - Game Cards, Profile Backgrounds & Emoticons)
  * @param {Boolean} tradableOnly - Items retrieved must be tradable
  * @param {inventoryCallback} inventoryCallback - Inventory details (refer to inventoryCallback for more info.)
+ * @deprecated
  */
 Bot.prototype.getInventory = function (appid, contextid, tradableOnly, inventoryCallback) {
     var self = this;
     if (!self.loggedIn) {
-        self.addToQueue('login', self.getInventory, [appid, contextid, tradableOnly, inventoryCallback]);
+        self.Tasks.addToQueue('login', self.Trade.getInventory, [appid, contextid, tradableOnly, inventoryCallback]);
     }
     else
-        self.TradeOfferManager.loadInventory(appid, contextid, tradableOnly, inventoryCallback);
+        self.Trade.getInventory(appid, contextid, tradableOnly, inventoryCallback);
 };
 
 /**
@@ -252,14 +200,15 @@ Bot.prototype.getInventory = function (appid, contextid, tradableOnly, inventory
  * @param {Integer} contextid - contextid of lookup (1 - Gifts, 2 - In-game Items, 3 - Coupons, 6 - Game Cards, Profile Backgrounds & Emoticons)
  * @param {Boolean} tradableOnly - Items retrieved must be tradableOnly
  * @param {inventoryCallback} inventoryCallback - Inventory details (refer to inventoryCallback for more info.)
+ * @deprecated
  */
 Bot.prototype.getUserInventory = function (steamID, appid, contextid, tradableOnly, inventoryCallback) {
     var self = this;
     if (!self.loggedIn) {
-        self.addToQueue('login', self.getUserInventory, [steamID, appid, contextid, tradableOnly, inventoryCallback]);
+        self.Tasks.addToQueue('login', self.Trade.getUserInventory, [steamID, appid, contextid, tradableOnly, inventoryCallback]);
     }
     else
-        self.TradeOfferManager.loadUserInventory(steamID, appid, contextid, tradableOnly, inventoryCallback);
+        self.Trade.getUserInventory(steamID, appid, contextid, tradableOnly, inventoryCallback);
 };
 /**
  * Add a phone-number to the account (For example before setting up 2-factor authentication)
@@ -290,8 +239,6 @@ Bot.prototype.verifyPhoneNumber = function (code, callbackErrorOnly) {
         }
     });
 };
-
-
 
 
 
@@ -331,10 +278,11 @@ Bot.prototype.loggedInAccount = function (cookies, sessionID, callbackErrorOnly)
     }
 
     self.loggedIn = true;
-    self.processQueue('login', function (err) {
+    self.Tasks.processQueue('login', function (err) {
         if (err) {
             self.logger.log('error', err);
-            return loginCallback(err);
+            if (callbackErrorOnly)
+                return callbackErrorOnly(err);
         }
         self.community.on('chatTyping', function (senderID) {
             self.emit('chatTyping', senderID);
@@ -347,8 +295,9 @@ Bot.prototype.loggedInAccount = function (cookies, sessionID, callbackErrorOnly)
         });
         self.community.on('chatMessage', function (senderID, message) {
             if (self.currentChatting != undefined && senderID == self.currentChatting.sid) {
-                console.log(("\n" + self.currentChatting.username + ": " + message).green);
+                console.log(("\n" + self.currentChatting.username + ": " + message));
             }
+            self.logger.log("debug", "Received message from %j: %s", senderID, message);
             /**
              * Emitted when a friend message or chat room message is received.
              *

@@ -13,8 +13,7 @@ function Auth(BotAccount, accountDetails, logger) {
     self.store = BotAccount.store;
     self.accountName = BotAccount.getAccountName();
     accountDetails.accountName = self.accountName;
-
-
+    self.loggedIn = false;
     // Create an object to manage this instance's state and
     // use a unique ID to reference it in the private store.
     privateStore[self.id = uid++] = {};
@@ -51,10 +50,7 @@ function Auth(BotAccount, accountDetails, logger) {
             if (err)
                 return callback(err, undefined);
             self.logger.log('debug', 'Disabled two factor authentication for %j', self.getAccountName());
-
-            // self.privateStore[self.id].accountDetails.shared_secret = response.shared_secret;
-            // self.privateStore[self.id].accountDetails.identity_secret = response.identity_secret;
-            // self.privateStore[self.id].accountDetails.revocation_code = response.revocation_code;
+            privateStore.splice(privateStore.indexOf(self.id, 1));
             self.emit('disabledTwoFactorAuth', response);
             return callback(undefined, response);
         });
@@ -99,8 +95,10 @@ function Auth(BotAccount, accountDetails, logger) {
                     if (callbackErrorOnly)
                         callbackErrorOnly(err);
                 }
-                else
+                else {
+                    self.loggedIn = true;
                     self.BotAccount.loggedInAccount(cookies, sessionID, callbackErrorOnly);
+                }
             });
         }
         else {
@@ -118,10 +116,24 @@ function Auth(BotAccount, accountDetails, logger) {
                 privateStore[self.id].accountDetails.steamguard = steamguardGen;
                 privateStore[self.id].accountDetails.oAuthToken = oAuthTokenGen;
                 self.emit('updatedAccountDetails', privateStore[self.id].accountDetails);
+                self.loggedIn = true;
                 self.BotAccount.loggedInAccount(cookies, sessionID, callbackErrorOnly);
             });
         }
     };
+
+    /**
+     * Login to account using supplied details (2FactorCode, authcode, or captcha)
+     * @param details
+     * @param callbackErrorOnly
+     */
+    Auth.prototype.logoutAccount = function () {
+        var self = this;
+        self.emit('loggingOut');
+        self.community.chatLogoff();
+
+    };
+
     /**
      * Sets the revocation code and returns it if successful (null if it fails validity checks).
      * @param revocationCode

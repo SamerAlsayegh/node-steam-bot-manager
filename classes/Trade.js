@@ -29,7 +29,7 @@ Trade.prototype.confirmOutstandingTrades = function (callback) {
     self.auth.getConfirmations(time, self.auth.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
         if (err) {
             if (self.logger != undefined)
-                self.logger.log('error', "Failed to confirm outstanding trades");
+                self.logger.log('error', "Failed to confirm outstanding trades, retrying in 5 seconds");
             setTimeout(self.confirmOutstandingTrades(callback), 5000);
         }
         else {
@@ -158,6 +158,46 @@ Trade.prototype.confirmTradesFromUser = function (SteamID, callback) {
             callback(err, acceptedTrades);
         });
     });
+};
+
+/**
+ * @callback inventoryCallback
+ * @param {Error} error - An error message if the process failed, undefined if successful
+ * @param {Array} inventory - An array of Items returned via fetch (if undefined, then game is not owned by user)
+ * @param {Array} currencies - An array of currencies (Only a few games use this) - (if undefined, then game is not owned by user)
+ */
+
+/**
+ * Retrieve account inventory based on filters
+ * @param {Integer} appid - appid by-which to fetch inventory based on.
+ * @param {Integer} contextid - contextid of lookup (1 - Gifts, 2 - In-game Items, 3 - Coupons, 6 - Game Cards, Profile Backgrounds & Emoticons)
+ * @param {Boolean} tradableOnly - Items retrieved must be tradable
+ * @param {inventoryCallback} inventoryCallback - Inventory details (refer to inventoryCallback for more info.)
+ */
+Trade.prototype.getInventory = function (appid, contextid, tradableOnly, inventoryCallback) {
+    var self = this;
+    if (!self.loggedIn) {
+        self.addToQueue('login', self.getInventory, [appid, contextid, tradableOnly, inventoryCallback]);
+    }
+    else
+        self.trade.loadInventory(appid, contextid, tradableOnly, inventoryCallback);
+};
+
+/**
+ * Retrieve account inventory based on filters and provided steamID
+ * @param {SteamID} steamID - SteamID to use for lookup of inventory
+ * @param {Integer} appid - appid by-which to fetch inventory based on.
+ * @param {Integer} contextid - contextid of lookup (1 - Gifts, 2 - In-game Items, 3 - Coupons, 6 - Game Cards, Profile Backgrounds & Emoticons)
+ * @param {Boolean} tradableOnly - Items retrieved must be tradableOnly
+ * @param {inventoryCallback} inventoryCallback - Inventory details (refer to inventoryCallback for more info.)
+ */
+Trade.prototype.getUserInventory = function (steamID, appid, contextid, tradableOnly, inventoryCallback) {
+    var self = this;
+    if (!self.loggedIn) {
+        self.addToQueue('login', self.getUserInventory, [steamID, appid, contextid, tradableOnly, inventoryCallback]);
+    }
+    else
+        self.trade.loadUserInventory(steamID, appid, contextid, tradableOnly, inventoryCallback);
 };
 
 

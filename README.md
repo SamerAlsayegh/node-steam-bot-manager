@@ -1,5 +1,5 @@
 # About
-A bot management tool for [Steam Community](http://www.steamcommunity.com) built using NodeJS backend.
+A bot management tool for [Steam Community](http://www.steamcommunity.com) built with NodeJS. Allows users to customize bot actions to the needs of their websites. Whether you are looking for bots to message users when an in-game report occurs, or invite users to your group when they join your server, this tool offers a powerful & easy API.
 
 
 
@@ -19,14 +19,14 @@ A bot management tool for [Steam Community](http://www.steamcommunity.com) built
 - Generate authentication codes on demand (for login)
 - Manage multiple bots simultaneously
 - API Support for third-party systems (Betting, Trading, and so on..)
-- Even based interactions of a single bot or multiple
+- Event based interactions of a single bot or multiple
 - Ability to upvote/downvote attachments on Steam Community
 - Ability to import accounts into tool 
 
 ## WIKI
-#####Visit the [wiki](https://github.com/Undeadkillz/node-steam-bot-manager/wiki) for set-up, registration.
+#### Visit the [wiki](https://github.com/Undeadkillz/node-steam-bot-manager/wiki) for set-up, registration.
 
-#####For Docs, please visit [our docs](http://undeadkillz.github.io/node-steam-bot-manager/docs)
+#### For Docs, please visit [our docs](http://undeadkillz.github.io/node-steam-bot-manager/docs)
 
 ## Examples:
 You can check examples of bots you can build by navigating to the 'examples' folder in the root of the project.
@@ -69,7 +69,7 @@ Make sure to atleast include a log of the error message and if possible inform u
 I will ensure everything works, however I won't be building any unit-tests at this time.
 
 ---
-Stable versions via npm:
+Stable versions via npm (incase your version contains certain bugs, try these builds):
 - 1.0.46
 
 ## Credits:
