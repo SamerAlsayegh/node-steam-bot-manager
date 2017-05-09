@@ -15,8 +15,8 @@ A bot management tool for [Steam Community](http://www.steamcommunity.com) built
 - GUI-Based Messaging
 - GUI-Based Trading
 - 2-Factor Authentication Support + Setup
-- Enable API-Key 
-- Generate authentication codes on demand (for login)
+- Enable API-Key*
+- Generate authentication codes on demand (for manual login)
 - Manage multiple bots simultaneously
 - API Support for third-party systems (Betting, Trading, and so on..)
 - Event based interactions of a single bot or multiple
@@ -27,6 +27,7 @@ A bot management tool for [Steam Community](http://www.steamcommunity.com) built
 #### Visit the [wiki](https://github.com/Undeadkillz/node-steam-bot-manager/wiki) for set-up, registration.
 
 #### For Docs, please visit [our docs](http://undeadkillz.github.io/node-steam-bot-manager/docs)
+ If you need further help with setting up the tool, please contact me on Steam, and I will try my best to help you.
 
 ## Examples:
 You can check examples of bots you can build by navigating to the 'examples' folder in the root of the project.
@@ -71,6 +72,9 @@ I will ensure everything works, however I won't be building any unit-tests at th
 ---
 Stable versions via npm (incase your version contains certain bugs, try these builds):
 - 1.0.46
+
+#### Git Version
+Frequently the Github source will not be the same version as the latest npm version. This is because the npm versions are often the stable ones. Github will contain the developmental and possibly even broken versions at times (official versions will be stated in the commit)
 
 ## Credits:
 - [Undeadkillz](https://github.com/Undeadkillz) | Add me on: **[Steam](http://steamcommunity.com/profiles/76561198042954517/)**

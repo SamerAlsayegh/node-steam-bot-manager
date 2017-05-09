@@ -53,6 +53,10 @@ function Friends(main, request, logger) {
     self.getFriends = function (callback) {
         var self = this;
         var onlineFriendsList = [];
+
+        if (self.main.settings.api_key == undefined)
+            return callback(new Error("Failed to getFriends as 'api_key' is not defined in the config."), []);
+
         self.logger.log('debug', "Getting friends list");
         if (self.cachedFriendsList && (typeof self.cachedFriendsList == 'object') && ((new Date().getTime() / 1000) - (self.cachedFriendsList.cacheTime)) < (60 * 10)) {
             onlineFriendsList = self.cachedFriendsList.friendsList.slice();
@@ -94,7 +98,10 @@ function Friends(main, request, logger) {
                     } else {
                         self.logger.log('debug', body);
                         self.logger.log('debug', "Failed to fetch friends - API call failed");
-                        return callback(undefined, onlineFriendsList.slice());
+                        if (body.indexOf("<title>Forbidden</title>") != -1)
+                            return callback(new Error("Failed to getFriends due to invalid or expired 'api_key'"), onlineFriendsList.slice());
+                        else
+                            return callback(new Error("Failed to getFriends - " + body), onlineFriendsList.slice());
                     }
                 })
             }

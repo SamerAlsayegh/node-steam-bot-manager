@@ -6,6 +6,7 @@ function Trade(trade, auth, settings, logger) {
         throw Error("TradeOfferManager & AuthHandler must be passed respectively.");
     self.auth = auth;
     self.trade = trade;
+    self.tasks = auth.BotAccount.Tasks;
     self.api_access = false;
     self.logger = logger;
     if (typeof settings != "object")
@@ -25,7 +26,7 @@ Trade.prototype.setAPIAccess = function (api_access) {
  */
 Trade.prototype.confirmOutstandingTrades = function (callback) {
     var self = this;
-    var time = self.auth.getTime();
+    var time = self.auth.getTime(0);
     self.auth.getConfirmations(time, self.auth.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
         if (err) {
             if (self.logger != undefined)
@@ -37,17 +38,23 @@ Trade.prototype.confirmOutstandingTrades = function (callback) {
             if (confirmations.length > 0) {
                 for (var confirmId in confirmations) {
                     if (confirmations.hasOwnProperty(confirmId)) {
+                        time = self.auth.getTime(0);
                         confirmations[confirmId].respond(time, self.auth.generateMobileConfirmationCode(time, "allow"), true, function (err) {
+                            if (err) {
+                                if (self.logger != undefined)
+                                    self.logger.log('error', err.toString());
+                            }
                             confirmedTrades.push(confirmations[confirmId]);
                             if (confirmedTrades.length == confirmations.length) {
                                 // Everything went smooth
-                                return callback(undefined, confirmations);
+                                return callback(confirmations);
                             }
+
                         });
                     }
                 }
             } else {
-                callback(undefined, []);
+                callback([]);
             }
         }
     });
@@ -176,8 +183,8 @@ Trade.prototype.confirmTradesFromUser = function (SteamID, callback) {
  */
 Trade.prototype.getInventory = function (appid, contextid, tradableOnly, inventoryCallback) {
     var self = this;
-    if (!self.loggedIn) {
-        self.addToQueue('login', self.getInventory, [appid, contextid, tradableOnly, inventoryCallback]);
+    if (!self.auth.loggedIn) {
+        self.tasks.addToQueue('login', self.getInventory, [appid, contextid, tradableOnly, inventoryCallback]);
     }
     else
         self.trade.loadInventory(appid, contextid, tradableOnly, inventoryCallback);
@@ -193,8 +200,8 @@ Trade.prototype.getInventory = function (appid, contextid, tradableOnly, invento
  */
 Trade.prototype.getUserInventory = function (steamID, appid, contextid, tradableOnly, inventoryCallback) {
     var self = this;
-    if (!self.loggedIn) {
-        self.addToQueue('login', self.getUserInventory, [steamID, appid, contextid, tradableOnly, inventoryCallback]);
+    if (!self.auth.loggedIn) {
+        self.tasks.addToQueue('login', self.getUserInventory, [steamID, appid, contextid, tradableOnly, inventoryCallback]);
     }
     else
         self.trade.loadUserInventory(steamID, appid, contextid, tradableOnly, inventoryCallback);

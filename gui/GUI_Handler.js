@@ -81,12 +81,12 @@ GUI_Handler.prototype.displayBotMenu = function () {
                                 {
                                     type: 'input',
                                     name: 'username',
-                                    message: 'What\'s the bot username?'
+                                    message: 'What\'s the bot username? [Required]'
                                 },
                                 {
                                     type: 'password',
                                     name: 'password',
-                                    message: 'What\'s the bot password?'
+                                    message: 'What\'s the bot password? [Required]'
                                 },
                                 {
                                     type: 'input',
@@ -107,15 +107,21 @@ GUI_Handler.prototype.displayBotMenu = function () {
 
                             inquirer.prompt(accountQuestions, function (result) {
                                 // self.registerAccount()
-                                self.main.registerAccount(result.username, result.password, {
-                                    shared_secret: result.shared_secret,
-                                    identity_secret: result.identity_secret,
-                                    revocation: result.revocation
-                                }, function (err) {
+                                if (result.username.length == 0 || result.password.length == 0){
                                     self.displayBotMenu();
-                                    if (err)
-                                        self.logger.log("error", "The following details are incorrect: \nusername: {0}\npassword: {1}".format(result.username, result.password));
-                                });
+                                    self.logger.log("error", "One or more fields that are required are empty.");
+                                }
+                                else {
+                                    self.main.registerAccount(result.username, result.password, {
+                                        shared_secret: result.shared_secret,
+                                        identity_secret: result.identity_secret,
+                                        revocation: result.revocation
+                                    }, function (err) {
+                                        self.displayBotMenu();
+                                        if (err)
+                                            self.logger.log("error", "The following details are incorrect: \nusername: {0}\npassword: {1}".format(result.username, result.password));
+                                    });
+                                }
                             });
                             break;
                     }
@@ -170,7 +176,7 @@ GUI_Handler.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
     var self = this;
     botAccount.Friends.getFriends(function (err, friendsList) {
         if (err) {
-            self.logger.log("error", err);
+            self.logger.log("error", err.toString());
             self.displayMenu(botAccount);
         }
         else {
@@ -237,40 +243,38 @@ GUI_Handler.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                                                     name: 'tradeOption',
                                                     message: 'What would you like to take? (\'Enter\' to send trade)',
                                                     choices: nameList,
-                                                    validate: function (answer) {
-                                                        if (answer.length < 1) {
-                                                            self.tradeMenu(botAccount, tradeMenuOption);
-                                                            return false;
-                                                        }
-                                                        return true;
-                                                    }
                                                 }
 
                                             ];
                                             inquirer.prompt(tradeMenu, function (result) {
-                                                for (var itemNameIndex in result.tradeOption) {
-                                                    if (result.tradeOption.hasOwnProperty(itemNameIndex)) {
-                                                        var itemName = result.tradeOption[itemNameIndex];
-                                                        currentOffer.addTheirItem(inventory[nameList.indexOf(itemName)]);
-                                                        nameList[nameList.indexOf(itemName)] = {
-                                                            name: itemName,
-                                                            displayed: true
-                                                        };
+
+                                                if (result.tradeOption.length > 0) {
+                                                    for (var itemNameIndex in result.tradeOption) {
+                                                        if (result.tradeOption.hasOwnProperty(itemNameIndex)) {
+                                                            var itemName = result.tradeOption[itemNameIndex];
+                                                            currentOffer.addTheirItem(inventory[nameList.indexOf(itemName)]);
+                                                            nameList[nameList.indexOf(itemName)] = {
+                                                                name: itemName,
+                                                                displayed: true
+                                                            };
+                                                        }
                                                     }
-                                                }
-                                                currentOffer.send("Manual offer triggered by Bot Manager.", null, function (err, status) {
-                                                    if (err) {
-                                                        self.logger.log("error", err);
-                                                        self.displayMenu(botAccount);
-                                                    } else {
-                                                        botAccount.Trade.confirmOutstandingTrades(function (err, confirmedTrades) {
-                                                            if (err)
-                                                                self.logger.log("error", err);
-                                                            self.logger.log("info", "Sent trade offer to %s.", partner.username);
+                                                    currentOffer.send("Manual offer triggered by Bot Manager.", null, function (err, status) {
+                                                        if (err) {
+                                                            self.logger.log("error", err);
                                                             self.displayMenu(botAccount);
-                                                        });
-                                                    }
-                                                });
+                                                        } else {
+                                                            botAccount.Trade.confirmOutstandingTrades(function (err, confirmedTrades) {
+                                                                if (err)
+                                                                    self.logger.log("error", err);
+                                                                self.logger.log("info", "Sent trade offer to %s.", partner.username);
+                                                                self.displayMenu(botAccount);
+                                                            });
+                                                        }
+                                                    });
+                                                } else {
+                                                    self.tradeMenu(botAccount, tradeMenuOption);
+                                                }
                                             });
                                         }
                                     });
@@ -297,41 +301,37 @@ GUI_Handler.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                                                 type: 'checkbox',
                                                 name: 'tradeOption',
                                                 message: 'What would you like to offer? (\'Enter\' to send trade)',
-                                                choices: nameList,
-                                                validate: function (answer) {
-                                                    if (answer.length < 1) {
-                                                        self.tradeMenu(botAccount, tradeMenuOption);
-                                                        return false;
-                                                    }
-                                                    return true;
-                                                }
+                                                choices: nameList
                                             }
 
                                         ];
                                         inquirer.prompt(tradeMenu, function (result) {
-                                            for (var itemNameIndex in result.tradeOption) {
-                                                if (result.tradeOption.hasOwnProperty(itemNameIndex)) {
-                                                    var itemName = result.tradeOption[itemNameIndex];
-                                                    currentOffer.addMyItem(inventory[nameList.indexOf(itemName)]);
-                                                    nameList[nameList.indexOf(itemName)] = {
-                                                        name: itemName,
-                                                        displayed: true
-                                                    };
+                                            if (result.tradeOption.length > 0) {
+
+                                                for (var itemNameIndex in result.tradeOption) {
+                                                    if (result.tradeOption.hasOwnProperty(itemNameIndex)) {
+                                                        var itemName = result.tradeOption[itemNameIndex];
+                                                        currentOffer.addMyItem(inventory[nameList.indexOf(itemName)]);
+                                                        nameList[nameList.indexOf(itemName)] = {
+                                                            name: itemName,
+                                                            displayed: true
+                                                        };
+                                                    }
                                                 }
-                                            }
-                                            currentOffer.send("Manual offer triggered by Bot Manager.", null, function (err, status) {
-                                                if (err) {
-                                                    self.logger.log("error", err);
-                                                    self.displayMenu(botAccount);
-                                                } else {
-                                                    botAccount.Trade.confirmOutstandingTrades(function (err, confirmedTrades) {
-                                                        if (err)
-                                                            self.logger.log("error", err);
-                                                        self.logger.log("info", "Sent trade offer to %s.", partner.username);
+                                                currentOffer.send("Manual offer triggered by Bot Manager.", null, function (err, status) {
+                                                    if (err) {
+                                                        self.logger.log("error", err);
                                                         self.displayMenu(botAccount);
-                                                    });
-                                                }
-                                            });
+                                                    } else {
+                                                        botAccount.Trade.confirmOutstandingTrades(function (confirmedTrades) {
+                                                            self.logger.log("info", "Sent trade offer to %s, and confirmed %s.", partner.username, confirmedTrades.length);
+                                                            self.displayMenu(botAccount);
+                                                        });
+                                                    }
+                                                });
+                                            } else {
+                                                self.tradeMenu(botAccount, tradeMenuOption);
+                                            }
                                         });
                                     });
                                     break;
@@ -393,6 +393,13 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
         "Delete",
         "Back"
     ];
+    // Disabled chat and trade systems..
+    if (self.main.config.api_key == undefined){
+        menuOptions[0] = "Chat [Disabled - missing 'api_key' in config]";
+        menuOptions[1] = "Send trade offer [Disabled - missing 'api_key' in config]";
+    }
+
+
     var mainMenu = [
         {
             type: 'list',
@@ -405,52 +412,60 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
         var menuEntry = menuOptions.indexOf(result.menuOption);
         switch (menuEntry) {
             case 0:
-                botAccount.Friends.getFriends(function (err, friendsList) {
-                    if (err) {
-                        self.logger.log("error", err);
-                        self.displayMenu(botAccount);
-                    }
-                    else {
-                        friendsList.unshift({username: "Back"});
-                        var nameList = [];
-                        for (var friendId in friendsList) {
-                            if (friendsList.hasOwnProperty(friendId)) {
-                                nameList.push(friendsList[friendId].username);
-                            }
+                if (self.main.config.api_key == undefined){
+                    self.displayMenu(botAccount);
+                } else {
+                    botAccount.Friends.getFriends(function (err, friendsList) {
+                        if (err) {
+                            self.logger.log("error", err.toString());
+                            self.displayMenu(botAccount);
                         }
+                        else {
+                            friendsList.unshift({username: "Back"});
+                            var nameList = [];
+                            for (var friendId in friendsList) {
+                                if (friendsList.hasOwnProperty(friendId)) {
+                                    nameList.push(friendsList[friendId].username);
+                                }
+                            }
 
-                        var chatMenu = [
-                            {
-                                type: 'list',
-                                name: 'chatOption',
-                                message: 'Who would you like to chat with? (only active chats visible)',
-                                choices: nameList
-                            }
-                        ];
-                        inquirer.prompt(chatMenu, function (result) {
-                            var menuEntry = nameList.indexOf(result.chatOption);
-                            // We will open chat with...
-                            switch (menuEntry) {
-                                case 0:
-                                    self.displayMenu(botAccount);
-                                    break;
-                                default:
-                                    // User wants to actually chat with someone...
-                                    botAccount.setChatting({
-                                        username: friendsList[menuEntry].username,
-                                        sid: friendsList[menuEntry].accountSid
-                                    });
-                                    self.processChat(botAccount, friendsList[menuEntry].accountSid);
-                                    break;
-                            }
-                        });
-                    }
-                });
+                            var chatMenu = [
+                                {
+                                    type: 'list',
+                                    name: 'chatOption',
+                                    message: 'Who would you like to chat with?',
+                                    choices: nameList
+                                }
+                            ];
+                            inquirer.prompt(chatMenu, function (result) {
+                                var menuEntry = nameList.indexOf(result.chatOption);
+                                // We will open chat with...
+                                switch (menuEntry) {
+                                    case 0:
+                                        self.displayMenu(botAccount);
+                                        break;
+                                    default:
+                                        // User wants to actually chat with someone...
+                                        botAccount.setChatting({
+                                            username: friendsList[menuEntry].username,
+                                            sid: friendsList[menuEntry].accountSid
+                                        });
+                                        self.processChat(botAccount, friendsList[menuEntry].accountSid);
+                                        break;
+                                }
+                            });
+                        }
+                    });
+                }
 
 
                 break;
             case 1:
-                self.initTradeMenu(botAccount);
+                if (self.main.config.api_key == undefined){
+                    self.displayMenu(botAccount);
+                } else {
+                    self.initTradeMenu(botAccount);
+                }
                 break;
             case 3:
                 // Handle logout/login logic and return to menu.
@@ -552,7 +567,7 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
                                 // Send the auth key.
                                 self.logger.log("info", "Your authentication code for {0} is {1}".format(botAccount.getAccountName(), botAccount.Auth.generateMobileAuthenticationCode()));
                             } else {
-                                // Authn not enabled?
+                                // Auth not enabled?
                                 self.logger.log("error", "2-factor-authentication is not enabled. Check your email.");
                             }
                             break;

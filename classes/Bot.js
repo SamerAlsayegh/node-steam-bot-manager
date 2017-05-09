@@ -58,7 +58,7 @@ function Bot(username, password, details, settings, logger) {
         "cancelOfferCount": self.settings.tradeCancelOfferCount,// Cancel offers once we hit 7 day threshold
         "cancelOfferCountMinAge": self.settings.tradeCancelOfferCountMinAge,// Keep offers until 7 days old
         "language": self.settings.language, // We want English item descriptions
-        "pollInterval": 5000 // We want to poll every 5 seconds since we don't have Steam notifying us of offers
+        "pollInterval": self.settings.tradePollInterval // We want to poll every 5 seconds since we don't have Steam notifying us of offers
     });
     self.SteamID = TradeOfferManager.SteamID;
     self.request = self.community.request;
@@ -77,6 +77,7 @@ function Bot(username, password, details, settings, logger) {
     self.Friends = new Friends(self, self.Request, logger);
     self.Trade = new Trade(self.TradeOfferManager, self.Auth, self.settings, logger);
     self.Community = new Community(self.community, self.Auth, logger);
+
 }
 
 /**
@@ -320,10 +321,21 @@ Bot.prototype.loggedInAccount = function (cookies, sessionID, callbackErrorOnly)
              * @type {object}
              * @property {TradeOffer} offer - The new offer's details
              * @property {TradeOffer} oldState - The old offer's details
+             * @deprecated
              */
             self.emit('offerChanged', offer, oldState);
         });
-
+        self.TradeOfferManager.on('sentOfferChanged', function (offer, oldState) {
+            /**
+             * Emitted when a trade offer changes state (Ex. accepted, pending, escrow, etc...)
+             *
+             * @event Bot#sentOfferChanged
+             * @type {object}
+             * @property {TradeOffer} offer - The new offer's details
+             * @property {TradeOffer} oldState - The old offer's details
+             */
+            self.emit('sentOfferChanged', offer, oldState);
+        });
         self.TradeOfferManager.on('receivedOfferChanged', function (offer, oldState) {
             self.emit('receivedOfferChanged', offer, oldState);
         });
@@ -408,9 +420,9 @@ Bot.prototype.hasPhone = function (callback) {
 };
 
 
-Bot.prototype.setSetting = function (settingName, tempSettingValusettingName) {
+Bot.prototype.setSetting = function (settingName, tempSettingValue) {
     var self = this;
-    self.settings[tempSetting] = tempSettingValue;
+    self.settings[settingName] = tempSettingValue;
 };
 Bot.prototype.getSetting = function (tempSetting) {
     var self = this;
