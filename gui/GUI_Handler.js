@@ -67,13 +67,17 @@ GUI_Handler.prototype.displayBotMenu = function () {
                     switch (result.registerOption) {
                         case 'new account':
                             inquirer.prompt(accountQuestions, function (result) {
-                                self.main.registerAccount(result.username, result.password, {}, function (err, botAccount) {
-                                    if (err)
-                                        self.logger.log("error", "The following details are incorrect: \nusername: {0}\npassword: {1}".format(result.username, result.password));
-                                    self.emit('updatedAccountDetails', botAccount);
-                                    self.displayBotMenu(accounts);
-
-                                });
+                                if (result.username.length == 0 || result.password.length == 0){
+                                    self.displayBotMenu();
+                                    self.logger.log("error", "One or more fields that are required are empty.");
+                                }
+                                else {
+                                    self.main.registerAccount(result.username, result.password, {}, function (err) {
+                                        self.displayBotMenu();
+                                        if (err)
+                                            self.logger.log("error", "The following details are incorrect: \nusername: {0}\npassword: {1}".format(result.username, result.password));
+                                    });
+                                }
                             });
                             break;
                         case 'import account':
@@ -473,7 +477,7 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
                     self.logger.log("info", "Trying to authenticate into {0}".format(botAccount.getAccountName()));
                     botAccount.Auth.loginAccount(null, function (err) {
                         if (err) {
-                            if (err.Error == "SteamGuardMobile") {
+                            if (err.Error == "SteamGuardMobile" || err.Error == "SteamGuard" ) {
                                 var authenticator = [
                                     {
                                         type: 'input',
@@ -483,7 +487,7 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
                                 ];
 
                                 inquirer.prompt(authenticator, function (result) {
-                                    botAccount.Auth.loginAccount({twoFactorCode: result.code}, function (err) {
+                                    botAccount.Auth.loginAccount({twoFactorCode: result.code, authCode: result.code}, function (err) {
                                         if (err)
                                             self.logger.log("error", "Failed to login due to %j", err);
 
@@ -508,7 +512,7 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
                 authOptions.push("Edit Display name");
                 authOptions.push(new inquirer.Separator());
                 authOptions.push((botAccount.Auth.has_shared_secret() ? "[ON]" : "[OFF]") + " Two Factor Authentication");
-                authOptions.push("Generate 2-factor-authentication code");
+                authOptions.push( (!botAccount.Auth.has_shared_secret() ? "[Disabled]" : "")  + "Generate 2-factor-authentication code");
                 authOptions.push("Back");
 
                 var authMenu = [
@@ -538,7 +542,7 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
                             ];
 
                             inquirer.prompt(questions, function (result) {
-                                botAccount.changeName(result.newName, self.main.config.bot_prefix, function (err) {
+                                botAccount.Profile.changeDisplayName(result.newName, result.prefix ? self.main.config.bot_prefix : undefined, function (err) {
                                     if (err) {
                                         self.logger.log("error", "Failed to change name. Error: {0}".format(err));
                                     }

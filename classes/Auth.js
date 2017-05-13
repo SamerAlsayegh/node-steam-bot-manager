@@ -2,24 +2,29 @@ Auth.prototype.__proto__ = require('events').EventEmitter.prototype;
 const SteamTotp = require('steam-totp');
 
 var privateStore = {};
-var uid = 0;
 
 function Auth(BotAccount, accountDetails, logger) {
     var self = this;
     self.logger = logger;
     self.BotAccount = BotAccount;
-    // console.log(BotAccount.details);
     self.community = BotAccount.community;
     self.store = BotAccount.store;
     self.accountName = BotAccount.getAccountName();
     accountDetails.accountName = self.accountName;
+
+
+    if (BotAccount.password)
+        accountDetails.password = BotAccount.password;
+
+
+
     self.loggedIn = false;
     // Create an object to manage this instance's state and
     // use a unique ID to reference it in the private store.
-    privateStore[self.id = uid++] = {};
+    privateStore[self.accountName] = {};
     // Store private stuff in the private store
     // instead of on `this`.
-    privateStore[self.id].accountDetails = accountDetails;
+    privateStore[self.accountName].accountDetails = accountDetails;
 
     Auth.prototype.enableTwoFactor = function (callback) {
         var self = this;
@@ -31,9 +36,9 @@ function Auth(BotAccount, accountDetails, logger) {
                 return callback(err, undefined);
             }
             self.logger.log('debug', 'Enabled two factor authentication for %j', self.username);
-            privateStore[self.id].accountDetails.shared_secret = response.shared_secret;
-            privateStore[self.id].accountDetails.identity_secret = response.identity_secret;
-            privateStore[self.id].accountDetails.revocation_code = response.revocation_code;
+            privateStore[self.accountName].accountDetails.shared_secret = response.shared_secret;
+            privateStore[self.accountName].accountDetails.identity_secret = response.identity_secret;
+            privateStore[self.accountName].accountDetails.revocation_code = response.revocation_code;
             self.emit('enabledTwoFactorAuth');
             return callback(err, response);
         });
@@ -43,14 +48,14 @@ function Auth(BotAccount, accountDetails, logger) {
         var self = this;
         self.emit('disablingTwoFactorAuth');
         self.logger.log('debug', 'Disabling two factor authentication for %j', self.getAccountName());
-        if (!privateStore[self.id].accountDetails.revocation_code)
+        if (!privateStore[self.accountName].accountDetails.revocation_code)
             return callback({Error: "There is no revocation code saved."}, undefined);
 
-        self.community.disableTwoFactor(privateStore[self.id].accountDetails.revocation_code, function (err, response) {
+        self.community.disableTwoFactor(privateStore[self.accountName].accountDetails.revocation_code, function (err, response) {
             if (err)
                 return callback(err, undefined);
             self.logger.log('debug', 'Disabled two factor authentication for %j', self.getAccountName());
-            privateStore.splice(privateStore.indexOf(self.id, 1));
+            privateStore.splice(privateStore.indexOf(self.accountName, 1));
             self.emit('disabledTwoFactorAuth', response);
             return callback(undefined, response);
         });
@@ -59,8 +64,8 @@ function Auth(BotAccount, accountDetails, logger) {
     Auth.prototype.finalizeTwoFactor = function (activationCode, callbackErrorOnly) {
         var self = this;
         self.emit('finalizedTwoFactorAuth');
-        self.community.finalizeTwoFactor(privateStore[self.id].accountDetails.shared_secret, activationCode, function (err) {
-            callbackErrorOnly(err, privateStore[self.id].accountDetails);
+        self.community.finalizeTwoFactor(privateStore[self.accountName].accountDetails.shared_secret, activationCode, function (err) {
+            callbackErrorOnly(err, privateStore[self.accountName].accountDetails);
         });
     };
 
@@ -73,18 +78,18 @@ function Auth(BotAccount, accountDetails, logger) {
         var self = this;
         self.emit('loggingIn');
         if (self.has_shared_secret()) {
-            privateStore[self.id].accountDetails.twoFactorCode = self.generateMobileAuthenticationCode();
+            privateStore[self.accountName].accountDetails.twoFactorCode = self.generateMobileAuthenticationCode();
         }
 
         if (details != undefined) {
             if (details.authCode != undefined)
-                privateStore[self.id].accountDetails.authCode = details.authCode;
+                privateStore[self.accountName].accountDetails.authCode = details.authCode;
             if (details.captcha != undefined)
-                privateStore[self.id].accountDetails.captcha = details.captcha;
+                privateStore[self.accountName].accountDetails.captcha = details.captcha;
         }
 
-        if (privateStore[self.id].accountDetails.steamguard && privateStore[self.id].accountDetails.oAuthToken) {
-            self.community.oAuthLogin(privateStore[self.id].accountDetails.steamguard, privateStore[self.id].accountDetails.oAuthToken, function (err, sessionID, cookies) {
+        if (privateStore[self.accountName].accountDetails.steamguard && privateStore[self.accountName].accountDetails.oAuthToken) {
+            self.community.oAuthLogin(privateStore[self.accountName].accountDetails.steamguard, privateStore[self.accountName].accountDetails.oAuthToken, function (err, sessionID, cookies) {
                 if (err) {
                     if (err != undefined && err.Error == "HTTP error 429") {
                         self.emit('rateLimitedSteam');
@@ -102,20 +107,21 @@ function Auth(BotAccount, accountDetails, logger) {
             });
         }
         else {
-            self.community.login(privateStore[self.id].accountDetails, function (err, sessionID, cookies, steamguardGen, oAuthTokenGen) {
+            self.community.login(privateStore[self.accountName].accountDetails, function (err, sessionID, cookies, steamguardGen, oAuthTokenGen) {
                 if (err) {
                     if (err != undefined && err.Error == "HTTP error 429") {
                         self.emit('rateLimitedSteam');
                         self.logger.log('error', "Rate limited by Steam - Delaying request.");
                         self.BotAccount.addToQueue('ratelimit', self.loginAccount, [details, callbackErrorOnly]);
                     }
+                    self.emit('updatedAccountDetails', privateStore[self.accountName].accountDetails);
                     self.logger.log('error', "Failed to login into account due to " + err);
                     if (callbackErrorOnly)
-                        callbackErrorOnly(err);
+                        return callbackErrorOnly(err);
                 }
-                privateStore[self.id].accountDetails.steamguard = steamguardGen;
-                privateStore[self.id].accountDetails.oAuthToken = oAuthTokenGen;
-                self.emit('updatedAccountDetails', privateStore[self.id].accountDetails);
+                privateStore[self.accountName].accountDetails.steamguard = steamguardGen;
+                privateStore[self.accountName].accountDetails.oAuthToken = oAuthTokenGen;
+                self.emit('updatedAccountDetails', privateStore[self.accountName].accountDetails);
                 self.loggedIn = true;
                 self.BotAccount.loggedInAccount(cookies, sessionID, callbackErrorOnly);
             });
@@ -140,13 +146,16 @@ function Auth(BotAccount, accountDetails, logger) {
      * @returns {String}
      */
     Auth.prototype.setRevocationCode = function (revocationCode) {
+        var self = this;
         if (revocationCode.indexOf("R") == 0 && revocationCode.length == 6)
-            return privateStore[self.id].accountDetails.revocation_code = revocationCode;
+            return privateStore[self.accountName].accountDetails.revocation_code = revocationCode;
         else
             return undefined;
     };
+
     Auth.prototype.has_shared_secret = function () {
-        return !!privateStore[self.id].accountDetails.shared_secret;
+        var self = this;
+        return !!privateStore[self.accountName].accountDetails.identity_secret;
     };
 
     /**
@@ -155,8 +164,8 @@ function Auth(BotAccount, accountDetails, logger) {
      */
     Auth.prototype.generateMobileAuthenticationCode = function () {
         var self = this;
-        if (privateStore[self.id].accountDetails.shared_secret)
-            return SteamTotp.generateAuthCode(privateStore[self.id].accountDetails.shared_secret);
+        if (privateStore[self.accountName].accountDetails.shared_secret)
+            return SteamTotp.generateAuthCode(privateStore[self.accountName].accountDetails.shared_secret);
         else
             return new Error("Failed to generate authentication code. Enable 2-factor-authentication via this tool.");
     };
@@ -168,8 +177,8 @@ function Auth(BotAccount, accountDetails, logger) {
      */
     Auth.prototype.generateMobileConfirmationCode = function (time, tag) {
         var self = this;
-        if (privateStore[self.id].accountDetails.identity_secret)
-            return SteamTotp.generateConfirmationKey(privateStore[self.id].accountDetails.identity_secret, time, tag);
+        if (privateStore[self.accountName].accountDetails.identity_secret)
+            return SteamTotp.generateConfirmationKey(privateStore[self.accountName].accountDetails.identity_secret, time, tag);
         else
             return new Error("Failed to generate confirmation code. Enable 2-factor-authentication via this tool.");
     };
@@ -185,9 +194,9 @@ function Auth(BotAccount, accountDetails, logger) {
         for (var newDetail in newDetails) {
             if (protectedDetails.indexOf(newDetail) == -1)
                 if (newDetails.hasOwnProperty(newDetail))
-                    privateStore[self.id].accountDetails[newDetail] = newDetails[newDetail];
+                    privateStore[self.accountName].accountDetails[newDetail] = newDetails[newDetail];
         }
-        self.emit('updatedAccountDetails', privateStore[self.id].accountDetails);
+        self.emit('updatedAccountDetails', privateStore[self.accountName].accountDetails);
     };
 
 

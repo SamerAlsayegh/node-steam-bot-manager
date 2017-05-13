@@ -13,7 +13,7 @@ Profile.prototype.uploadAvatar = function (image, format, callbackImageUpload) {
     if (typeof image != "object" && typeof image != "string")
         return callback({Error: "Invalid Image. Image must be a path or buffer."});
 
-    self.community.uploadAvatar(image, format, function(err, url){
+    self.community.uploadAvatar(image, format, function (err, url) {
         callbackImageUpload(err, url);
     });
 };
@@ -33,19 +33,23 @@ Profile.prototype.changeDisplayName = function (newName, namePrefix, callbackErr
     else {
         if (namePrefix == undefined) namePrefix = '';
         else namePrefix = namePrefix + " ";
+        console.log(namePrefix + newName)
+
 
         self.community.editProfile({name: namePrefix + newName}, function (err) {
-            if (err)
-                return callbackErrorOnly(err.Error);
+            if (err) {
+                self.community.setupProfile(function (err) {
+                    if (err)
+                        return callbackErrorOnly(err);
+                    else
+                        return self.changeDisplayName(newName, namePrefix, callbackErrorOnly);
+                });
+            }
             self.displayName = newName;
             self.Auth._updateAccountDetails({displayName: newName});
             callbackErrorOnly(undefined);
         });
     }
-};
-
-Profile.prototype.changeDisplayName = function (newName, callback) {
-
 };
 
 module.exports = Profile;
