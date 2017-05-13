@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: classes/Bot.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: classes/Bot.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>Bot.prototype.__proto__ = require('events').EventEmitter.prototype;
+const Auth = require('./Auth.js');
+const Trade = require('./Trade.js');
+const Request = require('./Request.js');
+const Friends = require('./Friends.js');
+const Profile = require('./Profile.js');
+const Community = require('./Community.js');
+const TaskManager = require('../lib/TaskManager.js');
+const SteamCommunity = require('steamcommunity');
+const SteamUser = require('steam-user');
+const SteamStore = require('steamstore');
+const TradeOfferManager = require('steam-tradeoffer-manager');
+const SteamID = TradeOfferManager.SteamID;
+
+/**
+ * Create a new bot instance
+ *
+ * @param username
+ * @param password
+ * @param details
+ * @param settings
+ * @param logger
+ * @constructor
+ */
+function Bot(username, password, details, settings, logger) {
+    // Ensure account values are valid
+    var self = this;
+    // Init all required variables
+    if (typeof username != "string" || typeof password != "string")
+        if (!details.hasOwnProperty("steamguard") || !(details.hasOwnProperty("oAuthToken")))
+            throw Error("Invalid username/password or missing oAuthToken/Steamguard code");
+
+    if (typeof details == "object") {
+        if (details.hasOwnProperty("displayName"))
+            self.displayName = details.displayName;
+    }
+    self.username = username;
+    self.password = password;
+    self.settings = settings || {
+            api_key: "",
+            tradeCancelTime: 60 * 60 * 24,
+            tradePendingCancelTime: 60 * 60 * 24,
+            language: "en",
+            tradePollInterval: 5000,
+            tradeCancelOfferCount: 30,
+            tradeCancelOfferCountMinAge: 60 * 60,
+            cancelTradeOnOverflow: true
+        };
+    self.logger = logger;
+    self.community = new SteamCommunity();
+    self.client = new SteamUser();
+
+    self.TradeOfferManager = new TradeOfferManager({
+        "steam": self.client,
+        "community": self.community,
+        "cancelTime": self.settings.tradeCancelTime, // Keep offers upto 1 day, and then just cancel them.
+        "pendingCancelTime": self.settings.tradePendingCancelTime, // Keep offers upto 30 mins, and then cancel them if they still need confirmation
+        "cancelOfferCount": self.settings.tradeCancelOfferCount,// Cancel offers once we hit 7 day threshold
+        "cancelOfferCountMinAge": self.settings.tradeCancelOfferCountMinAge,// Keep offers until 7 days old
+        "language": self.settings.language, // We want English item descriptions
+        "pollInterval": self.settings.tradePollInterval // We want to poll every 5 seconds since we don't have Steam notifying us of offers
+    });
+    self.SteamID = TradeOfferManager.SteamID;
+    self.request = self.community.request;
+    self.store = new SteamStore();
+    self.loggedIn = false;
+    self.rateLimited = true;
+    self.Tasks = new TaskManager(logger);
+
+
+    self.Auth = new Auth(self, details, logger);
+    self.Request = new Request(self.request, logger);
+    self.Auth.on('updatedAccountDetails', function (accountDetails) {
+        self.emit('updatedAccountDetails', accountDetails);
+    });
+    self.Profile = new Profile(self.Tasks, self.community, self.Auth, logger);
+    self.Friends = new Friends(self, self.Request, logger);
+    self.Trade = new Trade(self.TradeOfferManager, self.Auth, self.settings, logger);
+    self.Community = new Community(self.community, self.Auth, logger);
+
+}
+
+/**
+ * @callback callbackErrorOnly
+ * @param {Error} error - An error message if the process failed, undefined if successful
+ */
+
+
+
+
+
+/**
+ * Get the account's username, used to login to Steam
+ * @returns {String} username
+ */
+Bot.prototype.getAccountName = function () {
+    var self = this;
+    return self.username;
+};
+
+/**
+ * Get if the API/account is rate limited by SteamAPI
+ * @returns {Boolean} rateLimited
+ */
+Bot.prototype.getRateLimited = function () {
+    var self = this;
+    return self.rateLimited;
+};
+
+/**
+ * Get if the API/account is rate limited by SteamAPI
+ * @returns {Boolean} rateLimited
+ */
+Bot.prototype.setRateLimited = function (rateLimited) {
+    var self = this;
+    return self.rateLimited = rateLimited;
+};
+
+
+
+/**
+ * Set the user we are chatting with
+ * @param {*|{username: *, sid: *}} chattingUserInfo
+ */
+Bot.prototype.setChatting = function (chattingUserInfo) {
+    var self = this;
+    self.currentChatting = chattingUserInfo;
+};
+
+
+/**
+ * Fetch SteamID Object from the SteamID2, SteamID3, SteamID64 or Tradeurl.
+ * @returns {Error | String}
+ * @deprecated
+ */
+Bot.prototype.fromIndividualAccountID = function (id) {
+    var self = this;
+    var SteamID = TradeOfferManager.SteamID;
+    return new self.SteamID(id);
+};
+
+
+/**
+ * Fetch SteamID Object from the SteamID2, SteamID3, SteamID64 or Tradeurl.
+ * @returns {Error | String}
+ */
+Bot.prototype.getUser = function (id) {
+    var self = this;
+    var SteamID = TradeOfferManager.SteamID;
+    return new self.SteamID(id);
+};
+
+
+
+/**
+ * Get the display name of the account
+ * @returns {String|undefined} displayName - Display name of the account
+ */
+Bot.prototype.getDisplayName = function () {
+    var self = this;
+    return (self.displayName ? self.displayName : undefined);
+};
+
+
+
+
+
+/**
+ * Change the display name of the account (with prefix)
+ * @param {String} newName - The new display name
+ * @param {String} namePrefix - The prefix if there is one (Nullable)
+ * @param {callbackErrorOnly} callbackErrorOnly - A callback returned with possible errors
+ * @deprecated
+ */
+Bot.prototype.changeName = function (newName, namePrefix, callbackErrorOnly) {
+    var self = this;
+    self.Profile.changeDisplayName(newName, namePrefix, callbackErrorOnly);
+};
+
+/**
+ * Retrieve account inventory based on filters
+ * @param {Integer} appid - appid by-which to fetch inventory based on.
+ * @param {Integer} contextid - contextid of lookup (1 - Gifts, 2 - In-game Items, 3 - Coupons, 6 - Game Cards, Profile Backgrounds &amp; Emoticons)
+ * @param {Boolean} tradableOnly - Items retrieved must be tradable
+ * @param {inventoryCallback} inventoryCallback - Inventory details (refer to inventoryCallback for more info.)
+ * @deprecated
+ */
+Bot.prototype.getInventory = function (appid, contextid, tradableOnly, inventoryCallback) {
+    var self = this;
+    if (!self.loggedIn) {
+        self.Tasks.addToQueue('login', self.Trade.getInventory, [appid, contextid, tradableOnly, inventoryCallback]);
+    }
+    else
+        self.Trade.getInventory(appid, contextid, tradableOnly, inventoryCallback);
+};
+
+/**
+ * Retrieve account inventory based on filters and provided steamID
+ * @param {SteamID} steamID - SteamID to use for lookup of inventory
+ * @param {Integer} appid - appid by-which to fetch inventory based on.
+ * @param {Integer} contextid - contextid of lookup (1 - Gifts, 2 - In-game Items, 3 - Coupons, 6 - Game Cards, Profile Backgrounds &amp; Emoticons)
+ * @param {Boolean} tradableOnly - Items retrieved must be tradableOnly
+ * @param {inventoryCallback} inventoryCallback - Inventory details (refer to inventoryCallback for more info.)
+ * @deprecated
+ */
+Bot.prototype.getUserInventory = function (steamID, appid, contextid, tradableOnly, inventoryCallback) {
+    var self = this;
+    if (!self.loggedIn) {
+        self.Tasks.addToQueue('login', self.Trade.getUserInventory, [steamID, appid, contextid, tradableOnly, inventoryCallback]);
+    }
+    else
+        self.Trade.getUserInventory(steamID, appid, contextid, tradableOnly, inventoryCallback);
+};
+/**
+ * Add a phone-number to the account (For example before setting up 2-factor authentication)
+ * @param phoneNumber - Certain format must be followed
+ * @param {callbackErrorOnly} callbackErrorOnly - A callback returned with possible errors
+ */
+Bot.prototype.addPhoneNumber = function (phoneNumber, callbackErrorOnly) {
+    var self = this;
+    self.store.addPhoneNumber(phoneNumber, true, function (err) {
+        callbackErrorOnly(err);
+    });
+};
+
+
+/**
+ * Enter the code to verify the phone number.
+ * @param code
+ * @param {callbackErrorOnly} callbackErrorOnly - A callback returned with possible errors
+ */
+Bot.prototype.verifyPhoneNumber = function (code, callbackErrorOnly) {
+    var self = this;
+    self.store.verifyPhoneNumber(code, function (err) {
+        if (err) {
+            callbackErrorOnly(err);
+        }
+        else {
+            callbackErrorOnly(undefined);
+        }
+    });
+};
+
+
+
+
+
+/**
+ * This is a private method - but incase you would like to edit it for your own usage...
+ * @param cookies - Cookies sent by Steam when logged in
+ * @param sessionID - Session ID as sent by Steam
+ * @param {callbackErrorOnly} callbackErrorOnly - If encountered error (optional)
+ */
+Bot.prototype.loggedInAccount = function (cookies, sessionID, callbackErrorOnly) {
+    var self = this;
+    self.Friends.login(500, 'web');
+    self.logger.log('debug', 'Logged into %j', self.getAccountName());
+    if (self.sessionID != sessionID || self.cookies != cookies) {
+        self.sessionID = sessionID;
+        self.cookies = cookies;
+    }
+
+    self.emit('loggedIn', self);
+
+    if (self.cookies) {
+        self.community.setCookies(cookies);
+        self.store.setCookies(cookies);
+        self.TradeOfferManager.setCookies(cookies, function (err) {
+            if (err) {
+                self.logger.log("debug", "Failed to get API Key - TradeOverflowChecking disabled for %j &amp; getOffers call disabled.", self.getAccountName(), err.Error);
+                if (err.Error == "Access Denied")
+                    self.api_access = false;
+            }
+            else
+                self.api_access = true;
+
+            self.Trade.setAPIAccess(self.api_access);
+        });
+    }
+
+    self.loggedIn = true;
+    self.Tasks.processQueue('login', function (err) {
+        if (err) {
+            self.logger.log('error', err);
+            if (callbackErrorOnly)
+                return callbackErrorOnly(err);
+        }
+        self.community.on('chatTyping', function (senderID) {
+            self.emit('chatTyping', senderID);
+        });
+        self.community.on('chatLoggedOn', function () {
+            self.emit('chatLoggedOn');
+        });
+        self.community.on('chatLogOnFailed', function (err, fatal) {
+            self.emit('chatLogOnFailed', err, fatal);
+        });
+        self.community.on('chatMessage', function (senderID, message) {
+            if (self.currentChatting != undefined &amp;&amp; senderID == self.currentChatting.sid) {
+                console.log(("\n" + self.currentChatting.username + ": " + message));
+            }
+            self.logger.log("debug", "Received message from %j: %s", senderID, message);
+            /**
+             * Emitted when a friend message or chat room message is received.
+             *
+             * @event Bot#chatMessage
+             * @type {object}
+             * @property {SteamID} senderID - The message sender, as a SteamID object
+             * @property {String} message - The message text
+             */
+            self.emit('chatMessage', senderID, message);
+        });
+        self.community.on('sessionExpired', function (err) {
+            self.logger.log('debug', "Login session expired due to " + err);
+            self.emit('sessionExpired', err);
+        });
+        self.TradeOfferManager.on('sentOfferChanged', function (offer, oldState) {
+            /**
+             * Emitted when a trade offer changes state (Ex. accepted, pending, escrow, etc...)
+             *
+             * @event Bot#offerChanged
+             * @type {object}
+             * @property {TradeOffer} offer - The new offer's details
+             * @property {TradeOffer} oldState - The old offer's details
+             * @deprecated
+             */
+            self.emit('offerChanged', offer, oldState);
+        });
+        self.TradeOfferManager.on('sentOfferChanged', function (offer, oldState) {
+            /**
+             * Emitted when a trade offer changes state (Ex. accepted, pending, escrow, etc...)
+             *
+             * @event Bot#sentOfferChanged
+             * @type {object}
+             * @property {TradeOffer} offer - The new offer's details
+             * @property {TradeOffer} oldState - The old offer's details
+             */
+            self.emit('sentOfferChanged', offer, oldState);
+        });
+        self.TradeOfferManager.on('receivedOfferChanged', function (offer, oldState) {
+            self.emit('receivedOfferChanged', offer, oldState);
+        });
+
+        self.TradeOfferManager.on('offerList', function (filter, sent, received) {
+            /**
+             * Emitted when we fetch the offerList
+             *
+             * @event Bot#offerList
+             * @type {object}
+             */
+            self.emit('offerList', filter, sent, received);
+        });
+        self.TradeOfferManager.on('newOffer', function (offer) {
+            /**
+             * Emitted when we receive a new trade offer
+             *
+             * @event Bot#newOffer
+             * @type {object}
+             * @property {TradeOffer} offer - The offer's details
+             */
+            self.emit('newOffer', offer);
+        });
+
+        self.TradeOfferManager.on('sentOfferChanged', function (offer) {
+            /**
+             * Emitted when we receive a new trade offer notification (only provides amount of offers and no other details)
+             *
+             * @event Bot#tradeOffers
+             * @type {object}
+             * @property {Integer} count - The amount of active trade offers (can be 0).
+             */
+            self.emit('sentOfferChanged', offer);
+        });
+        self.TradeOfferManager.on('realTimeTradeConfirmationRequired', function (offer) {
+            /**
+             * Emitted when a trade offer is cancelled
+             *
+             * @event Bot#tradeOffers
+             * @type {object}
+             * @property {Integer} count - The amount of active trade offers (can be 0).
+             */
+            self.emit('realTimeTradeConfirmationRequired', offer);
+        });
+        self.TradeOfferManager.on('realTimeTradeCompleted', function (offer) {
+            /**
+             * Emitted when a trade offer is cancelled
+             *
+             * @event Bot#tradeOffers
+             * @type {object}
+             * @property {Integer} count - The amount of active trade offers (can be 0).
+             */
+            self.emit('realTimeTradeCompleted', offer);
+        });
+        self.TradeOfferManager.on('sentOfferCanceled', function (offer) {
+            /**
+             * Emitted when a trade offer is cancelled
+             *
+             * @event Bot#tradeOffers
+             * @type {object}
+             * @property {Integer} count - The amount of active trade offers (can be 0).
+             */
+            self.emit('sentOfferCanceled', offer);
+        });
+
+        /**
+         * Emitted when we fully sign into Steam and all functions are usable.
+         *
+         * @event Bot#loggedIn
+         */
+        if (callbackErrorOnly)
+            return callbackErrorOnly(undefined);
+    });
+}
+
+
+Bot.prototype.hasPhone = function (callback) {
+    var self = this;
+    self.store.hasPhone(function (err, hasPhone, lastDigits) {
+        callback(err, hasPhone, lastDigits);
+    });
+};
+
+
+Bot.prototype.setSetting = function (settingName, tempSettingValue) {
+    var self = this;
+    self.settings[settingName] = tempSettingValue;
+};
+Bot.prototype.getSetting = function (tempSetting) {
+    var self = this;
+    if (self.settings.hasOwnProperty(tempSetting))
+        return self.settings[tempSetting];
+    return undefined;
+};
+Bot.prototype.deleteSetting = function (tempSetting) {
+    var self = this;
+    if (self.settings.hasOwnProperty(tempSetting))
+        delete self.settings[tempSetting];
+};
+
+Bot.prototype.logoutAccount = function () {
+    var self = this;
+    self.Friends.logout();
+
+    self.community = new SteamCommunity();
+    self.client = new SteamUser();
+    self.TradeOfferManager = new TradeOfferManager({
+        "steam": self.client,
+        "community": self.community,
+        "cancelTime": self.settings.tradeCancelTime, // Keep offers upto 1 day, and then just cancel them.
+        "pendingCancelTime": self.settings.tradePendingCancelTime, // Keep offers upto 30 mins, and then cancel them if they still need confirmation
+        "cancelOfferCount": self.settings.tradeCancelOfferCount,// Cancel offers once we hit 7 day threshold
+        "cancelOfferCountMinAge": self.settings.tradeCancelOfferCountMinAge,// Keep offers until 7 days old
+        "language": self.settings.language, // We want English item descriptions
+        "pollInterval": 5000 // We want to poll every 5 seconds since we don't have Steam notifying us of offers
+    });
+    self.request = self.community.request;
+    self.store = new SteamStore();
+    self.loggedIn = false;
+};
+
+
+module.exports = Bot;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Bot.html">Bot</a></li><li><a href="BotManager.html">BotManager</a></li><li><a href="GUI_Handler.html">GUI_Handler</a></li></ul><h3>Events</h3><ul><li><a href="Bot.html#event:chatMessage">chatMessage</a></li><li><a href="Bot.html#event:loggedIn">loggedIn</a></li><li><a href="Bot.html#event:newOffer">newOffer</a></li><li><a href="Bot.html#event:offerChanged">offerChanged</a></li><li><a href="Bot.html#event:offerList">offerList</a></li><li><a href="Bot.html#event:sentOfferChanged">sentOfferChanged</a></li><li><a href="Bot.html#event:tradeOffers">tradeOffers</a></li></ul><h3>Global</h3><ul><li><a href="global.html#GUI">GUI</a></li><li><a href="global.html#Winston">Winston</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Tue May 09 2017 17:45:27 GMT-0400 (Eastern Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

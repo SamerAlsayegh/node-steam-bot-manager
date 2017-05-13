@@ -18,6 +18,7 @@ A bot management tool for [Steam Community](http://www.steamcommunity.com) built
 - Enable API-Key*
 - Generate authentication codes on demand (for manual login)
 - Manage multiple bots simultaneously
+- Login using email/2-factor authentication
 - API Support for third-party systems (Betting, Trading, and so on..)
 - Event based interactions of a single bot or multiple
 - Ability to upvote/downvote attachments on Steam Community

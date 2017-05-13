@@ -477,19 +477,17 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
                     self.logger.log("info", "Trying to authenticate into {0}".format(botAccount.getAccountName()));
                     botAccount.Auth.loginAccount(null, function (err) {
                         if (err) {
-                            if (err.Error == "SteamGuardMobile" || err.Error == "SteamGuard" ) {
+                            if (err.hasOwnProperty("emaildomain")) {
                                 var authenticator = [
                                     {
                                         type: 'input',
                                         name: 'code',
-                                        message: "Enter the authenticator code for " + botAccount.username
+                                        message: "Enter the authenticator code sent to your " + err["emaildomain"] + " email account for " + botAccount.username
                                     }
                                 ];
 
                                 inquirer.prompt(authenticator, function (result) {
                                     botAccount.Auth.loginAccount({twoFactorCode: result.code, authCode: result.code}, function (err) {
-                                        if (err)
-                                            self.logger.log("error", "Failed to login due to %j", err);
 
                                         self.displayBotMenu();
 

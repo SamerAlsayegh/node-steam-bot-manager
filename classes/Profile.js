@@ -33,7 +33,7 @@ Profile.prototype.changeDisplayName = function (newName, namePrefix, callbackErr
     else {
         if (namePrefix == undefined) namePrefix = '';
         else namePrefix = namePrefix + " ";
-        console.log(namePrefix + newName)
+        console.log(namePrefix + newName);
 
 
         self.community.editProfile({name: namePrefix + newName}, function (err) {
