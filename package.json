@@ -1,6 +1,6 @@
 {
   "name": "node-steam-bot-manager",
-  "version": "1.0.47",
+  "version": "1.0.48",
   "description": "A NodeJS Steam Bot Management tool. ",
   "main": "lib/index.js",
   "scripts": {
@@ -42,6 +42,8 @@
     "steamcommunity": "^3.19.3",
     "steamstore": "^1.4.0",
     "threads": "^0.7.2",
+    "universal-analytics": "^0.4.13",
+    "uuid": "^3.0.1",
     "winston": "^2.3.1"
   }
 }

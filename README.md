@@ -84,4 +84,12 @@ Frequently the Github source will not be the same version as the latest npm vers
 [![forthebadge](http://forthebadge.com/images/badges/powered-by-water.svg)](http://forthebadge.com)
 [![forthebadge](http://forthebadge.com/images/badges/gluten-free.svg)](http://forthebadge.com)
 
+
+### Tracking
+This tool has statistics built-in to allow only the main developer to track usage of the tool. This tracking is anonmous and if need be, can be disabled at will using the configuration. I may use the tracking to ensure certain functionality is working as intended, and also to ensure this tool is used (low usage, may mean that I do not need to keep updating).
+
+
+
+
+
 \* Using this feature means you agree to Steam's API terms found at: [Steam API Terms](http://steamcommunity.com/dev/apiterms)
