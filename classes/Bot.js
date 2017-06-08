@@ -135,8 +135,7 @@ Bot.prototype.setChatting = function (chattingUserInfo) {
  */
 Bot.prototype.fromIndividualAccountID = function (id) {
     var self = this;
-    var SteamID = TradeOfferManager.SteamID;
-    return new self.SteamID(id);
+    return self.getUser(id);
 };
 
 

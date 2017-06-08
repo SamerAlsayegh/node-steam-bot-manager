@@ -42,21 +42,14 @@ function APITradeBot() {
         });
     });
 
-    botsManager.infoDebug("Starting Bot Manager");
-
-
-    // We start the manager, and then load the API Endpoints, since we need the webserver running to add the endpoints.
-    botsManager.startManager(function (err) {
-        if (err) {
-            return botsManager.errorDebug("Failed to start Bot Manager");
-        }
+    botsManager.on('loadedAPI', function () {
         // Register API endpoint
         botsManager.addEndpoint('POST', '/sendTrade', function (req, res) {
             if (req.body.hasOwnProperty("partner")) {
                 var partner = req.body.partner;// We are getting the 'partner' parameter from the body of the request.
                 if (req.body.hasOwnProperty("items")) {
                     var items = req.body.items;// We are getting the item list
-                    var botAccount = botsManager.chooseRandomBot();
+                    var botAccount = botsManager.randomBot(['canTrade']);
 
                     try {
                         var itemsList = JSON.parse(items);
@@ -65,7 +58,7 @@ function APITradeBot() {
                     }
 
 
-                    var partnerSid = botAccount.fromIndividualAccountID(partner);//Converting the id into a SteamID object (to verify it is valid)
+                    var partnerSid = botAccount.getUser(partner);//Converting the id into a SteamID object (to verify it is valid)
 
 
                     if (partnerSid != null) {
@@ -76,7 +69,7 @@ function APITradeBot() {
                                 return res.json({status: 0, error: "Failed to get Inventory - due to " + err});
 
                             // We will create an offer, and get the currentOffer object so that we fill it.
-                            botAccount.TradeManager.createOffer(partnerSid, function (err, currentOffer) {
+                            botAccount.Trade.createOffer(partnerSid, function (err, currentOffer) {
                                 if (err)
                                     return res.json({status: 0, error: "Failed to create offer - due to " + err});
 
@@ -126,18 +119,11 @@ function APITradeBot() {
                                     if (err) {
                                         return res.json({status: 0, error: "Failed to send offer - due to " + err});
                                     } else {
-                                        botAccount.TradeManager.confirmOutstandingTrades(function (err, confirmedTrades) {
-                                            if (err) {
-                                                return res.json({
-                                                    status: 0,
-                                                    error: "Failed to confirm offer - due to " + err
-                                                });
-                                            }
-                                            else
-                                                return res.json({
-                                                    status: 1,
-                                                    offerInformation: currentOffer.itemsToReceive
-                                                });
+                                        botAccount.Trade.confirmOutstandingTrades(function (confirmedTrades) {
+                                            return res.json({
+                                                status: 1,
+                                                offerInformation: currentOffer.itemsToReceive
+                                            });
                                         });
                                     }
                                 });
@@ -155,6 +141,14 @@ function APITradeBot() {
             } else
                 return res.json({status: 0, error: "Missing 'partner' parameter."});
         });
+    });
+
+    botsManager.infoDebug("Starting Bot Manager");
+    // We start the manager, and then load the API Endpoints, since we need the webserver running to add the endpoints.
+    botsManager.startManager(function (err) {
+        if (err) {
+            return botsManager.errorDebug("Failed to start Bot Manager");
+        }
     });// You must start the manager at the end so that all the hooks above it, are registered.
 }
 

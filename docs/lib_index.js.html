@@ -39,6 +39,8 @@ module.exports = BotManager;
  * Loading logger
  */
 const Winston = require('winston');
+const GA_Tracking = require('universal-analytics');
+const uuidV4 = require('uuid/v4');
 
 /**
  * Loading internal libraries
@@ -50,7 +52,7 @@ const Webserver = require('./webserver.js');
 const ConfigManager = require('./ConfigManager.js');
 const AccountsManager = require('./AccountsManager.js');
 const FileManager = require('./FileManager.js');
-
+const packageJson = require('../package.json');
 
 // Import events module
 BotManager.prototype.__proto__ = require('events').EventEmitter.prototype;
@@ -97,10 +99,38 @@ BotManager.prototype.startManager = function (callbackManager) {
             self.config = config;
             if (config.hasOwnProperty("api_port") &amp;&amp; config.api_port != null) {
                 self.webserver = new Webserver(config.api_port);
-                self.webserver.on('apiLoaded', function () {
-                    self.emit('loadedAPI');
+                self.webserver.start(function(err){
+                    if (err)
+                        self.errorDebug("Failed to start th API webserver - ensure port is not occupied...", err);
+                    else
+                        self.emit('loadedAPI');
                 });
-                self.webserver.start();
+            }
+
+            /**
+             * This section allows me (Undeadkillz) to track usage of the tool (fix issues asap, know how many people use the tool) - don't worry, the data is aggregated and sent to me anonymously.
+             */
+            if (config.hasOwnProperty("statistics") &amp;&amp; config.statistics != null) {
+                if (config.statistics){
+                    var uuid = uuidV4();
+                    self.fileManager.getFile("statistics.json", {uuid:uuid}, function(err, statistics){
+                        if (statistics.hasOwnProperty("uuid")){
+                            self.uuid = statistics.uuid;
+                        } else {
+                            self.fileManager.saveFile("statistics.json", {uuid: uuid}, function(err, statistics){
+                                self.uuid = statistics.uuid;
+                            })
+                        }
+
+                        self.track = GA_Tracking('UA-63794417-8', self.uuid);// Init the tracking code
+                        self.track.event(packageJson.version, "Status", "Online").send();// Trigger the tool's startup.
+                        setInterval(function(){
+                            self.track.event(packageJson.version, "Status", "Online").send();// Trigger the tool's startup.
+                        }, 5*1000*60);
+
+                        self.track.event(packageJson.version, "Collection", "on").send();// Trigger the tool's startup.
+                    });
+                }
             }
 
             self.AccountsManager.getAccounts(function (accounts) {
@@ -137,7 +167,9 @@ BotManager.prototype.startManager = function (callbackManager) {
  */
 BotManager.prototype.addEndpoint = function (method, url, callback) {
     var self = this;
-    self.webserver.addEndpoint(method, url, callback);
+    if (self.track)
+    self.track.event(packageJson.version, "Endpoints", "Added").send()// Trigger the tool's startup.
+        self.webserver.addEndpoint(method, url, callback);
 };
 
 /**
@@ -148,6 +180,8 @@ BotManager.prototype.addEndpoint = function (method, url, callback) {
  */
 BotManager.prototype.removeEndpoint = function (method, url) {
     var self = this;
+    if (self.track)
+        self.track.event(packageJson.version, "Endpoints", "Removed").send()// Trigger the tool's startup.
     self.webserver.removeEndpoint(method, url);
 };
 
@@ -166,12 +200,14 @@ BotManager.prototype.removeEndpoint = function (method, url) {
  */
 BotManager.prototype.apiEndpoint = function (method, url, callback) {
     var self = this;
-    self.webserver.addEndpoint(method, url, callback);
+    self.addEndpoint(method, url, callback);
 };
 
 
 BotManager.prototype.restartAPI = function () {
     var self = this;
+    if (self.track)
+        self.track.event(packageJson.version, "Endpoints", "Restarted API").send()// Trigger the tool's startup.
     self.webserver.restart();
 };
 
@@ -188,6 +224,8 @@ BotManager.prototype.getAppID = function () {
  */
 BotManager.prototype.unregisterAccount = function (botAccount, unregisterCallback) {
     var self = this;
+    if (self.track)
+        self.track.event(packageJson.version, "Accounts", "Unregistered").send();// Trigger the tool's startup.
     self.ActiveBotAccounts.splice(self.ActiveBotAccounts.indexOf(botAccount), self.getAccounts().indexOf(botAccount) + 1);
     // self.AccountsManager.saveAccounts(self.ActiveBotAccounts, function (err, savedObject) {
     // if (err)
@@ -284,23 +322,58 @@ BotManager.prototype.registerAccount = function (username, password, options, ca
             }
         }, 60000);
     });
-
+    if (self.track)
+        self.track.event(packageJson.version, "Accounts", "Registered").send()// Trigger the tool's startup.
     self.emit('loadedAccount', username, password);
     self.ActiveBotAccounts.push(botAccount);
     callback(null, botAccount);
-
 };
 
 /**
  * Choose a random bot (not checked if online)
  * @returns {*}
+ * @deprecated
  */
 BotManager.prototype.chooseRandomBot = function () {
     var self = this;
     var randomBotIndex = Math.floor((Math.random() * self.getAccounts().length) % 1 == 0 &amp;&amp; (Math.random() * self.getAccounts().length) > 0 ? self.getAccounts().length - 1 : (Math.random() * self.getAccounts().length));
     return self.getAccounts()[randomBotIndex];
 };
+/**
+ * Choose a random bot - with filters
+ * Will simple loop until it find a bot that meets all filters - otherwise it will just randomly choose one.
+ * Make sure to set filters based on your use-case.
+ * filters: in array of Strings
+ * 'canTrade' - Bot can access the API and can trade
+ *
+ * @returns {*}
+ */
+BotManager.prototype.randomBot = function (filters) {
+    var self = this;
+    if (filters.constructor !== Array)
+        filters = [];
 
+    if (filters.length == 0) {
+        var randomBotIndex = Math.floor((Math.random() * self.getAccounts().length) % 1 == 0 &amp;&amp; (Math.random() * self.getAccounts().length) > 0 ? self.getAccounts().length - 1 : (Math.random() * self.getAccounts().length));
+        return self.getAccounts()[randomBotIndex];
+    }
+    else {
+        for (var botIndex in self.getAccounts()) {
+            if (filters.indexOf("canTrade") != -1) {
+                if (self.getAccounts()[botIndex].Trade.api_access)
+                    return self.getAccounts()[botIndex];
+            }
+            if (botIndex == self.getAccounts().length-1){
+                // No bot meets our needs... Return undefined.
+                return undefined;
+            }
+        }
+    }
+
+
+
+
+};
 
 /**
  * Post/log an informational message.
@@ -327,6 +400,8 @@ BotManager.prototype.logDebug = function (message) {
  */
 BotManager.prototype.errorDebug = function (message) {
     var self = this;
+    if (self.track)
+        self.track.exception(message, true).send();// Trigger the tool's startup.
     self.logger.log('error', message);
 };
 </code></pre>
@@ -345,7 +420,7 @@ BotManager.prototype.errorDebug = function (message) {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Tue May 09 2017 17:45:27 GMT-0400 (Eastern Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Thu Jun 08 2017 09:57:41 GMT-0400 (Eastern Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>
