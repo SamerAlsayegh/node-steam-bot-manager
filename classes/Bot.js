@@ -355,16 +355,6 @@ Bot.prototype.loggedInAccount = function (cookies, sessionID, callbackErrorOnly)
             self.emit('newOffer', offer);
         });
 
-        self.TradeOfferManager.on('sentOfferChanged', function (offer) {
-            /**
-             * Emitted when we receive a new trade offer notification (only provides amount of offers and no other details)
-             *
-             * @event Bot#tradeOffers
-             * @type {object}
-             * @property {Integer} count - The amount of active trade offers (can be 0).
-             */
-            self.emit('sentOfferChanged', offer);
-        });
         self.TradeOfferManager.on('realTimeTradeConfirmationRequired', function (offer) {
             /**
              * Emitted when a trade offer is cancelled
