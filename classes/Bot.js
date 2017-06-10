@@ -38,12 +38,12 @@ function Bot(username, password, details, settings, logger) {
     self.password = password;
     self.settings = settings || {
             api_key: "",
-            tradeCancelTime: 60 * 60 * 24,
-            tradePendingCancelTime: 60 * 60 * 24,
+            tradeCancelTime: 60 * 60 * 24 * 1000,
+            tradePendingCancelTime: 60 * 60 * 24 * 1000,
             language: "en",
             tradePollInterval: 5000,
             tradeCancelOfferCount: 30,
-            tradeCancelOfferCountMinAge: 60 * 60,
+            tradeCancelOfferCountMinAge: 60 * 60 * 1000,
             cancelTradeOnOverflow: true
         };
     self.logger = logger;
@@ -60,7 +60,6 @@ function Bot(username, password, details, settings, logger) {
         "language": self.settings.language, // We want English item descriptions
         "pollInterval": self.settings.tradePollInterval // We want to poll every 5 seconds since we don't have Steam notifying us of offers
     });
-    self.SteamID = TradeOfferManager.SteamID;
     self.request = self.community.request;
     self.store = new SteamStore();
     self.loggedIn = false;
@@ -75,7 +74,7 @@ function Bot(username, password, details, settings, logger) {
     });
     self.Profile = new Profile(self.Tasks, self.community, self.Auth, logger);
     self.Friends = new Friends(self, self.Request, logger);
-    self.Trade = new Trade(self.TradeOfferManager, self.Auth, self.settings, logger);
+    self.Trade = new Trade(self.TradeOfferManager, self.Auth, self.Tasks, self.settings, logger);
     self.Community = new Community(self.community, self.Auth, logger);
 
 }
@@ -85,8 +84,11 @@ function Bot(username, password, details, settings, logger) {
  * @param {Error} error - An error message if the process failed, undefined if successful
  */
 
-
-
+/**
+ * This error callback is expected only to return an error, and no other information.
+ * @callback errorOnlyCallback
+ * @param {Error} error - An error message if the process failed, undefined if successful
+ */
 
 
 /**
@@ -117,7 +119,6 @@ Bot.prototype.setRateLimited = function (rateLimited) {
 };
 
 
-
 /**
  * Set the user we are chatting with
  * @param {*|{username: *, sid: *}} chattingUserInfo
@@ -129,26 +130,31 @@ Bot.prototype.setChatting = function (chattingUserInfo) {
 
 
 /**
- * Fetch SteamID Object from the SteamID2, SteamID3, SteamID64 or Tradeurl.
+ * Fetch SteamID Object from the Individual Account ID (i.e 46143802)
+ * @returns {Error | String}
+ */
+Bot.prototype.getUserFromAccountID = function (id) {
+    return SteamID.fromIndividualAccountID(id);
+};
+
+
+/**
+ * Fetch SteamID Object from the Individual Account ID (i.e 46143802)
  * @returns {Error | String}
  * @deprecated
  */
 Bot.prototype.fromIndividualAccountID = function (id) {
     var self = this;
-    return self.getUser(id);
+    return self.getUserFromAccountID(id);
 };
-
 
 /**
  * Fetch SteamID Object from the SteamID2, SteamID3, SteamID64 or Tradeurl.
- * @returns {Error | String}
+ * @returns {Error | SteamID}
  */
-Bot.prototype.getUser = function (id) {
-    var self = this;
-    var SteamID = TradeOfferManager.SteamID;
-    return new self.SteamID(id);
+Bot.prototype.getUser = function (steamid) {
+    return new SteamID(steamid);
 };
-
 
 
 /**
@@ -159,9 +165,6 @@ Bot.prototype.getDisplayName = function () {
     var self = this;
     return (self.displayName ? self.displayName : undefined);
 };
-
-
-
 
 
 /**
@@ -186,11 +189,7 @@ Bot.prototype.changeName = function (newName, namePrefix, callbackErrorOnly) {
  */
 Bot.prototype.getInventory = function (appid, contextid, tradableOnly, inventoryCallback) {
     var self = this;
-    if (!self.loggedIn) {
-        self.Tasks.addToQueue('login', self.Trade.getInventory, [appid, contextid, tradableOnly, inventoryCallback]);
-    }
-    else
-        self.Trade.getInventory(appid, contextid, tradableOnly, inventoryCallback);
+    self.Trade.getInventory(appid, contextid, tradableOnly, inventoryCallback);
 };
 
 /**
@@ -205,7 +204,7 @@ Bot.prototype.getInventory = function (appid, contextid, tradableOnly, inventory
 Bot.prototype.getUserInventory = function (steamID, appid, contextid, tradableOnly, inventoryCallback) {
     var self = this;
     if (!self.loggedIn) {
-        self.Tasks.addToQueue('login', self.Trade.getUserInventory, [steamID, appid, contextid, tradableOnly, inventoryCallback]);
+        self.Tasks.addToQueue('login', self, self.Trade.getUserInventory, [steamID, appid, contextid, tradableOnly, inventoryCallback]);
     }
     else
         self.Trade.getUserInventory(steamID, appid, contextid, tradableOnly, inventoryCallback);
@@ -241,9 +240,6 @@ Bot.prototype.verifyPhoneNumber = function (code, callbackErrorOnly) {
 };
 
 
-
-
-
 /**
  * This is a private method - but incase you would like to edit it for your own usage...
  * @param cookies - Cookies sent by Steam when logged in
@@ -272,7 +268,7 @@ Bot.prototype.loggedInAccount = function (cookies, sessionID, callbackErrorOnly)
             }
             else
                 self.api_access = true;
-
+            self.SteamID = self.TradeOfferManager.steamID;
             self.Trade.setAPIAccess(self.api_access);
         });
     }
@@ -408,7 +404,7 @@ Bot.prototype.loggedInAccount = function (cookies, sessionID, callbackErrorOnly)
         if (callbackErrorOnly)
             return callbackErrorOnly(undefined);
     });
-}
+};
 
 
 Bot.prototype.hasPhone = function (callback) {

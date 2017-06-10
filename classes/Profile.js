@@ -28,7 +28,7 @@ Profile.prototype.changeDisplayName = function (newName, namePrefix, callbackErr
     var self = this;
     // Temporarily removed...
     if (!self.Auth.loggedIn) {
-        self.TaskManager.addToQueue('login', self.changeDisplayName, [newName, namePrefix, callbackErrorOnly]);
+        self.TaskManager.addToQueue('login', self, self.changeDisplayName, [newName, namePrefix, callbackErrorOnly]);
     }
     else {
         if (namePrefix == undefined) namePrefix = '';

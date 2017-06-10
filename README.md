@@ -36,7 +36,13 @@ You can check examples of bots you can build by navigating to the 'examples' fol
 
 ## TODO:
 - Expand API access
-- Add more examples
+
+## Updates:
+The update policy of this tool is that I will try to post an update every week to few weeks. In the event of large changes, there will be an announcement on ETA. Furthermore, if you happen to use the tool with a certain version of the API, and newer releases do not have the functionality you need, simply rollback using npm package manager. 
+Versions are organized in such manner as of 1.0.50:
+- X.0.0 (Complete release)
+- 1.X.0 (Major release)
+- 1.0.X (Bug fixes)
 
 
 ## Libraries used:

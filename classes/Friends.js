@@ -66,7 +66,7 @@ function Friends(main, request, logger) {
             // Due to the fact that we must submit an API call everytime we need friends list, we will cach the data for 5 minutes. Clear cach on force.
             if (!self.main.loggedIn) {
                 self.logger.log('debug', "Queued getFriends method until login.");
-                self.main.addToQueue('login', self.getFriends, [callback]);
+                self.main.addToQueue('login', self, self.getFriends, [callback]);
             }
             else {
                 self.logger.log('debug', "Getting a fresh list of friends");

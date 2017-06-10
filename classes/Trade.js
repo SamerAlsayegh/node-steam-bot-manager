@@ -1,12 +1,12 @@
 Trade.prototype.__proto__ = require('events').EventEmitter.prototype;
 
-function Trade(trade, auth, settings, logger) {
+function Trade(trade, auth, tasks, settings, logger) {
     var self = this;
     if (typeof trade != "object" || typeof auth != "object")
         throw Error("TradeOfferManager & AuthHandler must be passed respectively.");
     self.auth = auth;
     self.trade = trade;
-    self.tasks = auth.BotAccount.Tasks;
+    self.tasks = tasks;
     self.api_access = false;
     self.logger = logger;
     if (typeof settings != "object")
@@ -26,7 +26,7 @@ Trade.prototype.setAPIAccess = function (api_access) {
  */
 Trade.prototype.confirmOutstandingTrades = function (callback) {
     var self = this;
-    var time = self.auth.getTime(0);
+    var time = self.auth.getTime();
     self.auth.getConfirmations(time, self.auth.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
         if (err) {
             if (self.logger != undefined)
@@ -184,7 +184,7 @@ Trade.prototype.confirmTradesFromUser = function (SteamID, callback) {
 Trade.prototype.getInventory = function (appid, contextid, tradableOnly, inventoryCallback) {
     var self = this;
     if (!self.auth.loggedIn) {
-        self.tasks.addToQueue('login', self.getInventory, [appid, contextid, tradableOnly, inventoryCallback]);
+        self.tasks.addToQueue('login', self, self.getInventory, [appid, contextid, tradableOnly, inventoryCallback]);
     }
     else
         self.trade.loadInventory(appid, contextid, tradableOnly, inventoryCallback);
@@ -201,7 +201,7 @@ Trade.prototype.getInventory = function (appid, contextid, tradableOnly, invento
 Trade.prototype.getUserInventory = function (steamID, appid, contextid, tradableOnly, inventoryCallback) {
     var self = this;
     if (!self.auth.loggedIn) {
-        self.tasks.addToQueue('login', self.getUserInventory, [steamID, appid, contextid, tradableOnly, inventoryCallback]);
+        self.tasks.addToQueue('login', self, self.getUserInventory, [steamID, appid, contextid, tradableOnly, inventoryCallback]);
     }
     else
         self.trade.loadUserInventory(steamID, appid, contextid, tradableOnly, inventoryCallback);

@@ -71,7 +71,7 @@ function Auth(BotAccount, accountDetails, logger) {
     /**
      * Login to account using supplied details (2FactorCode, authcode, or captcha)
      * @param details
-     * @param callbackErrorOnly
+     * @callback callbackErrorOnly
      */
     Auth.prototype.loginAccount = function (details, callbackErrorOnly) {
         var self = this;
@@ -93,7 +93,7 @@ function Auth(BotAccount, accountDetails, logger) {
                     if (err != undefined && err.Error == "HTTP error 429") {
                         self.emit('rateLimitedSteam');
                         self.logger.log('error', "Rate limited by Steam - Delaying request.");
-                        self.BotAccount.addToQueue('ratelimit', self.loginAccount, [details, callbackErrorOnly]);
+                        self.BotAccount.addToQueue('ratelimit', self, self.loginAccount, [details, callbackErrorOnly]);
                     }
                     self.logger.log('error', "Failed to login into account via oAuth due to " + err);
                     if (callbackErrorOnly != undefined)
@@ -111,7 +111,7 @@ function Auth(BotAccount, accountDetails, logger) {
                     if (err != undefined && err.Error == "HTTP error 429") {
                         self.emit('rateLimitedSteam');
                         self.logger.log('error', "Rate limited by Steam - Delaying request.");
-                        self.BotAccount.addToQueue('ratelimit', self.loginAccount, [details, callbackErrorOnly]);
+                        self.BotAccount.addToQueue('ratelimit', self, self.loginAccount, [details, callbackErrorOnly]);
                     }
                     self.emit('updatedAccountDetails', privateStore[self.accountName].accountDetails);
                     self.logger.log('error', "Failed to login into account due to " + err);
@@ -129,9 +129,8 @@ function Auth(BotAccount, accountDetails, logger) {
     };
 
     /**
-     * Login to account using supplied details (2FactorCode, authcode, or captcha)
+     * Logout from chat of the botAccount
      * @param details
-     * @param callbackErrorOnly
      */
     Auth.prototype.logoutAccount = function () {
         var self = this;
@@ -192,9 +191,10 @@ function Auth(BotAccount, accountDetails, logger) {
         var self = this;
         var protectedDetails = ["username", "accountName", "oAuthToken", "steamguard", "password", "shared_secret", "identity_secret", "revocation_code"];
         for (var newDetail in newDetails) {
-            if (protectedDetails.indexOf(newDetail) == -1)
-                if (newDetails.hasOwnProperty(newDetail))
-                    privateStore[self.accountName].accountDetails[newDetail] = newDetails[newDetail];
+            if (newDetails.hasOwnProperty(newDetail))
+                if (protectedDetails.indexOf(newDetail) == -1)
+                    if (newDetails.hasOwnProperty(newDetail))
+                        privateStore[self.accountName].accountDetails[newDetail] = newDetails[newDetail];
         }
         self.emit('updatedAccountDetails', privateStore[self.accountName].accountDetails);
     };

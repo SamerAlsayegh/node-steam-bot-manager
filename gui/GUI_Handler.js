@@ -137,7 +137,7 @@ GUI_Handler.prototype.displayBotMenu = function () {
                 process.exit();
                 break;
             default:
-                self.main.botLookup(result.username.split("\[")[0], function (err, accountDetails) {
+                self.main.findBot(result.username.split("\[")[0], function (err, accountDetails) {
                     // Check if bot is online or offline
                     if (err) {
                         self.logger.log("error", err);
@@ -268,9 +268,7 @@ GUI_Handler.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                                                             self.logger.log("error", err);
                                                             self.displayMenu(botAccount);
                                                         } else {
-                                                            botAccount.Trade.confirmOutstandingTrades(function (err, confirmedTrades) {
-                                                                if (err)
-                                                                    self.logger.log("error", err);
+                                                            botAccount.Trade.confirmOutstandingTrades(function (confirmedTrades) {
                                                                 self.logger.log("info", "Sent trade offer to %s.", partner.username);
                                                                 self.displayMenu(botAccount);
                                                             });
