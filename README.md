@@ -24,6 +24,10 @@ A bot management tool for [Steam Community](http://www.steamcommunity.com) built
 - Ability to upvote/downvote attachments on Steam Community
 - Ability to import accounts into tool 
 
+
+## Requirements
+- NodeJS (V6 is minimum)
+
 ## WIKI
 #### Visit the [wiki](https://github.com/Undeadkillz/node-steam-bot-manager/wiki) for set-up, registration.
 

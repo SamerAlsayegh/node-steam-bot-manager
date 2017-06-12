@@ -113,9 +113,10 @@ function APITradeBot() {
                                 if (currentOffer.itemsToReceive.length == 0)
                                     return res.json({status: 0, error: "Failed to any items required from trade"});
 
+                                currentOffer.setMessage(MESSAGE_ON_TRADE);
 
                                 // We will send the offer to the user with 'partnerSid'
-                                currentOffer.send(MESSAGE_ON_TRADE, function (err, status) {
+                                currentOffer.send(function (err, status) {
                                     if (err) {
                                         return res.json({status: 0, error: "Failed to send offer - due to " + err});
                                     } else {

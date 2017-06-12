@@ -1,3 +1,4 @@
+
 Auth.prototype.__proto__ = require('events').EventEmitter.prototype;
 const SteamTotp = require('steam-totp');
 

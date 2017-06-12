@@ -1,3 +1,4 @@
+
 Bot.prototype.__proto__ = require('events').EventEmitter.prototype;
 const Auth = require('./Auth.js');
 const Trade = require('./Trade.js');
