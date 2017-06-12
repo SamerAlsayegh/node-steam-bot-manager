@@ -256,7 +256,6 @@ Bot.prototype.loggedInAccount = function (cookies, sessionID, callbackErrorOnly)
         self.cookies = cookies;
     }
 
-    self.emit('loggedIn', self);
 
     if (self.cookies) {
         self.community.setCookies(cookies);
@@ -275,6 +274,7 @@ Bot.prototype.loggedInAccount = function (cookies, sessionID, callbackErrorOnly)
     }
 
     self.loggedIn = true;
+    self.emit('loggedIn', self);
     self.Tasks.processQueue('login', function (err) {
         if (err) {
             self.logger.log('error', err);

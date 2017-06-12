@@ -194,7 +194,7 @@ Trade.prototype.getInventory = function (appid, contextid, tradableOnly, invento
         self.tasks.addToQueue('login', self, self.getInventory, [appid, contextid, tradableOnly, inventoryCallback]);
     }
     else
-        self.trade.loadInventory(appid, contextid, tradableOnly, inventoryCallback);
+        self.trade.getInventoryContents(appid, contextid, tradableOnly, inventoryCallback);
 };
 
 /**
@@ -211,7 +211,7 @@ Trade.prototype.getUserInventory = function (steamID, appid, contextid, tradable
         self.tasks.addToQueue('login', self, self.getUserInventory, [steamID, appid, contextid, tradableOnly, inventoryCallback]);
     }
     else
-        self.trade.loadUserInventory(steamID, appid, contextid, tradableOnly, inventoryCallback);
+        self.trade.getUserInventoryContents(steamID, appid, contextid, tradableOnly, inventoryCallback);
 };
 
 
