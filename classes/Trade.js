@@ -26,7 +26,9 @@ Trade.prototype.setAPIAccess = function (api_access) {
  */
 Trade.prototype.confirmOutstandingTrades = function (callback) {
     var self = this;
-    var time = self.auth.getTime();
+self.auth.getTimeOffset(function(err, offset, latency){
+    var time = self.auth.getTime(offset);
+
     self.auth.getConfirmations(time, self.auth.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
         if (err) {
             if (self.logger != undefined)
@@ -34,30 +36,35 @@ Trade.prototype.confirmOutstandingTrades = function (callback) {
             setTimeout(self.confirmOutstandingTrades(callback), 5000);
         }
         else {
-            var confirmedTrades = [];
             if (confirmations.length > 0) {
+                var confIds = [];
+                var confKeys = [];
+
                 for (var confirmId in confirmations) {
                     if (confirmations.hasOwnProperty(confirmId)) {
-                        time = self.auth.getTime(0);
-                        confirmations[confirmId].respond(time, self.auth.generateMobileConfirmationCode(time, "allow"), true, function (err) {
-                            if (err) {
-                                if (self.logger != undefined)
-                                    self.logger.log('error', err.toString());
-                            }
-                            confirmedTrades.push(confirmations[confirmId]);
-                            if (confirmedTrades.length == confirmations.length) {
-                                // Everything went smooth
-                                return callback(confirmations);
-                            }
-
-                        });
+                        confIds.push(confirmations[confirmId].id);
+                        confKeys.push(confirmations[confirmId].key);
                     }
                 }
+
+                self.auth.getTimeOffset(function(err, offset, latency) {
+                    var time = self.auth.getTime(offset);
+                    self.auth.respondToConfirmation(confIds, confKeys, time, self.auth.generateMobileConfirmationCode(time, "allow"), true, function (err) {
+                        if (err) {
+                            if (self.logger != undefined)
+                                self.logger.log('error', "Failed to respond outstanding trade confirmation.");
+                        } else
+                        return callback(confirmations);
+                    });
+                });
+
             } else {
                 callback([]);
             }
         }
     });
+});
+
 };
 
 /**

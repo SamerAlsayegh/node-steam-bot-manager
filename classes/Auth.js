@@ -216,6 +216,11 @@ function Auth(BotAccount, accountDetails, logger) {
         var self = this;
         self.community.getConfirmations(time, key, confirmationsCallback);
     };
+
+    Auth.prototype.respondToConfirmation = function (confID, confKey, time, key, accept, callback) {
+        var self = this;
+        self.community.respondToConfirmation(confID, confKey, time, key, accept, callback);
+    };
 }
 
 
@@ -228,5 +233,12 @@ Auth.prototype.getTime = function (timeOffset) {
     return Math.floor(Date.now() / 1000) + timeOffset;
 };
 
-
+/**
+ * Get time offset using steam... for use with auth.
+ * @param timeOffset
+ * @returns {*}
+ */
+Auth.prototype.getTimeOffset = function (callback) {
+    SteamTotp.getTimeOffset(callback);
+};
 module.exports = Auth;
