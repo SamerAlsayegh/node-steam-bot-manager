@@ -509,8 +509,8 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
                 var authOptions = [];
                 authOptions.push("Edit Display name");
                 authOptions.push(new inquirer.Separator());
-                authOptions.push((botAccount.Auth.has_shared_secret() ? "[ON]" : "[OFF]") + " Two Factor Authentication");
-                authOptions.push( (!botAccount.Auth.has_shared_secret() ? "[Disabled]" : "")  + "Generate 2-factor-authentication code");
+                authOptions.push((botAccount.Auth.has_shared_secret() ? "[ON]" : "[OFF]") + " 2-Factor Authentication");
+                authOptions.push( (!botAccount.Auth.has_shared_secret() ? "[Disabled]" : "")  + "Generate 2-Factor Authentication code");
                 authOptions.push("Back");
 
                 var authMenu = [
@@ -541,13 +541,13 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
 
                             inquirer.prompt(questions).then(function (result) {
                                 botAccount.Profile.changeDisplayName(result.newName, result.prefix ? self.main.config.bot_prefix : undefined, function (err) {
+                                    self.displayMenu(botAccount);
                                     if (err) {
                                         self.main.errorDebug("Failed to change name. Error: {0}".format(err));
                                     }
                                     else {
                                         self.main.infoDebug("Successfully changed display name");
                                     }
-                                    self.displayMenu(botAccount);
                                 })
                             });
 
@@ -559,7 +559,29 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
                                 self.enableTwoFactor(botAccount);
                             } else {
                                 // TODO: Move to BotAccount class
-                                //disable2FA(botAccount);
+                                var questions = [
+                                    {
+                                        type: 'confirm',
+                                        name: 'askDelete',
+                                        default: false,
+                                        message: 'Are you sure you want to disable 2-Factor Authentication on \'' + botAccount.username + '\' account?'
+                                    }
+                                ];
+                                inquirer.prompt(questions).then(function (answers) {
+                                    if (answers.askDelete) {
+                                        botAccount.Auth.disableTwoFactor(function (err) {
+                                            self.displayMenu(botAccount);
+                                            if (err) {
+                                                self.main.errorDebug("Encountered error while disabling 2-Factor Authentication: " + err.toString());
+                                            } else {
+                                                self.main.infoDebug("2-Factor Authentication has been successfully disabled.");
+                                            }
+                                        });
+                                    }
+                                    else {
+                                        self.displayMenu(botAccount);
+                                    }
+                                });
 
                             }
                             break;
@@ -567,10 +589,10 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
                             self.displayMenu(botAccount);
                             if (botAccount.Auth.has_shared_secret()) {
                                 // Send the auth key.
-                                self.main.infoDebug("\nYour authentication code for {0} is {1}".format(botAccount.getAccountName(), botAccount.Auth.generateMobileAuthenticationCode()));
+                                self.main.infoDebug("\nYour 2-Factor Authentication code for {0} is {1}".format(botAccount.getAccountName(), botAccount.Auth.generateMobileAuthenticationCode()));
                             } else {
                                 // Auth not enabled?
-                                self.main.errorDebug("2-factor-authentication is not enabled. Check your email.");
+                                self.main.errorDebug("2-Factor Authentication is not enabled. Check your email.");
                             }
                             break;
                         default:
@@ -582,21 +604,23 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
 
                 break;
             case 6:
+                var botAccountName = botAccount.getAccountName();
                 var questions = [
                     {
                         type: 'confirm',
                         name: 'askDelete',
-                        message: 'Are you sure you want to delete \'' + botAccount.username + '\' account?'
+                        message: 'Are you sure you want to delete \'{0}\' account?'.format(botAccountName)
                     }
                 ];
                 inquirer.prompt(questions).then(function (answers) {
                     if (answers.askDelete) {
-                        self.main.unregisterAccount(botAccount, function (err) {
+                        self.main.deleteAccount(botAccount, function (err) {
                             if (err) {
                                 // Failed...
-                                self.main.errorDebug("Failed to unregister the account - " + err);
+                                self.main.errorDebug("Failed to delete account data due to " + err);
                             }
                             else {
+                                self.main.infoDebug("Successfully deleted {0} from node-steam-bot-manager. A backup of account info was saved under 'deleted'.".format(botAccountName));
                                 self.displayBotMenu();
                             }
                         });

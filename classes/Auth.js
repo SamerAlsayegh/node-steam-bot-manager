@@ -51,7 +51,7 @@ function Auth(BotAccount, accountDetails, logger) {
         if (!privateStore[self.accountName].accountDetails.revocation_code)
             return callback({Error: "There is no revocation code saved."}, undefined);
 
-        self.community.disableTwoFactor(privateStore[self.accountName].accountDetails.revocation_code, function (err, response) {
+        self.community.disableTwoFactor(privateStore[self.accountName].accountDetails.revocation_code, function (err) {
             if (err)
                 return callback(err, undefined);
             self.logger.log('debug', 'Disabled two factor authentication for %j', self.getAccountName());
