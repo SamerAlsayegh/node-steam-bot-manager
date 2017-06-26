@@ -14,7 +14,7 @@ function Community(community, Auth, logger) {
 /**
  * Upvote an attachement file on SteamCommunity
  * @param sharedFileId
- * @param callback
+ * @param callbackErrorOnly
  */
 Community.prototype.upvoteSharedFile = function (sharedFileId, callbackErrorOnly) {
     var self = this;
@@ -27,16 +27,16 @@ Community.prototype.upvoteSharedFile = function (sharedFileId, callbackErrorOnly
     };
 
     self.community.httpRequestPost('https://steamcommunity.com/sharedfiles/voteup', options, function (error, response, body) {
-        if (!error && response.statusCode == 200)
+        if (response.statusCode == 200 && JSON.parse(body).success == 1)
             callbackErrorOnly(undefined);
         else
-            callbackErrorOnly(error);
+            callbackErrorOnly(error || JSON.parse(body).success);
     });
 };
 /**
  * Downvote an attachement file on SteamCommunity.
  * @param sharedFileId
- * @param callback
+ * @param callbackErrorOnly
  */
 Community.prototype.downvoteSharedFile = function (sharedFileId, callbackErrorOnly) {
     var self = this;
@@ -49,11 +49,10 @@ Community.prototype.downvoteSharedFile = function (sharedFileId, callbackErrorOn
     };
 
     self.community.httpRequestPost('https://steamcommunity.com/sharedfiles/votedown', options, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
+        if (response.statusCode == 200 && JSON.parse(body).success == 1)
             callbackErrorOnly(undefined);
-        }
         else
-            callbackErrorOnly(error);
+            callbackErrorOnly(error || JSON.parse(body).success);
     });
 };
 module.exports = Community;

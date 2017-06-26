@@ -102,6 +102,7 @@ function Auth(BotAccount, accountDetails, logger) {
                 }
                 else {
                     self.loggedIn = true;
+                    self.sessionid = sessionID;
                     self.BotAccount.loggedInAccount(cookies, sessionID, callbackErrorOnly);
                 }
             });
@@ -124,6 +125,7 @@ function Auth(BotAccount, accountDetails, logger) {
                 privateStore[self.accountName].accountDetails.oAuthToken = oAuthTokenGen;
                 self.emit('updatedAccountDetails', privateStore[self.accountName].accountDetails);
                 self.loggedIn = true;
+                self.sessionid = sessionID;
                 self.BotAccount.loggedInAccount(cookies, sessionID, callbackErrorOnly);
             });
         }
