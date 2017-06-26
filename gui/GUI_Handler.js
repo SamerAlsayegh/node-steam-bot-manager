@@ -482,7 +482,7 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
                                     {
                                         type: 'input',
                                         name: 'code',
-                                        message: "Enter the authenticator code sent to your " + err["emaildomain"] + " email account for " + botAccount.username
+                                        message: "Enter the authenticator code sent to your " + err["emaildomain"] + " email account for " + botAccount.username + ": "
                                     }
                                 ];
 

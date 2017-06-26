@@ -131,8 +131,10 @@ Friends.prototype.login = function (interval, uiMode) {
  */
 Friends.prototype.logout = function () {
     var self = this;
-    self.logger.log('debug', 'Logged out from chat on %j', self.main.getAccountName());
-    self.main.community.chatLogoff();
+    if (self.main.community.chatState == 3) {
+        self.logger.log('debug', 'Logged out from chat on %j', self.main.getAccountName());
+        self.main.community.chatLogoff();
+    }
 };
 
 
