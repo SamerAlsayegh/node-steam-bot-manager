@@ -23,6 +23,7 @@ A bot management tool for [Steam Community](http://www.steamcommunity.com) built
 - Event based interactions of a single bot or multiple
 - Ability to upvote/downvote attachments on Steam Community
 - Ability to import accounts into tool 
+- Create new Steam accounts easily
 
 
 ## Requirements

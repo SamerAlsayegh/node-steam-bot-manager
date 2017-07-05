@@ -103,7 +103,13 @@ function Auth(BotAccount, accountDetails, logger) {
                 else {
                     self.loggedIn = true;
                     self.sessionid = sessionID;
-                    self.BotAccount.loggedInAccount(cookies, sessionID, callbackErrorOnly);
+                    self.BotAccount.loggedInAccount(cookies, sessionID, function(err, steamid){
+
+                        privateStore[self.accountName].accountDetails.steamid64 = steamid.getSteamID64();
+                        self.emit('updatedAccountDetails', privateStore[self.accountName].accountDetails);
+                        if (callbackErrorOnly != undefined)
+                            return callbackErrorOnly(err);
+                    });
                 }
             });
         }
@@ -123,10 +129,17 @@ function Auth(BotAccount, accountDetails, logger) {
                 }
                 privateStore[self.accountName].accountDetails.steamguard = steamguardGen;
                 privateStore[self.accountName].accountDetails.oAuthToken = oAuthTokenGen;
-                self.emit('updatedAccountDetails', privateStore[self.accountName].accountDetails);
                 self.loggedIn = true;
                 self.sessionid = sessionID;
-                self.BotAccount.loggedInAccount(cookies, sessionID, callbackErrorOnly);
+                self.BotAccount.loggedInAccount(cookies, sessionID, function(err, steamid){
+
+                    privateStore[self.accountName].accountDetails.steamid64 = steamid.getSteamID64();
+
+                    self.emit('updatedAccountDetails', privateStore[self.accountName].accountDetails);
+
+                    if (callbackErrorOnly != undefined)
+                        return callbackErrorOnly(err);
+                });
             });
         }
     };
@@ -192,7 +205,7 @@ function Auth(BotAccount, accountDetails, logger) {
     Auth.prototype._updateAccountDetails = function (newDetails) {
         // We will loop through all new details and ensure they do no edit any protected details
         var self = this;
-        var protectedDetails = ["username", "accountName", "oAuthToken", "steamguard", "password", "shared_secret", "identity_secret", "revocation_code"];
+        var protectedDetails = ["username", "accountName", "oAuthToken", "steamguard", "password", "shared_secret", "identity_secret", "revocation_code", "steamid64"];
         for (var newDetail in newDetails) {
             if (newDetails.hasOwnProperty(newDetail))
                 if (protectedDetails.indexOf(newDetail) == -1)

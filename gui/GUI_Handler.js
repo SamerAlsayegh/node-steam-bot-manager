@@ -1,6 +1,8 @@
 const inquirer = require("inquirer");
-GUI_Handler.prototype.__proto__ = require('events').EventEmitter.prototype;
+const EResult = require("../enums/EResult");
 
+GUI_Handler.prototype.__proto__ = require('events').EventEmitter.prototype;
+var ui = new inquirer.ui.BottomBar();
 
 /**
  * Creates a new GUI_Handler instance.
@@ -19,7 +21,7 @@ GUI_Handler.prototype.displayBotMenu = function () {
     var accounts = self.main.getAccounts();
     for (var accountIndex in accounts) {
         if (accounts.hasOwnProperty(accountIndex)) {
-            tempList.push(accounts[accountIndex].getAccountName() + "[{0}]".format(accounts[accountIndex].getDisplayName()));
+            tempList.push(accounts[accountIndex].getAccountName() + "[{0}]".format(accounts[accountIndex].Profile.getDisplayName()));
         }
     }
     tempList.push(new inquirer.Separator());
@@ -39,8 +41,10 @@ GUI_Handler.prototype.displayBotMenu = function () {
 
             case 'register':
                 var tempList = [];
-                tempList.push("new account");
-                tempList.push(new inquirer.Separator());
+                if (botList.length > 0) {
+                    tempList.push("create new steam account");
+                    tempList.push(new inquirer.Separator());
+                }
                 tempList.push("import account");
 
                 var optionList = [
@@ -62,20 +66,28 @@ GUI_Handler.prototype.displayBotMenu = function () {
                             type: 'password',
                             name: 'password',
                             message: 'What\'s the bot password?'
+                        },
+                        {
+                            type: 'input',
+                            name: 'email',
+                            message: 'What\'s the email to register with?'
                         }
                     ];
                     switch (result.registerOption) {
-                        case 'new account':
+                        case 'create new steam account':
                             inquirer.prompt(accountQuestions).then(function (result) {
-                                if (result.username.length == 0 || result.password.length == 0){
+                                if (result.username.length == 0 || result.password.length == 0 || result.email.length == 0 ){
                                     self.displayBotMenu();
                                     self.main.errorDebug("One or more fields that are required are empty.");
                                 }
                                 else {
-                                    self.main.registerAccount(result.username, result.password, {}, function (err) {
+                                    self.main.randomBot(["canTrade"]).createAccount(result.username, result.password,  result.email, function (result, steamid) {
                                         self.displayBotMenu();
-                                        if (err)
-                                            self.main.errorDebug("The following details are incorrect: \nusername: {0}\npassword: {1}".format(result.username, result.password));
+                                        if (result != EResult.OK)
+                                            self.main.errorDebug("The following error occurred: "  + EResult[result]);
+                                        else
+                                            self.main.infoDebug("Created new account with expected SteamID of "  + steamid);
+
                                     });
                                 }
                             });
@@ -95,17 +107,17 @@ GUI_Handler.prototype.displayBotMenu = function () {
                                 {
                                     type: 'input',
                                     name: 'shared_secret',
-                                    message: 'What\'s the shared_secret?'
+                                    message: 'What\'s the shared_secret? (Optional)'
                                 },
                                 {
                                     type: 'input',
                                     name: 'identity_secret',
-                                    message: 'What\'s the identity_secret?'
+                                    message: 'What\'s the identity_secret? (Optional)'
                                 },
                                 {
                                     type: 'input',
                                     name: 'revocation',
-                                    message: 'What\'s the revocation code?'
+                                    message: 'What\'s the revocation code? (Optional)'
                                 }
                             ];
 
@@ -116,11 +128,14 @@ GUI_Handler.prototype.displayBotMenu = function () {
                                     self.main.errorDebug("One or more fields that are required are empty.");
                                 }
                                 else {
-                                    self.main.registerAccount(result.username, result.password, {
-                                        shared_secret: result.shared_secret,
-                                        identity_secret: result.identity_secret,
-                                        revocation: result.revocation
-                                    }, function (err) {
+                                    var details = {};
+                                    if (result.shared_secret.length > 0)
+                                        details.shared_secret = result.shared_secret;
+                                    if (result.identity_secret.length > 0)
+                                        details.identity_secret = result.identity_secret;
+                                    if (result.revocation.length > 0)
+                                        details.revocation = result.revocation;
+                                    self.main.registerAccount(result.username, result.password, details, function (err) {
                                         self.displayBotMenu();
                                         if (err)
                                             self.main.errorDebug("The following details are incorrect: \nusername: {0}\npassword: {1}".format(result.username, result.password));

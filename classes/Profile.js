@@ -17,6 +17,15 @@ Profile.prototype.uploadAvatar = function (image, format, callbackImageUpload) {
         callbackImageUpload(err, url);
     });
 };
+/**
+ * Get the display name of the account
+ * @returns {String|undefined} displayName - Display name of the account
+ */
+Profile.prototype.getDisplayName = function () {
+    var self = this;
+    return (self.displayName ? self.displayName : undefined);
+};
+
 
 /**
  * Change the display name of the account (with prefix)
@@ -26,28 +35,21 @@ Profile.prototype.uploadAvatar = function (image, format, callbackImageUpload) {
  */
 Profile.prototype.changeDisplayName = function (newName, namePrefix, callbackErrorOnly) {
     var self = this;
-    // Temporarily removed...
     if (!self.Auth.loggedIn) {
         self.TaskManager.addToQueue('login', self, self.changeDisplayName, [newName, namePrefix, callbackErrorOnly]);
     }
     else {
         if (namePrefix == undefined) namePrefix = '';
         else namePrefix = namePrefix + " ";
-        console.log(namePrefix + newName);
 
 
         self.community.editProfile({name: namePrefix + newName}, function (err) {
             if (err) {
-                self.community.setupProfile(function (err) {
-                    if (err)
-                        return callbackErrorOnly(err);
-                    else
-                        return self.changeDisplayName(newName, namePrefix, callbackErrorOnly);
-                });
+                return callbackErrorOnly(err);
             }
             self.displayName = newName;
             self.Auth._updateAccountDetails({displayName: newName});
-            callbackErrorOnly(undefined);
+            return callbackErrorOnly(undefined);
         });
     }
 };
