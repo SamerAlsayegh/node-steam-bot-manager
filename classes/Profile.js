@@ -1,5 +1,14 @@
 Profile.prototype.__proto__ = require('events').EventEmitter.prototype;
 
+
+/**
+ * A class to handle all profile functions for the bot account
+ * @param taskManager
+ * @param community
+ * @param auth
+ * @param logger
+ * @constructor
+ */
 function Profile(taskManager, community, auth, logger) {
     var self = this;
     self.community = community;

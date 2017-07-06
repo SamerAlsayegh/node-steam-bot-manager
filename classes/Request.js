@@ -1,5 +1,12 @@
 Request.prototype.__proto__ = require('events').EventEmitter.prototype;
 
+
+/**
+ * A class to handle manual requests to SteamID on behalf of the bot account.
+ * @param request
+ * @param logger
+ * @constructor
+ */
 function Request(request, logger) {
     var self = this;
     self.request = request;

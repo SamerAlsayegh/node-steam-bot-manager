@@ -1,5 +1,15 @@
 Trade.prototype.__proto__ = require('events').EventEmitter.prototype;
 
+
+/**
+ * A class to handle all trade functions to be done on behalf of the bot account
+ * @param trade
+ * @param auth
+ * @param tasks
+ * @param settings
+ * @param logger
+ * @constructor
+ */
 function Trade(trade, auth, tasks, settings, logger) {
     var self = this;
     if (typeof trade != "object" || typeof auth != "object")

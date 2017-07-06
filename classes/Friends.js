@@ -1,5 +1,13 @@
 Friends.prototype.__proto__ = require('events').EventEmitter.prototype;
 
+
+/**
+ * A class to handle all friend functions for the bot account
+ * @param main
+ * @param request
+ * @param logger
+ * @constructor
+ */
 function Friends(main, request, logger) {
     var self = this;
     if (typeof main != "object")

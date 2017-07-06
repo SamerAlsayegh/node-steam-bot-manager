@@ -1,9 +1,15 @@
-
 Auth.prototype.__proto__ = require('events').EventEmitter.prototype;
 const SteamTotp = require('steam-totp');
 
 var privateStore = {};
 
+/**
+ * A class to handle all authentication functions for a bot account
+ * @param BotAccount
+ * @param accountDetails
+ * @param logger
+ * @constructor
+ */
 function Auth(BotAccount, accountDetails, logger) {
     var self = this;
     self.logger = logger;
@@ -72,7 +78,7 @@ function Auth(BotAccount, accountDetails, logger) {
     /**
      * Login to account using supplied details (2FactorCode, authcode, or captcha)
      * @param details
-     * @callback callbackErrorOnly
+     * @callback {callbackErrorOnly}
      */
     Auth.prototype.loginAccount = function (details, callbackErrorOnly) {
         var self = this;

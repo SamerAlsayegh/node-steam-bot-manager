@@ -3,7 +3,13 @@ const EResult = require("../enums/EResult");
 const SteamID = require('steam-tradeoffer-manager').SteamID;
 
 
-//
+/**
+ * A class to handle all community functions
+ * @param community
+ * @param Auth
+ * @param logger
+ * @constructor
+ */
 function Community(community, Auth, logger) {
     // Ensure account values are valid
     var self = this;
