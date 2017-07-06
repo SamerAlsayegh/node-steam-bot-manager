@@ -17,7 +17,7 @@ var profileId = 'PROFILE_ID_OR_STEAM_ID';// The profile ID is the XXXX in the fo
 function FollowBot() {
 
     /**
-     * We will downvote shared files.
+     * We will un-follow a user
      */
     var unfollow = function () {
         /**
@@ -31,7 +31,7 @@ function FollowBot() {
                 var botAccount = botsManager.getAccounts()[botAccountIndex];// Get botAccount from the index
 
                 /**
-                 * We will execute the command to down vote
+                 * We will execute the command to un-follow user
                  */
                 botAccount.Community.unfollowPublisher(profileId, function (err) {
                     if (err)
@@ -43,7 +43,7 @@ function FollowBot() {
         }
     };
     /**
-     * We will up vote shared files.
+     * We will follow a user
      */
     var follow = function () {
         /**
@@ -63,7 +63,7 @@ function FollowBot() {
                     }
                     else {
                         /**
-                         * We will execute the command to up vote
+                         * We will execute the command to follow a user
                          */
                         botAccount.Community.followPublisher(profileId, function (err) {
                             if (err)
@@ -80,7 +80,7 @@ function FollowBot() {
 
 
     botsManager.startManager(function (err) {
-        setTimeout(follow, 10000);
+        setTimeout(follow, 1000 * 10);// We will delay 10 seconds until all accounts are expected to be logged in... There is obviously a much better way, however it requires a lot of code | This is just a simple example.
     });// You must start the manager at the end so that all the hooks above it, are registered.
 
 }

@@ -18,7 +18,7 @@ function GUIOnly() {
     botsManager.startManager(function (err) {
         if (err)
             botsManager.errorDebug("Failed to start Bot Manager")
-    });// You must start the manager at the end so that all the hooks above it, are registered.
+    });// You must start the manager
 
 }
 

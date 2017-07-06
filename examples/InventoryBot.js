@@ -10,7 +10,7 @@
 
 /* We will require the node-steam-bot-manager module to use it */
 var BotManager = require('node-steam-bot-manager');
-
+var STEAMID64 = '__YOUR_STEAM_ID_64B__';// Here is your SteamID64
 
 function InventoryBot() {
     var botsManager = new BotManager();// Create new instance of the BotManager
@@ -23,7 +23,7 @@ function InventoryBot() {
         // We check if we are receiving or giving items.
         if (offer.itemsToGive.length > 0 && offer.itemsToReceive.length == 0) {
             // In this case we (the bot) are giving items.
-            if (offer.partner.getSteamID64() == '__YOUR_STEAM_ID_64B__') {
+            if (offer.partner.getSteamID64() == STEAMID64) {
                 // We will be giving items in this case. So only accept if the 64Bit SteamID is ours/admins.
                 offer.accept(true, function (err, status) {
                     if (err)
@@ -62,10 +62,8 @@ function InventoryBot() {
     });
     botsManager.infoDebug("Starting Bot Manager");
     botsManager.startManager(function (err) {
-        if (err) {
+        if (err)
             botsManager.errorDebug("Failed to start Bot Manager");
-
-        }
     });// You must start the manager at the end so that all the hooks above it, are registered.
 }
 

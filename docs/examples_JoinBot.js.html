@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: examples/VoteBot.js</title>
+    <title>JSDoc: Source: examples/JoinBot.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: examples/VoteBot.js</h1>
+    <h1 class="page-title">Source: examples/JoinBot.js</h1>
 
     
 
@@ -27,10 +27,7 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>/**
- * This is a simple example of a bot that will hook into the API and provide a way to vote on attachements through all bot accounts
- * I do not promote the use of this file, it is made for educational purposes on the possible functionality of this tool.
- *
- * Note: This is simply a proof-of-concept
+ * This is a simple example of a bot that will hook into the API and provide a way to have bot accounts join a certain group.
  *
  * Make sure you copy this file and not use it directly. Follow install instructions on github.
  */
@@ -38,15 +35,16 @@
 
 /* We will require the node-steam-bot-manager module to use it */
 var BotManager = require('node-steam-bot-manager');
+
 var botsManager = new BotManager();// Create new instance of the BotManager
-var attachementId = '___SHARED_FILE_ID___';
+var groupID = 'XXXXX';// The group ID can be the name of the group in the URL or SteamID Object. Example: http://steamcommunity.com/groups/XXXXX
 
-function VoteBot() {
+function JoinBot() {
 
     /**
-     * We will downvote shared files.
+     * We will join the group
      */
-    var downVote = function () {
+    var join = function () {
         /**
          * We will loop through all bot accounts
          */
@@ -57,41 +55,23 @@ function VoteBot() {
             (function () {
                 var botAccount = botsManager.getAccounts()[botAccountIndex];// Get botAccount from the index
 
-                /**
-                 * We will execute the command to down vote
-                 */
-                botAccount.Community.downvoteSharedFile(attachementId, function (err) {
-                    if (err)
-                        botsManager.errorDebug("Failed to down vote shared file.");
-                    else
-                        botsManager.infoDebug("Successfully down vote shared file by " + botAccount.getAccountName());
-                });
-            })();
-        }
-    };
-    /**
-     * We will up vote shared files.
-     */
-    var upVote = function () {
-        /**
-         * We will loop through all bot accounts
-         */
-        for (var botAccountIndex in botsManager.getAccounts()) {
-            /**
-             * To avoid over-writing the same variable due to the for loop, we will enclose in a function.
-             */
-            (function () {
-                var botAccount = botsManager.getAccounts()[botAccountIndex];// Get botAccount from the index
 
-                /**
-                 * We will execute the command to up vote
-                 */
-                botAccount.Community.upvoteSharedFile(attachementId, function (err) {
-                    if (err)
-                        botsManager.errorDebug("Failed to up vote shared file.");
-                    else
-                        botsManager.infoDebug("Successfully up voted shared file by " + botAccount.getAccountName());
-                });
+                botAccount.Community.setupProfile(function(err){
+                    if (err){
+                        botsManager.errorDebug("Failed to set-up account. Due to " + err);
+                    }
+                    else {
+                        /**
+                         * We will execute the command to join group
+                         */
+                        botAccount.Community.joinGroup(groupID, function (err) {
+                            if (err)
+                                botsManager.errorDebug("Failed to join group. " + err);
+                            else
+                                botsManager.infoDebug("Successfully joined group with  " + botAccount.getAccountName());
+                        });
+                    }
+                })
 
             })();
         }
@@ -99,14 +79,15 @@ function VoteBot() {
 
 
     botsManager.startManager(function (err) {
-        setTimeout(upVote, 1000 * 10);// We will delay 10 seconds until all accounts are expected to be logged in... There is obviously a much better way, however it requires a lot of code | This is just a simple example.
+        setTimeout(join, 1000 * 10);// We will delay 10 seconds until all accounts are expected to be logged in... There is obviously a much better way, however it requires a lot of code | This is just a simple example.
     });// You must start the manager at the end so that all the hooks above it, are registered.
 
 }
 
-new VoteBot();// Run the code above.
+// call the rest of the code and have it execute after 10 seconds
+new JoinBot();// Run the code above.
 
-module.exports = VoteBot;
+module.exports = JoinBot;
 </code></pre>
         </article>
     </section>
