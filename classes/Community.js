@@ -87,20 +87,22 @@ Community.prototype.previewSharedFile = function (sharedFileId, callbackErrorOnl
 /**
  * Favourite an attachement file on SteamCommunity.
  * @param sharedFileId
+ * @param sharedFileAppId
  * @param callbackErrorOnly
  */
-Community.prototype.favouriteSharedFile = function (sharedFileId, callbackErrorOnly) {
+Community.prototype.favouriteSharedFile = function (sharedFileId, sharedFileAppId, callbackErrorOnly) {
     var self = this;
 
     var options = {
         form: {
             'sessionid': self.Auth.sessionid,
-            'id': sharedFileId
+            'id': sharedFileId,
+            'appid': sharedFileAppId
         }
     };
 
     self.community.httpRequestPost('http://steamcommunity.com/sharedfiles/favorite', options, function (error, response, body) {
-        if (response.statusCode == 200 && JSON.parse(body).success == 1)
+        if (!error)
             callbackErrorOnly(undefined);
         else
             callbackErrorOnly(error || EResult[JSON.parse(body).success]);
@@ -110,20 +112,22 @@ Community.prototype.favouriteSharedFile = function (sharedFileId, callbackErrorO
 /**
  * Unfavourite an attachement file on SteamCommunity.
  * @param sharedFileId
+ * @param sharedFileAppId
  * @param callbackErrorOnly
  */
-Community.prototype.unfavouriteSharedFile = function (sharedFileId, callbackErrorOnly) {
+Community.prototype.unfavouriteSharedFile = function (sharedFileId, sharedFileAppId, callbackErrorOnly) {
     var self = this;
 
     var options = {
         form: {
             'sessionid': self.Auth.sessionid,
-            'id': sharedFileId
+            'id': sharedFileId,
+            'appid': sharedFileAppId
         }
     };
 
     self.community.httpRequestPost('http://steamcommunity.com/sharedfiles/unfavorite', options, function (error, response, body) {
-        if (response.statusCode == 200 && JSON.parse(body).success == 1)
+        if (!error)
             callbackErrorOnly(undefined);
         else
             callbackErrorOnly(error || EResult[JSON.parse(body).success]);
@@ -187,7 +191,7 @@ Community.prototype.unfollowPublisher = function (steamid, callbackErrorOnly) {
         if (response.statusCode == 200 && JSON.parse(body).success == 1)
             callbackErrorOnly(undefined);
         else
-            callbackErrorOnly(error.Error || EResult[JSON.parse(body).success]);
+            callbackErrorOnly(error || EResult[JSON.parse(body).success]);
     });
 };
 

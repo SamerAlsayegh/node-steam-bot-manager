@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: examples/VoteBot.js</title>
+    <title>JSDoc: Source: examples/FavouriteBot.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: examples/VoteBot.js</h1>
+    <h1 class="page-title">Source: examples/FavouriteBot.js</h1>
 
     
 
@@ -27,7 +27,7 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>/**
- * This is a simple example of a bot that will hook into the API and provide a way to vote on attachements through all bot accounts
+ * This is a simple example of a bot that will hook into the API and provide a way to favourite attachements on SteamCommunity
  * I do not promote the use of this file, it is made for educational purposes on the possible functionality of this tool.
  *
  * Note: This is simply a proof-of-concept
@@ -40,13 +40,13 @@
 var BotManager = require('node-steam-bot-manager');
 var botsManager = new BotManager();// Create new instance of the BotManager
 var attachementId = '___SHARED_FILE_ID___';
-
-function VoteBot() {
+var attachementAppId = '___SHARED_FILE_APP_ID___';
+function FavouriteBot() {
 
     /**
-     * We will downvote shared files.
+     * We will favourite a shared file
      */
-    var downVote = function () {
+    var favourite = function () {
         /**
          * We will loop through all bot accounts
          */
@@ -58,21 +58,21 @@ function VoteBot() {
                 var botAccount = botsManager.getAccounts()[botAccountIndex];// Get botAccount from the index
 
                 /**
-                 * We will execute the command to down vote
+                 * We will execute the command to favourite a shared file
                  */
-                botAccount.Community.downvoteSharedFile(attachementId, function (err) {
+                botAccount.Community.favouriteSharedFile(attachementId, attachementAppId, function (err) {
                     if (err)
-                        botsManager.errorDebug("Failed to down vote shared file.");
+                        botsManager.errorDebug("Failed to favourite file.");
                     else
-                        botsManager.infoDebug("Successfully down vote shared file by " + botAccount.getAccountName());
+                        botsManager.infoDebug("Successfully favoured file by " + botAccount.getAccountName());
                 });
             })();
         }
     };
     /**
-     * We will up vote shared files.
+     * We will un-favourite a shared file
      */
-    var upVote = function () {
+    var unfavourite = function () {
         /**
          * We will loop through all bot accounts
          */
@@ -84,13 +84,13 @@ function VoteBot() {
                 var botAccount = botsManager.getAccounts()[botAccountIndex];// Get botAccount from the index
 
                 /**
-                 * We will execute the command to up vote
+                 * We will execute the command to un-favourite a shared file
                  */
-                botAccount.Community.upvoteSharedFile(attachementId, function (err) {
+                botAccount.Community.unfavouriteSharedFile(attachementId, attachementAppId, function (err) {
                     if (err)
-                        botsManager.errorDebug("Failed to up vote shared file.");
+                        botsManager.errorDebug("Failed to un-favourite file.");
                     else
-                        botsManager.infoDebug("Successfully up voted shared file by " + botAccount.getAccountName());
+                        botsManager.infoDebug("Successfully un-favoured file by " + botAccount.getAccountName());
                 });
 
             })();
@@ -99,14 +99,14 @@ function VoteBot() {
 
 
     botsManager.startManager(function (err) {
-        setTimeout(upVote, 1000 * 10);// We will delay 10 seconds until all accounts are expected to be logged in... There is obviously a much better way, however it requires a lot of code | This is just a simple example.
+        setTimeout(unfavourite, 1000 * 10);// We will delay 10 seconds until all accounts are expected to be logged in... There is obviously a much better way, however it requires a lot of code | This is just a simple example.
     });// You must start the manager at the end so that all the hooks above it, are registered.
 
 }
 
-new VoteBot();// Run the code above.
+new FavouriteBot();// Run the code above.
 
-module.exports = VoteBot;
+module.exports = FavouriteBot;
 </code></pre>
         </article>
     </section>
