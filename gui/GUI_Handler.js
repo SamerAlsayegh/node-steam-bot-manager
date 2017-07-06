@@ -2,7 +2,6 @@ const inquirer = require("inquirer");
 const EResult = require("../enums/EResult");
 
 GUI_Handler.prototype.__proto__ = require('events').EventEmitter.prototype;
-var ui = new inquirer.ui.BottomBar();
 
 /**
  * Creates a new GUI_Handler instance.
@@ -12,6 +11,7 @@ function GUI_Handler(main) {
     var self = this;
     self.main = main;
     self.logger = main.logger;
+    // self.ui = new inquirer.ui.BottomBar();
 }
 
 
@@ -27,7 +27,6 @@ GUI_Handler.prototype.displayBotMenu = function () {
     tempList.push(new inquirer.Separator());
     tempList.push("register");
     tempList.push("exit");
-
     var botList = [
         {
             type: 'list',

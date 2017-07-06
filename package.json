@@ -42,7 +42,7 @@
     "steamcommunity": "^3.19.3",
     "steamstore": "^1.4.0",
     "universal-analytics": "^0.4.13",
-    "uuid": "^3.0.1",
+    "uuid": "^3.1.0",
     "winston": "^2.3.1"
   }
 }
