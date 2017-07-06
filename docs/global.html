@@ -96,6 +96,316 @@
 
         
             
+<h4 class="name" id="BotManager"><span class="type-signature"></span>BotManager<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    This is a simple example of a bot that will hook into the API and provide a way to deposit items into a bot inventoryIn which a bot will accept any trades in-which the offer is initiated via API, and decline any others.andthe api can be called via below:METHOD: POSTURL: localhost:1338/sendTrade (port can be changed in config)PARAMS:     partner - A string representation of SteamID2, SteamID3, or SteamID64     items - An array of strings in the form of "classid_instanceid" of items (repeating the same values is a valid case)RETURN:  If failed to send trade:     {status: 0, error: String}  If successful to send trade:     {status: 1, offerInformation: tradeOfferObject}Make sure you copy this file and not use it directly. Follow install instructions on github.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="examples_APITradeBot.js.html">examples/APITradeBot.js</a>, <a href="examples_APITradeBot.js.html#line24">line 24</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="BotManager"><span class="type-signature"></span>BotManager<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    This is a simple example of a bot that will hook into the API and provide a way to vote on attachements through all bot accountsI do not promote the use of this file, it is made for educational purposes on the possible functionality of this tool.Note: This is simply a proof-of-conceptMake sure you copy this file and not use it directly. Follow install instructions on github.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="examples_VoteBot.js.html">examples/VoteBot.js</a>, <a href="examples_VoteBot.js.html#line12">line 12</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="BotManager"><span class="type-signature"></span>BotManager<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    This is a simple example of a bot that will simply run the tool to use the GUI aspect of the bot.This will not do any handling of events automatically.Make sure you copy this file and not use it directly. Follow install instructions on github.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="examples_GUIOnly.js.html">examples/GUIOnly.js</a>, <a href="examples_GUIOnly.js.html#line11">line 11</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="BotManager"><span class="type-signature"></span>BotManager<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    This is a simple example of a bot that will hook into the API and provide an Inventory systemIn which a bot will accept any trades in-which people offer something and he offers nothing.andbot will accept any trades done by an admin in-which the bot offers something and the admin offers nothing.Make sure you copy this file and not use it directly. Follow install instructions on github.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="examples_InventoryBot.js.html">examples/InventoryBot.js</a>, <a href="examples_InventoryBot.js.html#line12">line 12</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="BotManager"><span class="type-signature"></span>BotManager<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    This is a simple example of a bot that will hook into the API and provide a way to follow and unfollow accounts.I do not promote the use of this file, it is made for educational purposes on the possible functionality of this tool.Note: This is simply a proof-of-conceptMake sure you copy this file and not use it directly. Follow install instructions on github.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="examples_FollowBot.js.html">examples/FollowBot.js</a>, <a href="examples_FollowBot.js.html#line12">line 12</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
 <h4 class="name" id="GUI"><span class="type-signature">(constant) </span>GUI<span class="type-signature"> :<a href="GUI_Handler.html">GUI_Handler</a></span></h4>
 
 
@@ -150,7 +460,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="lib_index.js.html">lib/index.js</a>, <a href="lib_index.js.html#line21">line 21</a>
+        <a href="lib_index.js.html">lib/index.js</a>, <a href="lib_index.js.html#line20">line 20</a>
     </li></ul></dd>
     
 
@@ -212,7 +522,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="lib_index.js.html">lib/index.js</a>, <a href="lib_index.js.html#line13">line 13</a>
+        <a href="lib_index.js.html">lib/index.js</a>, <a href="lib_index.js.html#line12">line 12</a>
     </li></ul></dd>
     
 
@@ -231,6 +541,154 @@
         
     
 
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id="webserver"><span class="type-signature"></span>webserver<span class="signature">(port, options)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Initalize a webserver with options such as SSL
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>port</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>options</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="lib_webserver.js.html">lib/webserver.js</a>, <a href="lib_webserver.js.html#line24">line 24</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
     
 
     
@@ -360,7 +818,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="classes_Trade.js.html">classes/Trade.js</a>, <a href="classes_Trade.js.html#line129">line 129</a>
+        <a href="classes_Trade.js.html">classes/Trade.js</a>, <a href="classes_Trade.js.html#line136">line 136</a>
     </li></ul></dd>
     
 
@@ -487,7 +945,133 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="classes_Bot.js.html">classes/Bot.js</a>, <a href="classes_Bot.js.html#line83">line 83</a>
+        <a href="classes_Bot.js.html">classes/Bot.js</a>, <a href="classes_Bot.js.html#line85">line 85</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id="callbackErrorOnly"><span class="type-signature"></span>callbackErrorOnly<span class="signature">(details)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Login to account using supplied details (2FactorCode, authcode, or captcha)
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>details</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="classes_Auth.js.html">classes/Auth.js</a>, <a href="classes_Auth.js.html#line72">line 72</a>
     </li></ul></dd>
     
 
@@ -668,6 +1252,156 @@
 
     
 
+    <h4 class="name" id="callbackSteamID"><span class="type-signature"></span>callbackSteamID<span class="signature">(error, steamid)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>error</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Error</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">An error message if the process failed, undefined if successful</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>steamid</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">SteamID</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">steamid if successful, null if error.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="classes_Bot.js.html">classes/Bot.js</a>, <a href="classes_Bot.js.html#line89">line 89</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
     <h4 class="name" id="confirmationsCallback"><span class="type-signature"></span>confirmationsCallback<span class="signature">(error, confirmations)</span><span class="type-signature"></span></h4>
 
     
@@ -787,7 +1521,138 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="classes_Auth.js.html">classes/Auth.js</a>, <a href="classes_Auth.js.html#line203">line 203</a>
+        <a href="classes_Auth.js.html">classes/Auth.js</a>, <a href="classes_Auth.js.html#line219">line 219</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id="errorOnlyCallback"><span class="type-signature"></span>errorOnlyCallback<span class="signature">(error)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    This error callback is expected only to return an error, and no other information.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>error</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Error</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">An error message if the process failed, undefined if successful</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="classes_Bot.js.html">classes/Bot.js</a>, <a href="classes_Bot.js.html#line95">line 95</a>
     </li></ul></dd>
     
 
@@ -960,7 +1825,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="classes_Trade.js.html">classes/Trade.js</a>, <a href="classes_Trade.js.html#line170">line 170</a>
+        <a href="classes_Trade.js.html">classes/Trade.js</a>, <a href="classes_Trade.js.html#line177">line 177</a>
     </li></ul></dd>
     
 
@@ -1000,13 +1865,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Bot.html">Bot</a></li><li><a href="BotManager.html">BotManager</a></li><li><a href="GUI_Handler.html">GUI_Handler</a></li></ul><h3>Events</h3><ul><li><a href="Bot.html#event:chatMessage">chatMessage</a></li><li><a href="Bot.html#event:loggedIn">loggedIn</a></li><li><a href="Bot.html#event:newOffer">newOffer</a></li><li><a href="Bot.html#event:offerChanged">offerChanged</a></li><li><a href="Bot.html#event:offerList">offerList</a></li><li><a href="Bot.html#event:sentOfferChanged">sentOfferChanged</a></li><li><a href="Bot.html#event:tradeOffers">tradeOffers</a></li></ul><h3>Global</h3><ul><li><a href="global.html#GUI">GUI</a></li><li><a href="global.html#Winston">Winston</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Bot.html">Bot</a></li><li><a href="global.html#BotManager">BotManager</a></li><li><a href="GUI_Handler.html">GUI_Handler</a></li></ul><h3>Events</h3><ul><li><a href="Bot.html#event:chatMessage">chatMessage</a></li><li><a href="Bot.html#event:loggedIn">loggedIn</a></li><li><a href="Bot.html#event:newOffer">newOffer</a></li><li><a href="Bot.html#event:offerChanged">offerChanged</a></li><li><a href="Bot.html#event:offerList">offerList</a></li><li><a href="Bot.html#event:sentOfferChanged">sentOfferChanged</a></li><li><a href="Bot.html#event:tradeOffers">tradeOffers</a></li></ul><h3>Global</h3><ul><li><a href="global.html#GUI">GUI</a></li><li><a href="global.html#webserver">webserver</a></li><li><a href="global.html#Winston">Winston</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Thu Jun 08 2017 09:57:41 GMT-0400 (Eastern Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Wed Jul 05 2017 20:56:10 GMT-0400 (Eastern Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

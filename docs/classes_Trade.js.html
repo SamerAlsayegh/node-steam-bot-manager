@@ -28,13 +28,13 @@
         <article>
             <pre class="prettyprint source linenums"><code>Trade.prototype.__proto__ = require('events').EventEmitter.prototype;
 
-function Trade(trade, auth, settings, logger) {
+function Trade(trade, auth, tasks, settings, logger) {
     var self = this;
     if (typeof trade != "object" || typeof auth != "object")
         throw Error("TradeOfferManager &amp; AuthHandler must be passed respectively.");
     self.auth = auth;
     self.trade = trade;
-    self.tasks = auth.BotAccount.Tasks;
+    self.tasks = tasks;
     self.api_access = false;
     self.logger = logger;
     if (typeof settings != "object")
@@ -54,7 +54,9 @@ Trade.prototype.setAPIAccess = function (api_access) {
  */
 Trade.prototype.confirmOutstandingTrades = function (callback) {
     var self = this;
-    var time = self.auth.getTime(0);
+self.auth.getTimeOffset(function(err, offset, latency){
+    var time = self.auth.getTime(offset);
+
     self.auth.getConfirmations(time, self.auth.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
         if (err) {
             if (self.logger != undefined)
@@ -62,30 +64,35 @@ Trade.prototype.confirmOutstandingTrades = function (callback) {
             setTimeout(self.confirmOutstandingTrades(callback), 5000);
         }
         else {
-            var confirmedTrades = [];
             if (confirmations.length > 0) {
+                var confIds = [];
+                var confKeys = [];
+
                 for (var confirmId in confirmations) {
                     if (confirmations.hasOwnProperty(confirmId)) {
-                        time = self.auth.getTime(0);
-                        confirmations[confirmId].respond(time, self.auth.generateMobileConfirmationCode(time, "allow"), true, function (err) {
-                            if (err) {
-                                if (self.logger != undefined)
-                                    self.logger.log('error', err.toString());
-                            }
-                            confirmedTrades.push(confirmations[confirmId]);
-                            if (confirmedTrades.length == confirmations.length) {
-                                // Everything went smooth
-                                return callback(confirmations);
-                            }
-
-                        });
+                        confIds.push(confirmations[confirmId].id);
+                        confKeys.push(confirmations[confirmId].key);
                     }
                 }
+
+                self.auth.getTimeOffset(function(err, offset, latency) {
+                    var time = self.auth.getTime(offset);
+                    self.auth.respondToConfirmation(confIds, confKeys, time, self.auth.generateMobileConfirmationCode(time, "allow"), true, function (err) {
+                        if (err) {
+                            if (self.logger != undefined)
+                                self.logger.log('error', "Failed to respond outstanding trade confirmation.");
+                        } else
+                        return callback(confirmations);
+                    });
+                });
+
             } else {
                 callback([]);
             }
         }
     });
+});
+
 };
 
 /**
@@ -212,10 +219,10 @@ Trade.prototype.confirmTradesFromUser = function (SteamID, callback) {
 Trade.prototype.getInventory = function (appid, contextid, tradableOnly, inventoryCallback) {
     var self = this;
     if (!self.auth.loggedIn) {
-        self.tasks.addToQueue('login', self.getInventory, [appid, contextid, tradableOnly, inventoryCallback]);
+        self.tasks.addToQueue('login', self, self.getInventory, [appid, contextid, tradableOnly, inventoryCallback]);
     }
     else
-        self.trade.loadInventory(appid, contextid, tradableOnly, inventoryCallback);
+        self.trade.getInventoryContents(appid, contextid, tradableOnly, inventoryCallback);
 };
 
 /**
@@ -229,10 +236,10 @@ Trade.prototype.getInventory = function (appid, contextid, tradableOnly, invento
 Trade.prototype.getUserInventory = function (steamID, appid, contextid, tradableOnly, inventoryCallback) {
     var self = this;
     if (!self.auth.loggedIn) {
-        self.tasks.addToQueue('login', self.getUserInventory, [steamID, appid, contextid, tradableOnly, inventoryCallback]);
+        self.tasks.addToQueue('login', self, self.getUserInventory, [steamID, appid, contextid, tradableOnly, inventoryCallback]);
     }
     else
-        self.trade.loadUserInventory(steamID, appid, contextid, tradableOnly, inventoryCallback);
+        self.trade.getUserInventoryContents(steamID, appid, contextid, tradableOnly, inventoryCallback);
 };
 
 
@@ -253,13 +260,13 @@ module.exports = Trade;
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Bot.html">Bot</a></li><li><a href="BotManager.html">BotManager</a></li><li><a href="GUI_Handler.html">GUI_Handler</a></li></ul><h3>Events</h3><ul><li><a href="Bot.html#event:chatMessage">chatMessage</a></li><li><a href="Bot.html#event:loggedIn">loggedIn</a></li><li><a href="Bot.html#event:newOffer">newOffer</a></li><li><a href="Bot.html#event:offerChanged">offerChanged</a></li><li><a href="Bot.html#event:offerList">offerList</a></li><li><a href="Bot.html#event:sentOfferChanged">sentOfferChanged</a></li><li><a href="Bot.html#event:tradeOffers">tradeOffers</a></li></ul><h3>Global</h3><ul><li><a href="global.html#GUI">GUI</a></li><li><a href="global.html#Winston">Winston</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Bot.html">Bot</a></li><li><a href="global.html#BotManager">BotManager</a></li><li><a href="GUI_Handler.html">GUI_Handler</a></li></ul><h3>Events</h3><ul><li><a href="Bot.html#event:chatMessage">chatMessage</a></li><li><a href="Bot.html#event:loggedIn">loggedIn</a></li><li><a href="Bot.html#event:newOffer">newOffer</a></li><li><a href="Bot.html#event:offerChanged">offerChanged</a></li><li><a href="Bot.html#event:offerList">offerList</a></li><li><a href="Bot.html#event:sentOfferChanged">sentOfferChanged</a></li><li><a href="Bot.html#event:tradeOffers">tradeOffers</a></li></ul><h3>Global</h3><ul><li><a href="global.html#GUI">GUI</a></li><li><a href="global.html#webserver">webserver</a></li><li><a href="global.html#Winston">Winston</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Thu Jun 08 2017 09:57:41 GMT-0400 (Eastern Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Wed Jul 05 2017 20:56:10 GMT-0400 (Eastern Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

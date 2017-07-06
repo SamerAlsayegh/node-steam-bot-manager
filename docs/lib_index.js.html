@@ -26,8 +26,7 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>"use strict";
-module.exports = BotManager;
+            <pre class="prettyprint source linenums"><code>module.exports = BotManager;
 
 /**
  * Loading all external libraries needed for functionality across most files
@@ -65,6 +64,7 @@ BotManager.prototype.__proto__ = require('events').EventEmitter.prototype;
 function BotManager() {
     var self = this;
 
+
     self.ActiveBotAccounts = [];
     self.logger = new (Winston.Logger)({
         transports: [
@@ -87,46 +87,89 @@ function BotManager() {
     self.AccountsManager = new AccountsManager(self.fileManager, self.logger);
 }
 
-BotManager.prototype.startManager = function (callbackManager) {
+BotManager.prototype.startWebserver = function(trySSL){
+    var self = this;
+    if (self.config.hasOwnProperty("api_port") &amp;&amp; self.config.api_port != null) {
+        var options = null;
+        if (self.config.hasOwnProperty("ssl") &amp;&amp; trySSL == true) {
+            if (self.config.ssl.hasOwnProperty("key")) {
+
+                self.fileManager.getFileUnparsed(self.config.ssl.key + ".key", null, function (err, keyFile) {
+                    if (err) {
+                        self.errorDebug("Failed to access key file... Disabling SSL");
+                        self.startWebserver(false);
+                        return;
+                    }
+
+                    self.fileManager.getFileUnparsed(self.config.ssl.cert + ".cert", null, function (err, certFile) {
+                        if (err) {
+                            self.errorDebug("Failed to access cert file... Disabling SSL");
+                            self.startWebserver(false);
+                            return;
+                        }
+                        options = {
+                            ssl: {
+                                key: keyFile,
+                                cert: certFile
+                            }
+                        };
+
+                        self.webserver = new Webserver(self.logger, self.config.api_port, options);
+                        self.webserver.start(function (err) {
+                            if (err)
+                                self.errorDebug("Failed to start the API webserver - ensure port is not occupied... " + err);
+                            else
+                                self.emit('loadedAPI');
+                        });
+                    });
+                });
+
+            }
+        } else {
+            self.webserver = new Webserver(self.logger, self.config.api_port, options);
+            self.webserver.start(function (err) {
+                if (err)
+                    self.errorDebug("Failed to start the API webserver - ensure port is not occupied..." + err);
+                else
+                    self.emit('loadedAPI');
+            });
+        }
+
+
+    }
+};
+
+BotManager.prototype.startManager = function (callback) {
     var self = this;
 
     self.ConfigManager.loadConfig(function (err, config) {
         if (err) {
-            if (callbackManager)
-                callbackManager(err);
+            return callback(err);
         }
         else {
             self.config = config;
-            if (config.hasOwnProperty("api_port") &amp;&amp; config.api_port != null) {
-                self.webserver = new Webserver(config.api_port);
-                self.webserver.start(function(err){
-                    if (err)
-                        self.errorDebug("Failed to start th API webserver - ensure port is not occupied...", err);
-                    else
-                        self.emit('loadedAPI');
-                });
-            }
 
+            self.startWebserver(true);
             /**
              * This section allows me (Undeadkillz) to track usage of the tool (fix issues asap, know how many people use the tool) - don't worry, the data is aggregated and sent to me anonymously.
              */
             if (config.hasOwnProperty("statistics") &amp;&amp; config.statistics != null) {
-                if (config.statistics){
+                if (config.statistics) {
                     var uuid = uuidV4();
-                    self.fileManager.getFile("statistics.json", {uuid:uuid}, function(err, statistics){
-                        if (statistics.hasOwnProperty("uuid")){
+                    self.fileManager.getFile("statistics.json", {uuid: uuid}, function (err, statistics) {
+                        if (statistics.hasOwnProperty("uuid")) {
                             self.uuid = statistics.uuid;
                         } else {
-                            self.fileManager.saveFile("statistics.json", {uuid: uuid}, function(err, statistics){
+                            self.fileManager.saveFile("statistics.json", {uuid: uuid}, function (err, statistics) {
                                 self.uuid = statistics.uuid;
                             })
                         }
 
                         self.track = GA_Tracking('UA-63794417-8', self.uuid);// Init the tracking code
                         self.track.event(packageJson.version, "Status", "Online").send();// Trigger the tool's startup.
-                        setInterval(function(){
+                        setInterval(function () {
                             self.track.event(packageJson.version, "Status", "Online").send();// Trigger the tool's startup.
-                        }, 5*1000*60);
+                        }, 5 * 1000 * 60);
 
                         self.track.event(packageJson.version, "Collection", "on").send();// Trigger the tool's startup.
                     });
@@ -148,17 +191,14 @@ BotManager.prototype.startManager = function (callbackManager) {
                         });
                     }
                 }
-                // self.AccountsManager.saveAccount(self.ActiveBotAccounts, function (err, savedObj) {
-                //     if (err)
-                //         self.errorDebug("Error while saving bot info - " + err);
-                // });
                 self.GUI.displayBotMenu();
-                if (callbackManager)
-                    callbackManager(null);
+                if (callback)
+                    return callback(null);
             });
         }
     });
 };
+
 /**
  * Add an API Endpoint (via webserver) at chosen location.
  * @param method
@@ -168,8 +208,8 @@ BotManager.prototype.startManager = function (callbackManager) {
 BotManager.prototype.addEndpoint = function (method, url, callback) {
     var self = this;
     if (self.track)
-    self.track.event(packageJson.version, "Endpoints", "Added").send()// Trigger the tool's startup.
-        self.webserver.addEndpoint(method, url, callback);
+        self.track.event(packageJson.version, "Endpoints", "Added").send()// Trigger the tool's startup.
+    self.webserver.addEndpoint(method, url, callback);
 };
 
 /**
@@ -185,12 +225,7 @@ BotManager.prototype.removeEndpoint = function (method, url) {
     self.webserver.removeEndpoint(method, url);
 };
 
-// BotManager.prototype.saveAccounts = function (callback) {
-//     var self = this;
-//     self.AccountsManager.saveAccounts(self.ActiveBotAccounts, function (err, savedObj) {
-//         callback(err, savedObj);
-//     });
-// };
+
 /**
  * Add an API Endpoint (via webserver) at chosen location.
  * @param method
@@ -222,41 +257,74 @@ BotManager.prototype.getAppID = function () {
  * @param {BotAccount} botAccount - The bot chosen as part of the random choice
  * @param {callback} unregisterCallback - A callback returned with possible errors
  */
-BotManager.prototype.unregisterAccount = function (botAccount, unregisterCallback) {
+BotManager.prototype.deleteAccount = function (botAccount, callbackErrorOnly) {
     var self = this;
     if (self.track)
         self.track.event(packageJson.version, "Accounts", "Unregistered").send();// Trigger the tool's startup.
+    var accountName = botAccount.getAccountName();
     self.ActiveBotAccounts.splice(self.ActiveBotAccounts.indexOf(botAccount), self.getAccounts().indexOf(botAccount) + 1);
-    // self.AccountsManager.saveAccounts(self.ActiveBotAccounts, function (err, savedObject) {
-    // if (err)
-    //     self.logger.log("error", "Failed to save account information for %j", savedObject.username);
-    // self.logger.log("debug", "Saved account list to file.");
-    // });
+    self.fileManager.createFolderIfNotExist("deleted", function(err) {
+        if (err) {
+            self.logger.log("error", "Failed to create folder named 'deleted' under config. Error encountered: " + err);
+            callbackErrorOnly(err);
+        }
+        else {
+            self.fileManager.renameFile("data/{0}.dat".format(accountName), "deleted/{0}.dat".format(accountName), function(err){
+                callbackErrorOnly(err);
+            })
+        }
+    });
 
-    return unregisterCallback(null);
+
 };
-
+/**
+ * Lookup a botAccount using the username of the bot or the index of the bot in the list.
+ * @param keyData
+ * @param callback
+ * @deprecated
+ */
 BotManager.prototype.botLookup = function (keyData, callback) {
     var self = this;
-    try {
-        if (self.getAccounts()[parseInt(keyData)]) {
-            callback(null, self.getAccounts()[parseInt(keyData)]);
-        } else {
-            var botAccounts = self.getAccounts();
-            for (var botAccountIndex in botAccounts) {
-                if (botAccounts.hasOwnProperty(botAccountIndex)) {
-                    if (botAccounts[botAccountIndex].getAccountName().indexOf(keyData) != -1) {
+    self.findBot(keyData, callback);
+};
+/**
+ * Lookup a botAccount using the username of the bot or the index of the bot or even the SteamID2, SteamID3, and SteamID64
+ * @param keyData
+ * @param callback
+ * @returns {*}
+ */
+BotManager.prototype.findBot = function (keyData, callback) {
+    var self = this;
+    var botAccounts = self.getAccounts();
+    for (var botAccountIndex in botAccounts) {
+        if (botAccounts.hasOwnProperty(botAccountIndex)) {
+            if (botAccounts[botAccountIndex].loggedIn) {
+                if (botAccounts[botAccountIndex].hasOwnProperty("SteamID"))
+                    if (botAccounts[botAccountIndex].SteamID.getSteam3RenderedID().indexOf(keyData) != -1 || botAccounts[botAccountIndex].SteamID.getSteamID64().indexOf(keyData) != -1 || botAccounts[botAccountIndex].SteamID.getSteam2RenderedID(true).indexOf(keyData) != -1 || botAccounts[botAccountIndex].SteamID.getSteam2RenderedID().indexOf(keyData) != -1) {
                         return callback(null, botAccounts[botAccountIndex]);
-                    } else if (botAccountIndex == botAccounts.length - 1)
+                    }
+            }
+            if (botAccounts[botAccountIndex].getAccountName().indexOf(keyData) != -1) {
+                return callback(null, botAccounts[botAccountIndex]);
+            }
+            else if (botAccountIndex == botAccounts.length - 1) {
+                if (self.getAccounts()[parseInt(keyData)]) {
+                    try {
+                        return callback(null, self.getAccounts()[parseInt(keyData)]);
+                    } catch (e) {
                         return callback({Error: "Failed to locate bot."}, null);
+                    }
+                } else {
+                    return callback({Error: "Failed to locate bot."}, null);
                 }
             }
         }
-    } catch (e) {
-        if (e)
-            return callback(e, null);
     }
+    return callback({Error: "Failed to locate bot."}, null);
+
+
 };
+
 
 /**
  * Retrieve accounts registered within the instance
@@ -277,7 +345,8 @@ BotManager.prototype.getAccounts = function () {
  */
 BotManager.prototype.registerAccount = function (username, password, options, callback) {
     var self = this;
-    var botAccount = new BotAccount(username, password, options, self.ConfigManager.getConfig(), self.logger);
+    var config = self.ConfigManager.getConfig();
+    var botAccount = new BotAccount(username, password, options, config, self.logger);
 
 
     botAccount.on('sentOfferChanged', function (offer, oldState) {
@@ -301,11 +370,14 @@ BotManager.prototype.registerAccount = function (username, password, options, ca
         self.emit('loggedIn', botAccount);
     });
     botAccount.on('updatedAccountDetails', function (accountDetails) {
-        self.emit('updatedAccountDetails');
-        self.AccountsManager.saveAccount(accountDetails, function (err, savedObject) {
+        self.AccountsManager.saveAccount(accountDetails, function (err) {
             if (err)
                 self.logger.log("error", "Failed to update account information for %j", botAccount.getAccountName());
-            self.logger.log("debug", "Updated account information to file.");
+            else {
+                self.emit('updatedAccountDetails', botAccount);
+                self.logger.log("debug", "Updated account information to file.");
+            }
+
         });
     });
     botAccount.on('rateLimitedSteam', function () {
@@ -326,7 +398,7 @@ BotManager.prototype.registerAccount = function (username, password, options, ca
         self.track.event(packageJson.version, "Accounts", "Registered").send()// Trigger the tool's startup.
     self.emit('loadedAccount', username, password);
     self.ActiveBotAccounts.push(botAccount);
-    callback(null, botAccount);
+    return callback(null, botAccount);
 };
 
 /**
@@ -345,32 +417,34 @@ BotManager.prototype.chooseRandomBot = function () {
  * Make sure to set filters based on your use-case.
  * filters: in array of Strings
  * 'canTrade' - Bot can access the API and can trade
- *
+ * 'steamID:XX' - where XX is replaced with SteamID2, SteamID3, or SteamID64 or even TradeLink
  * @returns {*}
  */
 BotManager.prototype.randomBot = function (filters) {
     var self = this;
     if (filters.constructor !== Array)
         filters = [];
+    var randomBotIndex;
 
     if (filters.length == 0) {
-        var randomBotIndex = Math.floor((Math.random() * self.getAccounts().length) % 1 == 0 &amp;&amp; (Math.random() * self.getAccounts().length) > 0 ? self.getAccounts().length - 1 : (Math.random() * self.getAccounts().length));
+        randomBotIndex = Math.floor((Math.random() * self.getAccounts().length) % 1 == 0 &amp;&amp; (Math.random() * self.getAccounts().length) > 0 ? self.getAccounts().length - 1 : (Math.random() * self.getAccounts().length));
         return self.getAccounts()[randomBotIndex];
     }
     else {
+        var botsMeetingFilters = [];
+
         for (var botIndex in self.getAccounts()) {
             if (filters.indexOf("canTrade") != -1) {
                 if (self.getAccounts()[botIndex].Trade.api_access)
-                    return self.getAccounts()[botIndex];
+                    botsMeetingFilters.push(botIndex);// Push the index of the bot from original list (saving memory by only saving index)
             }
-            if (botIndex == self.getAccounts().length-1){
+            if (botIndex == self.getAccounts().length - 1) {
                 // No bot meets our needs... Return undefined.
-                return undefined;
+                randomBotIndex = Math.floor((Math.random() * botsMeetingFilters.length) % 1 == 0 &amp;&amp; (Math.random() * botsMeetingFilters) > 0 ? botsMeetingFilters.length - 1 : (Math.random() * botsMeetingFilters.length));
+                return self.getAccounts()[botsMeetingFilters[randomBotIndex]];
             }
         }
     }
-
-
 
 
 };
@@ -386,8 +460,8 @@ BotManager.prototype.infoDebug = function (message) {
 
 
 /**
- * Post/log an informational message.
- * @param {string} message - Informational message to log
+ * Post/log an debug message.
+ * @param {string} message - debug message to log
  */
 BotManager.prototype.logDebug = function (message) {
     var self = this;
@@ -404,6 +478,7 @@ BotManager.prototype.errorDebug = function (message) {
         self.track.exception(message, true).send();// Trigger the tool's startup.
     self.logger.log('error', message);
 };
+
 </code></pre>
         </article>
     </section>
@@ -414,13 +489,13 @@ BotManager.prototype.errorDebug = function (message) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Bot.html">Bot</a></li><li><a href="BotManager.html">BotManager</a></li><li><a href="GUI_Handler.html">GUI_Handler</a></li></ul><h3>Events</h3><ul><li><a href="Bot.html#event:chatMessage">chatMessage</a></li><li><a href="Bot.html#event:loggedIn">loggedIn</a></li><li><a href="Bot.html#event:newOffer">newOffer</a></li><li><a href="Bot.html#event:offerChanged">offerChanged</a></li><li><a href="Bot.html#event:offerList">offerList</a></li><li><a href="Bot.html#event:sentOfferChanged">sentOfferChanged</a></li><li><a href="Bot.html#event:tradeOffers">tradeOffers</a></li></ul><h3>Global</h3><ul><li><a href="global.html#GUI">GUI</a></li><li><a href="global.html#Winston">Winston</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Bot.html">Bot</a></li><li><a href="global.html#BotManager">BotManager</a></li><li><a href="GUI_Handler.html">GUI_Handler</a></li></ul><h3>Events</h3><ul><li><a href="Bot.html#event:chatMessage">chatMessage</a></li><li><a href="Bot.html#event:loggedIn">loggedIn</a></li><li><a href="Bot.html#event:newOffer">newOffer</a></li><li><a href="Bot.html#event:offerChanged">offerChanged</a></li><li><a href="Bot.html#event:offerList">offerList</a></li><li><a href="Bot.html#event:sentOfferChanged">sentOfferChanged</a></li><li><a href="Bot.html#event:tradeOffers">tradeOffers</a></li></ul><h3>Global</h3><ul><li><a href="global.html#GUI">GUI</a></li><li><a href="global.html#webserver">webserver</a></li><li><a href="global.html#Winston">Winston</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Thu Jun 08 2017 09:57:41 GMT-0400 (Eastern Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Wed Jul 05 2017 20:56:10 GMT-0400 (Eastern Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Home</title>
+    <title>JSDoc: Source: examples/GUIOnly.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,32 +17,45 @@
 
 <div id="main">
 
-    <h1 class="page-title">Home</h1>
+    <h1 class="page-title">Source: examples/GUIOnly.js</h1>
 
     
 
 
 
     
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * This is a simple example of a bot that will simply run the tool to use the GUI aspect of the bot.
+ * This will not do any handling of events automatically.
+ *
+ *
+ * Make sure you copy this file and not use it directly. Follow install instructions on github.
+ */
 
 
-    <h3> </h3>
+/* We will require the node-steam-bot-manager module to use it */
+var BotManager = require('node-steam-bot-manager');
+var botsManager = new BotManager();// Create new instance of the BotManager
+
+function GUIOnly() {
 
 
 
+    botsManager.startManager(function (err) {
+        if (err)
+            botsManager.errorDebug("Failed to start Bot Manager")
+    });// You must start the manager at the end so that all the hooks above it, are registered.
 
+}
 
+new GUIOnly();// Run the code above.
 
-
-
-
-
-    
-
-
-
-
-
+module.exports = GUIOnly;
+</code></pre>
+        </article>
+    </section>
 
 
 

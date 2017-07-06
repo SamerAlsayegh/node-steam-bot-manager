@@ -35,6 +35,13 @@ function AccountsManager(fileManager, logger) {
     self.fileManager = fileManager;
     self.accounts = [];
     self.defaultAccount = {};
+    self.fileManager.createFolderIfNotExist("data", function(err){
+        if (err)
+            self.logger.log("error", "Failed to create 'data' folder under 'config'.");
+        else
+            self.logger.log("debug", "Created 'data' folder if it does not exist.");
+
+    });
 }
 
 
@@ -57,47 +64,58 @@ AccountsManager.prototype.loadAccounts = function (callback) {
 
     if (self.fileManager.exists("data")) {
         self.fileManager.getFileList("data/**.dat", function (err, fileList) {
-            for (var fileNameIndex in fileList) {
-                if (fileList.hasOwnProperty(fileNameIndex)) {
 
-                    self.fileManager.getFile(fileList[fileNameIndex], self.defaultAccount, function (err, accountDetails) {
-                        if (err) {
-                            self.logger.log("error", "Failed to load %j due to %j", fileList[fileNameIndex], err);
-                        }
+            if (fileList.length > 0) {
+                for (var fileNameIndex in fileList) {
+                    if (fileList.hasOwnProperty(fileNameIndex)) {
 
-                        self.emit("loadedAccount", accountDetails);
-                        accounts_temp.push(accountDetails);
-                        if (fileList.length == accounts_temp.length)
-                            return callback(null, accounts_temp.slice());
-                    });
+                        self.fileManager.getFile(fileList[fileNameIndex], self.defaultAccount, function (err, accountDetails) {
+                            if (err) {
+                                self.logger.log("error", "Failed to load %j due to %j", fileList[fileNameIndex], err);
+                            }
+
+                            self.emit("loadedAccount", accountDetails);
+                            accounts_temp.push(accountDetails);
+                            if (fileList.length == accounts_temp.length)
+                                return callback(null, accounts_temp.slice());
+                        });
 
 
+                    }
                 }
+            } else {
+                return callback(null, []);
             }
         });
     }
     else {
         if (self.fileManager.exists("accounts.json")) {
-            self.fileManager.createFolderIfNotExist("data");
-            self.logger.log("debug", "Loading accounts via old method - Converting to new version...");
-            self.fileManager.getFile("accounts.json", [], function (err, accounts) {
-                try {
-                    for (var accountIndex in accounts) {
-                        if (accounts.hasOwnProperty(accountIndex)) {
-                            self.emit("loadedAccount", accounts[accountIndex]);
-                            accounts_temp.push(accounts[accountIndex]);
-                            self.saveAccount(accounts[accountIndex], function (err) {
-                                if (err)
-                                    self.logger.log("error", "Failed to save into new format during conversion...");
-                            })
+            self.fileManager.createFolderIfNotExist("data", function(err){
+                if (err)
+                    self.logger.log("error", "Failed to create folder named 'data' under config. Error encountered: " + err);
+                else {
+                    self.logger.log("debug", "Loading accounts via old method - Converting to new version...");
+                    self.fileManager.getFile("accounts.json", [], function (err, accounts) {
+                        try {
+                            for (var accountIndex in accounts) {
+                                if (accounts.hasOwnProperty(accountIndex)) {
+                                    self.emit("loadedAccount", accounts[accountIndex]);
+                                    accounts_temp.push(accounts[accountIndex]);
+                                    self.saveAccount(accounts[accountIndex], function (err) {
+                                        if (err)
+                                            self.logger.log("error", "Failed to save into new format during conversion...");
+                                    })
+                                }
+                            }
+                            return callback(null, accounts_temp.slice());
+                        } catch (e) {
+                            self.logger.log("error", "Failed to read account data - check file for any malformation using a JSON parser - ", e);
+                            return callback(null, []);
                         }
-                    }
-                    return callback(null, accounts_temp.slice());
-                } catch (e) {
-                    self.logger.log("error", "Failed to read account data - check file for any malformation using a JSON parser - ", e);
-                    return callback(null, []);
+                    });
                 }
             });
+
         } else {
             self.logger.log("error", "Failed to find an account's file. Please ensure it exists.");
             return callback(null, []);
@@ -128,6 +146,8 @@ AccountsManager.prototype.saveAccount = function (botAccountDetails, callbackErr
         cleanedData.shared_secret = botAccountDetails.shared_secret;
         cleanedData.identity_secret = botAccountDetails.identity_secret;
         cleanedData.revocation_code = botAccountDetails.revocation_code;
+        cleanedData.steamid64 = botAccountDetails.steamid64;
+
         self.fileManager.saveFile("data/" + (botAccountDetails.username != null ? botAccountDetails.username : botAccountDetails.accountName) + ".dat", cleanedData, function (err, savedDetails) {
             if (err) {
                 return callbackErrorOnly(err);
@@ -152,13 +172,13 @@ module.exports = AccountsManager;
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Bot.html">Bot</a></li><li><a href="BotManager.html">BotManager</a></li><li><a href="GUI_Handler.html">GUI_Handler</a></li></ul><h3>Events</h3><ul><li><a href="Bot.html#event:chatMessage">chatMessage</a></li><li><a href="Bot.html#event:loggedIn">loggedIn</a></li><li><a href="Bot.html#event:newOffer">newOffer</a></li><li><a href="Bot.html#event:offerChanged">offerChanged</a></li><li><a href="Bot.html#event:offerList">offerList</a></li><li><a href="Bot.html#event:sentOfferChanged">sentOfferChanged</a></li><li><a href="Bot.html#event:tradeOffers">tradeOffers</a></li></ul><h3>Global</h3><ul><li><a href="global.html#GUI">GUI</a></li><li><a href="global.html#Winston">Winston</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Bot.html">Bot</a></li><li><a href="global.html#BotManager">BotManager</a></li><li><a href="GUI_Handler.html">GUI_Handler</a></li></ul><h3>Events</h3><ul><li><a href="Bot.html#event:chatMessage">chatMessage</a></li><li><a href="Bot.html#event:loggedIn">loggedIn</a></li><li><a href="Bot.html#event:newOffer">newOffer</a></li><li><a href="Bot.html#event:offerChanged">offerChanged</a></li><li><a href="Bot.html#event:offerList">offerList</a></li><li><a href="Bot.html#event:sentOfferChanged">sentOfferChanged</a></li><li><a href="Bot.html#event:tradeOffers">tradeOffers</a></li></ul><h3>Global</h3><ul><li><a href="global.html#GUI">GUI</a></li><li><a href="global.html#webserver">webserver</a></li><li><a href="global.html#Winston">Winston</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Thu Jun 08 2017 09:57:41 GMT-0400 (Eastern Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Wed Jul 05 2017 20:56:10 GMT-0400 (Eastern Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>
