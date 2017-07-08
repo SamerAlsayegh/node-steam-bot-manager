@@ -80,13 +80,20 @@ GUI_Handler.prototype.displayBotMenu = function () {
                                     self.main.errorDebug("One or more fields that are required are empty.");
                                 }
                                 else {
-                                    self.main.randomBot(["canTrade"]).createAccount(result.username, result.password,  result.email, function (result, steamid) {
-                                        self.displayBotMenu();
-                                        if (result != EResult.OK)
-                                            self.main.errorDebug("The following error occurred: "  + EResult[result]);
-                                        else
-                                            self.main.infoDebug("Created new account with expected SteamID of "  + steamid);
-
+                                    self.main.randomBot({}).createAccount(result.username, result.password,  result.email, function (eresult, steamid) {
+                                        if (eresult != EResult.OK) {
+                                            self.main.errorDebug("Failed to create account due to error: " + EResult[eresult]);
+                                            self.displayBotMenu();
+                                        }
+                                        else {
+                                            self.main.registerAccount(result.username, result.password, [], function (err) {
+                                                if (err)
+                                                    self.main.errorDebug("The following details are incorrect: \nusername: {0}\npassword: {1}".format(result.username, result.password));
+                                                else
+                                                    self.main.infoDebug("Successfully added new account to node-steam-bot-manager.");
+                                                self.displayBotMenu();
+                                            });
+                                        }
                                     });
                                 }
                             });
@@ -508,7 +515,9 @@ GUI_Handler.prototype.displayMenu = function (botAccount) {
                                     });
                                 });
                             } else {
-                                self.main.errorDebug("Failed to login due to %j" + err);
+                                self.main.errorDebug("Failed to login due to " + err);
+                                self.displayBotMenu();
+
                             }
                         } else {
                             self.displayBotMenu();
