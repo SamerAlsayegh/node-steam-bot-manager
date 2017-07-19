@@ -88,7 +88,7 @@ GUI_Handler.prototype.displayBotMenu = function () {
                                         else {
                                             self.main.registerAccount(result.username, result.password, [], function (err) {
                                                 if (err)
-                                                    self.main.errorDebug("The following details are incorrect: \nusername: {0}\npassword: {1}".format(result.username, result.password));
+                                                    self.main.errorDebug("Invalid username/password, either edit data file or try to register again..");
                                                 else
                                                     self.main.infoDebug("Successfully added new account to node-steam-bot-manager.");
                                                 self.displayBotMenu();
