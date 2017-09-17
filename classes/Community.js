@@ -307,5 +307,16 @@ Community.prototype.setupProfile = function (callbackErrorOnly) {
     self.community.setupProfile(callbackErrorOnly);
 };
 
+/**
+ * Fetch API Key from Steam Community
+ * @param callbackErrorOnly
+ */
+Community.prototype.getWebApiKey = function (domain, callbackApiKey) {
+    var self = this;
+    self.community.getWebApiKey(domain, function(err, apiKey){
+        callbackApiKey(err, apiKey);
+    });
+};
+
 
 module.exports = Community;

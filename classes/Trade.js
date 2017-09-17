@@ -83,13 +83,18 @@ self.auth.getTimeOffset(function(err, offset, latency){
  * @param callback
  * @returns {*}
  */
-Trade.prototype.createOffer = function (sid, callback) {
+Trade.prototype.createOffer = function (sid, token, callback) {
     var self = this;
+    if (callback == null){
+        callback = token;
+        token = null;
+    }
+
 
     if (self.settings.cancelTradeOnOverflow && self.api_access) {
         if (self.logger != undefined)
             self.logger.log('debug', 'Checking for overflow in trades');
-        self.trade.getOffers(1, undefined, function (err, sent, received) {
+        self.trade.getOffers(1, null, function (err, sent, received) {
             if (err)
                 return callback(err, undefined);
 
@@ -131,7 +136,7 @@ Trade.prototype.createOffer = function (sid, callback) {
             self.emit('createdOffer', sid);
             if (self.logger != undefined)
                 self.logger.log('debug', 'Sent trade offer');
-            return callback(undefined, self.trade.createOffer(sid));
+            return callback(undefined, self.trade.createOffer(sid, token));
 
         });
     } else {
@@ -139,7 +144,7 @@ Trade.prototype.createOffer = function (sid, callback) {
             self.logger.log('debug', 'Sent trade offer');
         self.emit('createdOffer', sid);
         // Before we create an offer, we will get previous offers and ensure it meets the limitations, to avoid errors.
-        return callback(undefined, self.trade.createOffer(sid));
+        return callback(undefined, self.trade.createOffer(sid, token));
     }
 };
 

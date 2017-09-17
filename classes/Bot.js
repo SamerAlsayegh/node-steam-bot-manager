@@ -34,6 +34,8 @@ function Bot(username, password, details, settings, logger) {
     if (typeof details == "object") {
         if (details.hasOwnProperty("displayName"))
             self.displayName = details.displayName;
+        if (details.hasOwnProperty("apiKey"))
+            self.apiKey = details.apiKey;
     }
     self.username = username;
     self.password = password;
@@ -270,12 +272,27 @@ Bot.prototype.loggedInAccount = function (cookies, sessionID, callbackSteamID) {
         self.store.setCookies(cookies);
         self.TradeOfferManager.setCookies(cookies, function (err) {
             if (err) {
-                self.logger.log("debug", "Failed to get API Key - TradeOverflowChecking disabled for %j & getOffers call disabled.", self.getAccountName(), err.Error);
-                if (err.Error == "Access Denied")
+                self.logger.log("debug", "Failed to get API Key - TradeOverflowChecking disabled for %j & getOffers call disabled due to %j", self.getAccountName(), err);
+                if (err.Error == "Access Denied") {
                     self.api_access = false;
+                    self.logger.log("debug", "%j is a limited account. Check here for more info: https://support.steampowered.com/kb_article.php?ref=3330-IAGK-7663", self.getAccountName());
+
+                }
             }
-            else
+            else {
                 self.api_access = true;
+                // We will always fetch the apiKey on login and ensure it is the same as recorded, otherwise we save it.
+                if (!self.hasOwnProperty("apiKey"))
+                    self.Community.getWebApiKey('localhost', function(err, apiKey){
+                        if (err) {
+                                self.logger.log("debug", "Failed to get apiKey for %j due to %s", self.username, err);
+                        } else {
+                                self.logger.log("debug", "Updated apiKey for %s", self.username);
+                                self.apiKey = apiKey;
+                                self.Auth._updateAccountDetails({apiKey: self.apiKey});
+                        }
+                    });
+            }
             self.SteamID = self.TradeOfferManager.steamID;
             self.Trade.setAPIAccess(self.api_access);
 
@@ -393,6 +410,8 @@ Bot.prototype.loggedInAccount = function (cookies, sessionID, callbackSteamID) {
                      */
                     self.emit('sentOfferCanceled', offer);
                 });
+
+
 
                 /**
                  * Emitted when we fully sign into Steam and all functions are usable.
