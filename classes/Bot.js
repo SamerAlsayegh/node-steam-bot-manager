@@ -183,6 +183,12 @@ Bot.prototype.getDisplayName = function () {
     return self.Profile.getDisplayName();
 };
 
+/**
+ * Get the SteamID of the Bot
+ */
+Bot.prototype.getSteamID = function(){
+    return self.SteamID;
+};
 
 /**
  * Change the display name of the account (with prefix)
@@ -446,6 +452,7 @@ Bot.prototype.loggedInAccount = function (cookies, sessionID, callbackSteamID) {
         return callbackSteamID(new Error("Invalid cookies supplied."), null);
 
 };
+
 
 
 Bot.prototype.hasPhone = function (callback) {

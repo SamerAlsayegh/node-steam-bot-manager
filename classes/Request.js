@@ -40,7 +40,7 @@ Request.prototype.postRequest = function (url, data, callback) {
         url: url,
         method: "POST",
         json: true,
-        body: data
+        form: data
     }, function (err, response, body) {
         callback(err, body);
     });
