@@ -31,14 +31,16 @@ Request.prototype.getRequest = function (url, callback) {
 /**
  * Send a custom POST request to any url on steam community while logged in as the bot account.
  * @param url
+ * @param data
  * @param callback
  */
-Request.prototype.postRequest = function (url, callback) {
+Request.prototype.postRequest = function (url, data, callback) {
     var self = this;
     self.request({
         url: url,
         method: "POST",
-        json: true
+        json: true,
+        body: data
     }, function (err, response, body) {
         callback(err, body);
     });

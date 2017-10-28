@@ -84,6 +84,7 @@ I will ensure everything works, however I won't be building any unit-tests at th
 ---
 Stable versions via npm (incase your version contains certain bugs, try these builds):
 - 1.0.46
+- 1.0.56
 
 #### Git Version
 Frequently the Github source will not be the same version as the latest npm version. This is because the npm versions are often the stable ones. Github will contain the developmental and possibly even broken versions at times (official versions will be stated in the commit)
