@@ -36,44 +36,44 @@ Trade.prototype.setAPIAccess = function (api_access) {
  */
 Trade.prototype.confirmOutstandingTrades = function (callback) {
     var self = this;
-self.auth.getTimeOffset(function(err, offset, latency){
-    var time = self.auth.getTime(offset);
+    self.auth.getTimeOffset(function (err, offset, latency) {
+        var time = self.auth.getTime(offset);
 
-    self.auth.getConfirmations(time, self.auth.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
-        if (err) {
-            if (self.logger != undefined)
-                self.logger.log('error', "Failed to confirm outstanding trades, retrying in 5 seconds");
-            setTimeout(self.confirmOutstandingTrades(callback), 5000);
-        }
-        else {
-            if (confirmations.length > 0) {
-                var confIds = [];
-                var confKeys = [];
-
-                for (var confirmId in confirmations) {
-                    if (confirmations.hasOwnProperty(confirmId)) {
-                        confIds.push(confirmations[confirmId].id);
-                        confKeys.push(confirmations[confirmId].key);
-                    }
-                }
-
-                self.auth.getTimeOffset(function(err, offset, latency) {
-                    var time = self.auth.getTime(offset);
-                    self.auth.respondToConfirmation(confIds, confKeys, time, self.auth.generateMobileConfirmationCode(time, "allow"), true, function (err) {
-                        if (err) {
-                            if (self.logger != undefined)
-                                self.logger.log('error', "Failed to respond outstanding trade confirmation.");
-                        } else
-                        return callback(confirmations);
-                    });
-                });
-
-            } else {
-                callback([]);
+        self.auth.getConfirmations(time, self.auth.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
+            if (err) {
+                if (self.logger != undefined)
+                    self.logger.log('error', "Failed to confirm outstanding trades, retrying in 5 seconds");
+                setTimeout(self.confirmOutstandingTrades(callback), 5000);
             }
-        }
+            else {
+                if (confirmations.length > 0) {
+                    var confIds = [];
+                    var confKeys = [];
+
+                    for (var confirmId in confirmations) {
+                        if (confirmations.hasOwnProperty(confirmId)) {
+                            confIds.push(confirmations[confirmId].id);
+                            confKeys.push(confirmations[confirmId].key);
+                        }
+                    }
+
+                    self.auth.getTimeOffset(function (err, offset, latency) {
+                        var time = self.auth.getTime(offset);
+                        self.auth.respondToConfirmation(confIds, confKeys, time, self.auth.generateMobileConfirmationCode(time, "allow"), true, function (err) {
+                            if (err) {
+                                if (self.logger != undefined)
+                                    self.logger.log('error', "Failed to respond outstanding trade confirmation.");
+                            } else
+                                return callback(confirmations);
+                        });
+                    });
+
+                } else {
+                    callback([]);
+                }
+            }
+        });
     });
-});
 
 };
 
@@ -85,7 +85,7 @@ self.auth.getTimeOffset(function(err, offset, latency){
  */
 Trade.prototype.createOffer = function (sid, token, callback) {
     var self = this;
-    if (callback == null){
+    if (callback == null) {
         callback = token;
         token = null;
     }
@@ -188,6 +188,22 @@ Trade.prototype.confirmTradesFromUser = function (SteamID, callback) {
         });
     });
 };
+/**
+ * @callback tradeTokenCallback
+ * @param {Error} error - An error message if the process failed, undefined if successful
+ * @param {Array} token - The token of the current bot account
+ */
+
+
+/**
+ * Retrieves the token part of your account's trade URL.
+ * @param {tradeTokenCallback} tradeTokenCallback - Token callback
+ */
+Trade.prototype.getOfferToken = function (tradeTokenCallback) {
+    var self = this;
+    self.trade.getOfferToken(tradeTokenCallback);
+};
+
 
 /**
  * @callback inventoryCallback

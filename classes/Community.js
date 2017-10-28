@@ -109,6 +109,58 @@ Community.prototype.favouriteSharedFile = function (sharedFileId, sharedFileAppI
     });
 };
 
+
+/**
+ * Subscribe to an attachement file on SteamCommunity.
+ * @param sharedFileId
+ * @param sharedFileAppId
+ * @param callbackErrorOnly
+ */
+Community.prototype.subscribeSharedFile = function (sharedFileId, sharedFileAppId, callbackErrorOnly) {
+    var self = this;
+
+    var options = {
+        form: {
+            'sessionid': self.Auth.sessionid,
+            'id': sharedFileId,
+            'appid': sharedFileAppId
+        }
+    };
+
+    self.community.httpRequestPost('http://steamcommunity.com/sharedfiles/subscribe', options, function (error, response, body) {
+        if (!error)
+            callbackErrorOnly(undefined);
+        else
+            callbackErrorOnly(error || EResult[JSON.parse(body).success]);
+    });
+};
+
+/**
+ * Unsubscribe to an attachement file on SteamCommunity.
+ * @param sharedFileId
+ * @param sharedFileAppId
+ * @param callbackErrorOnly
+ */
+Community.prototype.unsubscribeSharedFile = function (sharedFileId, sharedFileAppId, callbackErrorOnly) {
+    var self = this;
+
+    var options = {
+        form: {
+            'sessionid': self.Auth.sessionid,
+            'id': sharedFileId,
+            'appid': sharedFileAppId
+        }
+    };
+
+    self.community.httpRequestPost('http://steamcommunity.com/sharedfiles/unsubscribe', options, function (error, response, body) {
+        if (!error)
+            callbackErrorOnly(undefined);
+        else
+            callbackErrorOnly(error || EResult[JSON.parse(body).success]);
+    });
+};
+
+
 /**
  * Unfavourite an attachement file on SteamCommunity.
  * @param sharedFileId
@@ -127,6 +179,57 @@ Community.prototype.unfavouriteSharedFile = function (sharedFileId, sharedFileAp
     };
 
     self.community.httpRequestPost('http://steamcommunity.com/sharedfiles/unfavorite', options, function (error, response, body) {
+        if (!error)
+            callbackErrorOnly(undefined);
+        else
+            callbackErrorOnly(error || EResult[JSON.parse(body).success]);
+    });
+};
+
+
+/**
+ * Comment on an attachement file on SteamCommunity.
+ * @param comment
+ * @param sharedFileId
+ * @param fileIdOwner
+ * @param callbackErrorOnly
+ */
+Community.prototype.commentSharedFile = function (comment, sharedFileId, fileIdOwner, callbackErrorOnly) {
+    var self = this;
+
+    var options = {
+        form: {
+            'sessionid': self.Auth.sessionid,
+            'comment': comment
+        }
+    };
+
+    self.community.httpRequestPost('http://steamcommunity.com/comment/PublishedFile_Public/post/' + fileIdOwner + '/' + sharedFileId + '/', options, function (error, response, body) {
+        if (!error)
+            callbackErrorOnly(undefined);
+        else
+            callbackErrorOnly(error || EResult[JSON.parse(body).success]);
+    });
+};
+
+/**
+ * Delete comment on an attachement file on SteamCommunity.
+ * @param comment
+ * @param sharedFileId
+ * @param fileIdOwner
+ * @param callbackErrorOnly
+ */
+Community.prototype.deleteCommentSharedFile = function (commentId, sharedFileId, fileIdOwner, callbackErrorOnly) {
+    var self = this;
+
+    var options = {
+        form: {
+            'sessionid': self.Auth.sessionid,
+            'gidcomment': commentId
+        }
+    };
+
+    self.community.httpRequestPost('http://steamcommunity.com/comment/PublishedFile_Public/delete/' + fileIdOwner + '/' + sharedFileId + '/', options, function (error, response, body) {
         if (!error)
             callbackErrorOnly(undefined);
         else

@@ -102,7 +102,7 @@
 
 
 <div class="description">
-    This is a simple example of a bot that will hook into the API and provide a way to vote on attachements through all bot accountsI do not promote the use of this file, it is made for educational purposes on the possible functionality of this tool.Note: This is simply a proof-of-conceptMake sure you copy this file and not use it directly. Follow install instructions on github.
+    This is a simple example of a bot that will hook into the API and provide a way to deposit items into a bot inventoryIn which a bot will accept any trades in-which the offer is initiated via API, and decline any others.andthe api can be called via below:METHOD: POSTURL: localhost:1338/sendTrade (port can be changed in config)PARAMS:     partner - A string representation of SteamID2, SteamID3, or SteamID64     items - An array of strings in the form of "classid_instanceid" of items (repeating the same values is a valid case)RETURN:  If failed to send trade:     {status: 0, error: String}  If successful to send trade:     {status: 1, offerInformation: tradeOfferObject}Make sure you copy this file and not use it directly. Follow install instructions on github.
 </div>
 
 
@@ -140,255 +140,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="examples_VoteBot.js.html">examples/VoteBot.js</a>, <a href="examples_VoteBot.js.html#line12">line 12</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
-<h4 class="name" id="BotManager"><span class="type-signature"></span>BotManager<span class="type-signature"></span></h4>
-
-
-
-
-<div class="description">
-    This is a simple example of a bot that will hook into the API and provide a way to have bot accounts join a certain group.Make sure you copy this file and not use it directly. Follow install instructions on github.
-</div>
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="examples_JoinBot.js.html">examples/JoinBot.js</a>, <a href="examples_JoinBot.js.html#line9">line 9</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
-<h4 class="name" id="BotManager"><span class="type-signature"></span>BotManager<span class="type-signature"></span></h4>
-
-
-
-
-<div class="description">
-    This is a simple example of a bot that will hook into the API and provide an Inventory systemIn which a bot will accept any trades in-which people offer something and he offers nothing.andbot will accept any trades done by an admin in-which the bot offers something and the admin offers nothing.Make sure you copy this file and not use it directly. Follow install instructions on github.
-</div>
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="examples_InventoryBot.js.html">examples/InventoryBot.js</a>, <a href="examples_InventoryBot.js.html#line12">line 12</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
-<h4 class="name" id="BotManager"><span class="type-signature"></span>BotManager<span class="type-signature"></span></h4>
-
-
-
-
-<div class="description">
-    This is a simple example of a bot that will simply run the tool to use the GUI aspect of the bot.This will not do any handling of events automatically.Make sure you copy this file and not use it directly. Follow install instructions on github.
-</div>
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="examples_GUIOnly.js.html">examples/GUIOnly.js</a>, <a href="examples_GUIOnly.js.html#line11">line 11</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-        
-            
-<h4 class="name" id="BotManager"><span class="type-signature"></span>BotManager<span class="type-signature"></span></h4>
-
-
-
-
-<div class="description">
-    This is a simple example of a bot that will hook into the API and provide a way to follow and unfollow accounts.I do not promote the use of this file, it is made for educational purposes on the possible functionality of this tool.Note: This is simply a proof-of-conceptMake sure you copy this file and not use it directly. Follow install instructions on github.
-</div>
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="examples_FollowBot.js.html">examples/FollowBot.js</a>, <a href="examples_FollowBot.js.html#line12">line 12</a>
+        <a href="examples_APITradeBot.js.html">examples/APITradeBot.js</a>, <a href="examples_APITradeBot.js.html#line24">line 24</a>
     </li></ul></dd>
     
 
@@ -474,7 +226,7 @@
 
 
 <div class="description">
-    This is a simple example of a bot that will hook into the API and provide a way to deposit items into a bot inventoryIn which a bot will accept any trades in-which the offer is initiated via API, and decline any others.andthe api can be called via below:METHOD: POSTURL: localhost:1338/sendTrade (port can be changed in config)PARAMS:     partner - A string representation of SteamID2, SteamID3, or SteamID64     items - An array of strings in the form of "classid_instanceid" of items (repeating the same values is a valid case)RETURN:  If failed to send trade:     {status: 0, error: String}  If successful to send trade:     {status: 1, offerInformation: tradeOfferObject}Make sure you copy this file and not use it directly. Follow install instructions on github.
+    This is a simple example of a bot that will simply run the tool to use the GUI aspect of the bot.This will not do any handling of events automatically.Make sure you copy this file and not use it directly. Follow install instructions on github.
 </div>
 
 
@@ -512,7 +264,255 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="examples_APITradeBot.js.html">examples/APITradeBot.js</a>, <a href="examples_APITradeBot.js.html#line24">line 24</a>
+        <a href="examples_GUIOnly.js.html">examples/GUIOnly.js</a>, <a href="examples_GUIOnly.js.html#line11">line 11</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="BotManager"><span class="type-signature"></span>BotManager<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    This is a simple example of a bot that will hook into the API and provide an Inventory systemIn which a bot will accept any trades in-which people offer something and he offers nothing.andbot will accept any trades done by an admin in-which the bot offers something and the admin offers nothing.Make sure you copy this file and not use it directly. Follow install instructions on github.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="examples_InventoryBot.js.html">examples/InventoryBot.js</a>, <a href="examples_InventoryBot.js.html#line12">line 12</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="BotManager"><span class="type-signature"></span>BotManager<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    This is a simple example of a bot that will hook into the API and provide a way to have bot accounts join a certain group.Make sure you copy this file and not use it directly. Follow install instructions on github.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="examples_JoinBot.js.html">examples/JoinBot.js</a>, <a href="examples_JoinBot.js.html#line9">line 9</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="BotManager"><span class="type-signature"></span>BotManager<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    This is a simple example of a bot that will hook into the API and provide a way to vote on attachements through all bot accountsI do not promote the use of this file, it is made for educational purposes on the possible functionality of this tool.Note: This is simply a proof-of-conceptMake sure you copy this file and not use it directly. Follow install instructions on github.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="examples_VoteBot.js.html">examples/VoteBot.js</a>, <a href="examples_VoteBot.js.html#line12">line 12</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="BotManager"><span class="type-signature"></span>BotManager<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    This is a simple example of a bot that will hook into the API and provide a way to follow and unfollow accounts.I do not promote the use of this file, it is made for educational purposes on the possible functionality of this tool.Note: This is simply a proof-of-conceptMake sure you copy this file and not use it directly. Follow install instructions on github.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="examples_FollowBot.js.html">examples/FollowBot.js</a>, <a href="examples_FollowBot.js.html#line12">line 12</a>
     </li></ul></dd>
     
 
@@ -808,7 +808,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="classes_Trade.js.html">classes/Trade.js</a>, <a href="classes_Trade.js.html#line146">line 146</a>
+        <a href="classes_Trade.js.html">classes/Trade.js</a>, <a href="classes_Trade.js.html#line151">line 151</a>
     </li></ul></dd>
     
 
@@ -935,7 +935,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="classes_Bot.js.html">classes/Bot.js</a>, <a href="classes_Bot.js.html#line85">line 85</a>
+        <a href="classes_Bot.js.html">classes/Bot.js</a>, <a href="classes_Bot.js.html#line93">line 93</a>
     </li></ul></dd>
     
 
@@ -1085,7 +1085,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="classes_Request.js.html">classes/Request.js</a>, <a href="classes_Request.js.html#line29">line 29</a>
+        <a href="classes_Request.js.html">classes/Request.js</a>, <a href="classes_Request.js.html#line48">line 48</a>
     </li></ul></dd>
     
 
@@ -1235,7 +1235,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="classes_Bot.js.html">classes/Bot.js</a>, <a href="classes_Bot.js.html#line89">line 89</a>
+        <a href="classes_Bot.js.html">classes/Bot.js</a>, <a href="classes_Bot.js.html#line97">line 97</a>
     </li></ul></dd>
     
 
@@ -1385,7 +1385,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="classes_Auth.js.html">classes/Auth.js</a>, <a href="classes_Auth.js.html#line225">line 225</a>
+        <a href="classes_Auth.js.html">classes/Auth.js</a>, <a href="classes_Auth.js.html#line269">line 269</a>
     </li></ul></dd>
     
 
@@ -1516,7 +1516,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="classes_Bot.js.html">classes/Bot.js</a>, <a href="classes_Bot.js.html#line95">line 95</a>
+        <a href="classes_Bot.js.html">classes/Bot.js</a>, <a href="classes_Bot.js.html#line103">line 103</a>
     </li></ul></dd>
     
 
@@ -1689,7 +1689,157 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="classes_Trade.js.html">classes/Trade.js</a>, <a href="classes_Trade.js.html#line187">line 187</a>
+        <a href="classes_Trade.js.html">classes/Trade.js</a>, <a href="classes_Trade.js.html#line208">line 208</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+                
+
+    
+
+    <h4 class="name" id="tradeTokenCallback"><span class="type-signature"></span>tradeTokenCallback<span class="signature">(error, token)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>error</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Error</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">An error message if the process failed, undefined if successful</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>token</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The token of the current bot account</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="classes_Trade.js.html">classes/Trade.js</a>, <a href="classes_Trade.js.html#line191">line 191</a>
     </li></ul></dd>
     
 
@@ -1735,7 +1885,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Thu Jul 06 2017 14:48:01 GMT-0400 (Eastern Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a> on Sat Oct 28 2017 11:52:44 GMT-0400 (Eastern Daylight Time)
 </footer>
 
 <script> prettyPrint(); </script>

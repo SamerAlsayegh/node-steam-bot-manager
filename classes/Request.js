@@ -13,12 +13,31 @@ function Request(request, logger) {
     self.logger = logger;
 }
 
-
+/**
+ * Send a custom GET request to any url on steam community while logged in as the bot account.
+ * @param url
+ * @param callback
+ */
 Request.prototype.getRequest = function (url, callback) {
     var self = this;
     self.request({
         url: url,
         method: "GET",
+        json: true
+    }, function (err, response, body) {
+        callback(err, body);
+    });
+};
+/**
+ * Send a custom POST request to any url on steam community while logged in as the bot account.
+ * @param url
+ * @param callback
+ */
+Request.prototype.postRequest = function (url, callback) {
+    var self = this;
+    self.request({
+        url: url,
+        method: "POST",
         json: true
     }, function (err, response, body) {
         callback(err, body);

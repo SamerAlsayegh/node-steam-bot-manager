@@ -1,5 +1,5 @@
 # About
-A bot management tool for [Steam Community](http://www.steamcommunity.com) built with NodeJS. Allows users to customize bot actions to the needs of their websites. Whether you are looking for bots to message users when an in-game report occurs, or invite users to your group when they join your server, this tool offers a powerful & easy API.
+A bot management wrapper tool for [Steam Community](http://www.steamcommunity.com) built with NodeJS. Allows users to customize bot actions to the needs of their websites. Whether you are looking for bots to message users when an in-game report occurs, or invite users to your group when they join your server, this tool offers a powerful & easy API.
 
 
 

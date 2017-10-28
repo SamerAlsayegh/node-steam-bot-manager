@@ -32,6 +32,22 @@ function Auth(BotAccount, accountDetails, logger) {
     // instead of on `this`.
     privateStore[self.accountName].accountDetails = accountDetails;
 
+
+    self.BotAccount.client.on('loggedOn', function(details, parental){
+        self.emit('loggedInNodeSteam', details);
+        self.emit('debug', 'Logged into Steam via SteamClient.');
+    });
+
+    self.BotAccount.client.on('loginKey', function(loginKey){
+        privateStore[self.accountName].accountDetails.loginKey = loginKey;
+        self.emit('updatedAccountDetails', privateStore[self.accountName].accountDetails);
+        self.emit('debug', 'Received a loginKey. This key must be removed if changing ip\'s.');
+    });
+
+    self.BotAccount.client.on('error', function(error){
+        self.emit('debug', error);
+    });
+
     Auth.prototype.enableTwoFactor = function (callback) {
         var self = this;
         self.emit('enablingTwoFactorAuth');
@@ -83,6 +99,7 @@ function Auth(BotAccount, accountDetails, logger) {
     Auth.prototype.loginAccount = function (details, callbackErrorOnly) {
         var self = this;
         self.emit('loggingIn');
+
         if (self.has_shared_secret()) {
             privateStore[self.accountName].accountDetails.twoFactorCode = self.generateMobileAuthenticationCode();
         }
@@ -109,6 +126,20 @@ function Auth(BotAccount, accountDetails, logger) {
                 else {
                     self.loggedIn = true;
                     self.sessionid = sessionID;
+                    if (privateStore[self.accountName].accountDetails.password) {
+                        self.BotAccount.client.logOn({
+                            accountName: self.accountName,
+                            password: privateStore[self.accountName].accountDetails.password,
+                            authCode: privateStore[self.accountName].accountDetails.authCode,
+                            loginKey: privateStore[self.accountName].accountDetails.loginKey,
+                            twoFactorCode: privateStore[self.accountName].accountDetails.twoFactorCode,
+                            rememberPassword: true,
+                            logonID: 1337,
+                            machineName: "node-steam-bot-manager",
+                        });
+                    }
+
+
                     self.BotAccount.loggedInAccount(cookies, sessionID, function(err, steamid){
 
                         privateStore[self.accountName].accountDetails.steamid64 = steamid.getSteamID64();
@@ -127,6 +158,19 @@ function Auth(BotAccount, accountDetails, logger) {
                         self.logger.log('error', "Rate limited by Steam - Delaying request.");
                         self.BotAccount.addToQueue('ratelimit', self, self.loginAccount, [details, callbackErrorOnly]);
                     }
+                    if (privateStore[self.accountName].accountDetails.password) {
+                        self.BotAccount.client.logOn({
+                            accountName: self.accountName,
+                            password: privateStore[self.accountName].accountDetails.password,
+                            authCode: privateStore[self.accountName].accountDetails.authCode,
+                            twoFactorCode: privateStore[self.accountName].accountDetails.twoFactorCode,
+                            // loginKey: privateStore[self.accountName].accountDetails.loginKey,
+                            rememberPassword: true,
+                            logonID: 1337,
+                            machineName: "node-steam-bot-manager",
+                        });
+                    }
+
                     self.emit('updatedAccountDetails', privateStore[self.accountName].accountDetails);
                     self.logger.log('error', "Failed to login into account due to " + err);
                     if (callbackErrorOnly != undefined)
@@ -211,7 +255,7 @@ function Auth(BotAccount, accountDetails, logger) {
     Auth.prototype._updateAccountDetails = function (newDetails) {
         // We will loop through all new details and ensure they do no edit any protected details
         var self = this;
-        var protectedDetails = ["username", "accountName", "oAuthToken", "steamguard", "password", "shared_secret", "identity_secret", "revocation_code", "steamid64"];
+        var protectedDetails = ["username", "accountName", "oAuthToken", "steamguard", "password", "shared_secret", "identity_secret", "revocation_code", "steamid64", "loginKey", "displayName"];
         for (var newDetail in newDetails) {
             if (newDetails.hasOwnProperty(newDetail))
                 if (protectedDetails.indexOf(newDetail) == -1)

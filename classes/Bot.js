@@ -51,8 +51,9 @@ function Bot(username, password, details, settings, logger) {
         };
     self.logger = logger;
     self.community = new SteamCommunity();
+
     self.client = new SteamUser();
-    self.client.logOn();
+
 
     self.TradeOfferManager = new TradeOfferManager({
         "steam": self.client,
@@ -76,6 +77,11 @@ function Bot(username, password, details, settings, logger) {
     self.Auth.on('updatedAccountDetails', function (accountDetails) {
         self.emit('updatedAccountDetails', accountDetails);
     });
+    self.Auth.on('loggedInNodeSteam', function(){
+        self.emit('loggedInNodeSteam');
+    });
+
+
     self.Profile = new Profile(self.Tasks, self.community, self.Auth, logger);
     self.Profile.displayName = self.displayName;
     self.Friends = new Friends(self, self.Request, logger);
@@ -271,6 +277,7 @@ Bot.prototype.loggedInAccount = function (cookies, sessionID, callbackSteamID) {
         self.community.setCookies(cookies);
         self.store.setCookies(cookies);
         self.TradeOfferManager.setCookies(cookies, function (err) {
+            self.SteamID = self.TradeOfferManager.steamID;
             if (err) {
                 self.logger.log("debug", "Failed to get API Key - TradeOverflowChecking disabled for %j & getOffers call disabled due to %j", self.getAccountName(), err);
                 if (err.Error == "Access Denied") {
@@ -282,18 +289,30 @@ Bot.prototype.loggedInAccount = function (cookies, sessionID, callbackSteamID) {
             else {
                 self.api_access = true;
                 // We will always fetch the apiKey on login and ensure it is the same as recorded, otherwise we save it.
-                if (!self.hasOwnProperty("apiKey"))
-                    self.Community.getWebApiKey('localhost', function(err, apiKey){
+                if (!self.hasOwnProperty("apiKey")) {
+                    self.Community.getWebApiKey('localhost', function (err, apiKey) {
                         if (err) {
-                                self.logger.log("debug", "Failed to get apiKey for %j due to %s", self.username, err);
+                            self.logger.log("debug", "Failed to get apiKey for %j due to %s", self.username, err);
                         } else {
-                                self.logger.log("debug", "Updated apiKey for %s", self.username);
-                                self.apiKey = apiKey;
-                                self.Auth._updateAccountDetails({apiKey: self.apiKey});
+                            self.logger.log("debug", "Updated apiKey for %s", self.username);
+                            self.apiKey = apiKey;
+                            self.Auth._updateAccountDetails({apiKey: self.apiKey});
                         }
                     });
+                }
+                self.Profile.getSteamUser(self.SteamID, function (err, user) {
+                    if (err) {
+                        self.logger.log("debug", "Failed to get display name for ", self.username, err);
+                    } else {
+                        self.logger.log("debug", "Loaded account details for %s", self.username);
+                        self.community_details = user;
+                        self.Profile.displayName = user.name;
+                        self.displayName = user.name;
+                        self.Auth._updateAccountDetails({displayName: user.name});
+                    }
+                });
+
             }
-            self.SteamID = self.TradeOfferManager.steamID;
             self.Trade.setAPIAccess(self.api_access);
 
 
