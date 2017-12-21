@@ -7,10 +7,9 @@ Request.prototype.__proto__ = require('events').EventEmitter.prototype;
  * @param logger
  * @constructor
  */
-function Request(request, logger) {
+function Request(request) {
     var self = this;
     self.request = request;
-    self.logger = logger;
 }
 
 /**
@@ -69,7 +68,8 @@ Request.prototype.getRequestAPI = function (apiInterface, version, method, optio
     for (var option in options)
         if (options.hasOwnProperty(option))
             string += option + "=" + options[option] + (x++ < Object.keys(options).length - 1 ? "&" : '');
-    self.logger.log('debug', "Sending GET request to " + string);
+    self.emit('debug', 'Sending GET request to ' + string);
+
     self.request({
         url: 'http://api.steampowered.com/' + apiInterface + '/' + method + '/' + version + '/' + string,
         method: "GET",

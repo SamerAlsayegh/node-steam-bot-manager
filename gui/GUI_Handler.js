@@ -21,7 +21,7 @@ GUI_Handler.prototype.displayBotMenu = function () {
     var accounts = self.main.getAccounts();
     for (var accountIndex in accounts) {
         if (accounts.hasOwnProperty(accountIndex)) {
-            tempList.push(accounts[accountIndex].getAccountName() + "[{0}]".format(accounts[accountIndex].Profile.getDisplayName()));
+            tempList.push(accounts[accountIndex].getAccountName() + "[{0}]".format(accounts[accountIndex].getDisplayName()));
         }
     }
     tempList.push(new inquirer.Separator());
@@ -290,7 +290,7 @@ GUI_Handler.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                                                             self.main.errorDebug(err);
                                                             self.displayMenu(botAccount);
                                                         } else {
-                                                            botAccount.Trade.confirmOutstandingTrades(function (confirmedTrades) {
+                                                            botAccount.Trade.confirmOutstandingTrades(function (err, confirmedTrades) {
                                                                 self.main.infoDebug("Sent trade offer to %s." + partner.username);
                                                                 self.displayMenu(botAccount);
                                                             });
@@ -348,7 +348,7 @@ GUI_Handler.prototype.tradeMenu = function (botAccount, tradeMenuOption) {
                                                         self.main.errorDebug(err);
                                                         self.displayMenu(botAccount);
                                                     } else {
-                                                        botAccount.Trade.confirmOutstandingTrades(function (confirmedTrades) {
+                                                        botAccount.Trade.confirmOutstandingTrades(function (err, confirmedTrades) {
                                                             self.main.infoDebug("Sent trade offer to %s, and confirmed %s.", partner.username, confirmedTrades.length);
                                                             self.displayMenu(botAccount);
                                                         });

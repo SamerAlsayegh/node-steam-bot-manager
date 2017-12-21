@@ -10,12 +10,11 @@ const SteamID = require('steam-tradeoffer-manager').SteamID;
  * @param logger
  * @constructor
  */
-function Community(community, Auth, logger) {
+function Community(community, Auth) {
     // Ensure account values are valid
     var self = this;
     self.community = community;
     self.Auth = Auth;
-    self.logger = logger;
 }
 
 
@@ -416,6 +415,12 @@ Community.prototype.setupProfile = function (callbackErrorOnly) {
  */
 Community.prototype.getWebApiKey = function (domain, callbackApiKey) {
     var self = this;
+    if (callbackApiKey == null){
+        callbackApiKey = domain;
+        domain = "localhost";
+    }
+
+
     self.community.getWebApiKey(domain, function(err, apiKey){
         callbackApiKey(err, apiKey);
     });

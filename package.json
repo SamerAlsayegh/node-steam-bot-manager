@@ -1,6 +1,6 @@
 {
   "name": "node-steam-bot-manager",
-  "version": "1.0.57",
+  "version": "1.0.57-beta",
   "description": "A NodeJS Steam Bot Management tool. ",
   "main": "lib/index.js",
   "scripts": {
@@ -35,6 +35,7 @@
     "inquirer": "^3.1.0",
     "jasmine": "^2.5.3",
     "jsdoc": "^3.4.0",
+    "multer": "^1.3.0",
     "request": "^2.69.0",
     "steam-totp": "^2.0.1",
     "steam-tradeoffer-manager": "^2.7.4",

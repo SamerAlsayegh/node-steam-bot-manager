@@ -9,12 +9,11 @@ Profile.prototype.__proto__ = require('events').EventEmitter.prototype;
  * @param logger
  * @constructor
  */
-function Profile(taskManager, community, auth, logger) {
+function Profile(taskManager, community, auth) {
     var self = this;
     self.community = community;
     self.TaskManager = taskManager;
     self.Auth = auth;
-    self.logger = logger;
 }
 
 Profile.prototype.uploadAvatar = function (image, format, callbackImageUpload) {

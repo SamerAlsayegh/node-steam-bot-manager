@@ -1,4 +1,3 @@
-
 Bot.prototype.__proto__ = require('events').EventEmitter.prototype;
 const Auth = require('./Auth.js');
 const Trade = require('./Trade.js');
@@ -12,6 +11,7 @@ const SteamUser = require('steam-user');
 const SteamStore = require('steamstore');
 const TradeOfferManager = require('steam-tradeoffer-manager');
 const SteamID = TradeOfferManager.SteamID;
+const request = require('request');
 
 /**
  * Create a new bot instance
@@ -23,70 +23,175 @@ const SteamID = TradeOfferManager.SteamID;
  * @param logger
  * @constructor
  */
-function Bot(username, password, details, settings, logger) {
-    // Ensure account values are valid
+function Bot(username, password, details, settings) {
     var self = this;
+    // TODO: Revamp the accountName and username fields... Currently 2 fields exist which are redundant
     // Init all required variables
-    if (typeof username != "string" || typeof password != "string")
-        if (!details.hasOwnProperty("steamguard") || !(details.hasOwnProperty("oAuthToken")))
+    if (typeof username != "string" || typeof password != "string") {
+        if (details == null || !details.hasOwnProperty("steamguard") || !(details.hasOwnProperty("oAuthToken"))) {
             throw Error("Invalid username/password or missing oAuthToken/Steamguard code");
+        }
+    }
 
-    if (typeof details == "object") {
+    if (details != null) {
         if (details.hasOwnProperty("displayName"))
             self.displayName = details.displayName;
         if (details.hasOwnProperty("apiKey"))
             self.apiKey = details.apiKey;
     }
+
+
     self.username = username;
     self.password = password;
     self.settings = settings || {
-            api_key: "",
-            tradeCancelTime: 60 * 60 * 24 * 1000,
-            tradePendingCancelTime: 60 * 60 * 24 * 1000,
-            language: "en",
-            tradePollInterval: 5000,
-            tradeCancelOfferCount: 30,
-            tradeCancelOfferCountMinAge: 60 * 60 * 1000,
-            cancelTradeOnOverflow: true
-        };
-    self.logger = logger;
-    self.community = new SteamCommunity();
+        api_key: "",
+        tradeCancelTime: 60 * 60 * 24 * 1000,
+        tradePendingCancelTime: 60 * 60 * 24 * 1000,
+        language: "en",
+        tradePollInterval: 5000,
+        tradeCancelOfferCount: 30,
+        tradeCancelOfferCountMinAge: 60 * 60 * 1000,
+        cancelTradeOnOverflow: true
+    };
 
-    self.client = new SteamUser();
-
-
-    self.TradeOfferManager = new TradeOfferManager({
-        "steam": self.client,
-        "community": self.community,
-        "cancelTime": self.settings.tradeCancelTime, // Keep offers upto 1 day, and then just cancel them.
-        "pendingCancelTime": self.settings.tradePendingCancelTime, // Keep offers upto 30 mins, and then cancel them if they still need confirmation
-        "cancelOfferCount": self.settings.tradeCancelOfferCount,// Cancel offers once we hit 7 day threshold
-        "cancelOfferCountMinAge": self.settings.tradeCancelOfferCountMinAge,// Keep offers until 7 days old
-        "language": self.settings.language, // We want English item descriptions
-        "pollInterval": self.settings.tradePollInterval // We want to poll every 5 seconds since we don't have Steam notifying us of offers
+    // if (logger) {
+    //     self.logger = logger;
+    // }
+    self.freshLogin = true;
+    self.Auth = new Auth(details);
+    self.Auth.setSettings(settings);
+    self.Auth.on('error', function () {
+        self.emit('error', ...arguments);
     });
-    self.request = self.community.request;
-    self.store = new SteamStore();
-    self.loggedIn = false;
-    self.rateLimited = true;
-    self.Tasks = new TaskManager(logger);
+    self.Auth.on('debug', function () {
+        self.emit('debug', ...arguments);
+    });
 
-
-    self.Auth = new Auth(self, details, logger);
-    self.Request = new Request(self.request, logger);
     self.Auth.on('updatedAccountDetails', function (accountDetails) {
         self.emit('updatedAccountDetails', accountDetails);
     });
-    self.Auth.on('loggedInNodeSteam', function(){
-        self.emit('loggedInNodeSteam');
+    self.Auth.on('loggedInAccount', function (cookies, sessionID) {
+        self.loggedInAccount(cookies, sessionID, function (err, SteamID) {
+            if (err) self.emit('error', err);
+            self.SteamID = SteamID;
+        })
     });
 
+    self.Auth.on('loggedInNodeSteam', function () {
+        self.emit('loggedInNodeSteam');
+    });
+    if (self.settings.autologin == true)
+        self.initUser(function (err) {
+            self.Auth.loginAccount();
+        });
 
-    self.Profile = new Profile(self.Tasks, self.community, self.Auth, logger);
-    self.Profile.displayName = self.displayName;
-    self.Friends = new Friends(self, self.Request, logger);
-    self.Trade = new Trade(self.TradeOfferManager, self.Auth, self.Tasks, self.settings, logger);
-    self.Community = new Community(self.community, self.Auth, logger);
+
+    // Events Listeners
+
+    self.sentOfferChanged = function (offer, oldState) {
+        /**
+         * Emitted when a trade offer changes state (Ex. accepted, pending, escrow, etc...)
+         *
+         * @event Bot#sentOfferChanged
+         * @type {object}
+         * @property {TradeOffer} offer - The new offer's details
+         * @property {TradeOffer} oldState - The old offer's details
+         */
+        self.emit('sentOfferChanged', offer, oldState);
+    };
+
+    self.chatLogOnFailed = function (err, fatal) {
+        self.emit('chatLogOnFailed', err, fatal);
+    };
+
+    self.chatLoggedOn = function () {
+        self.emit('chatLoggedOn');
+    };
+
+    self.chatTyping = function (senderID) {
+        self.emit('chatTyping', senderID);
+    };
+
+    self.chatMessage = function (senderID, message) {
+        if (self.currentChatting != undefined && senderID == self.currentChatting.sid) {
+            console.log(("\n" + self.currentChatting.username + ": " + message));
+        }
+        self.emit('debug', 'Received message from %j: %s', senderID, message);
+        /**
+         * Emitted when a friend message or chat room message is received.
+         *
+         * @event Bot#chatMessage
+         * @type {object}
+         * @property {SteamID} senderID - The message sender, as a SteamID object
+         * @property {String} message - The message text
+         */
+        self.emit('chatMessage', senderID, message);
+    };
+
+    self.sessionExpired = function (err) {
+        self.emit('debug', "Login session expired for %s, due to ", self.getAccountName(), err);
+        self.loggedIn = false;
+        self.emit('sessionExpired', err);
+    };
+
+    self.receivedOfferChanged = function (offer, oldState) {
+        self.emit('receivedOfferChanged', offer, oldState);
+    };
+
+    self.offerList = function (filter, sent, received) {
+        /**
+         * Emitted when we fetch the offerList
+         *
+         * @event Bot#offerList
+         * @type {object}
+         */
+        self.emit('offerList', filter, sent, received);
+    };
+
+    self.newOffer = function (offer) {
+        /**
+         * Emitted when we receive a new trade offer
+         *
+         * @event Bot#newOffer
+         * @type {object}
+         * @property {TradeOffer} offer - The offer's details
+         */
+        self.emit('newOffer', offer);
+    };
+
+    self.realTimeTradeConfirmationRequired = function (offer) {
+        /**
+         * Emitted when a trade offer is cancelled
+         *
+         * @event Bot#tradeOffers
+         * @type {object}
+         * @property {Integer} count - The amount of active trade offers (can be 0).
+         */
+        self.emit('realTimeTradeConfirmationRequired', offer);
+    };
+
+    self.realTimeTradeCompleted = function (offer) {
+        /**
+         * Emitted when a trade offer is cancelled
+         *
+         * @event Bot#tradeOffers
+         * @type {object}
+         * @property {Integer} count - The amount of active trade offers (can be 0).
+         */
+        self.emit('realTimeTradeCompleted', offer);
+    };
+
+    self.sentOfferCanceled = function (offer) {
+        /**
+         * Emitted when a trade offer is cancelled
+         *
+         * @event Bot#tradeOffers
+         * @type {object}
+         * @property {Integer} count - The amount of active trade offers (can be 0).
+         */
+        self.emit('sentOfferCanceled', offer);
+    };
+
 
 }
 
@@ -106,32 +211,118 @@ function Bot(username, password, details, settings, logger) {
  * @param {Error} error - An error message if the process failed, undefined if successful
  */
 
+/**
+ * Initiate the user with custom options incase you wish to use a proxy/bind requests to localAddress. Or provide custom options to certain users.
+ * @param options (optional)
+ * @param callback (optional)
+ */
+Bot.prototype.initUser = function (options, callback) {
+    let self = this;
+    if (callback == null && options != null) {
+        callback = options;
+        options = {};
+    }
 
+    let requestOptions = {};
+    if (options.hasOwnProperty("request"))
+        requestOptions = options.request;
+
+    let modifiedRequest = request.defaults(requestOptions);
+
+    self.community = new SteamCommunity({
+        request: modifiedRequest
+    });
+
+    self.client = new SteamUser();
+
+
+    self.TradeOfferManager = new TradeOfferManager({
+        "steam": self.client,
+        "community": self.community,
+        "cancelTime": options.hasOwnProperty("cancelTime") ? options.cancelTime : self.settings.tradeCancelTime, // Keep offers upto 1 day, and then just cancel them.
+        "pendingCancelTime": options.hasOwnProperty("pendingCancelTime") ? options.pendingCancelTime : self.settings.tradePendingCancelTime, // Keep offers upto 30 mins, and then cancel them if they still need confirmation
+        "cancelOfferCount": options.hasOwnProperty("cancelOfferCount") ? options.cancelOfferCount : self.settings.tradeCancelOfferCount,// Cancel offers once we hit 7 day threshold
+        "cancelOfferCountMinAge": options.hasOwnProperty("cancelOfferCountMinAge") ? options.cancelOfferCountMinAge : self.settings.tradeCancelOfferCountMinAge,// Keep offers until 7 days old
+        "language": options.hasOwnProperty("language") ? options.language : self.settings.language, // We want English item descriptions
+        "pollInterval": options.hasOwnProperty("tradePollInterval") ? options.tradePollInterval : self.settings.tradePollInterval // We want to poll every 5 seconds since we don't have Steam notifying us of offers
+    });
+    self.request = self.community.request;
+    self.store = new SteamStore();
+    self.Auth.initAuth(self.community, self.store, self.client);
+
+    self.loggedIn = false;
+    self.Tasks = new TaskManager();
+    self.Tasks.on('error', function () {
+        self.emit('error', ...arguments);
+    });
+    self.Tasks.on('debug', function () {
+        self.emit('debug', ...arguments);
+    });
+
+    self.Request = new Request(self.request);
+    self.Request.on('error', function () {
+        self.emit('error', ...arguments);
+    });
+    self.Request.on('debug', function () {
+        self.emit('debug', ...arguments);
+    });
+
+    self.client.on('loggedOn', function (details, parental) {
+        self.emit('loggedInNodeSteam', details);
+        self.emit('debug', 'Logged into Steam via SteamClient on %s.', self.getAccountName());
+    });
+
+    self.client.on('loginKey', function (loginKey) {
+        self.emit('debug', 'Received a loginKey. This key must be removed if changing ip\'s.');
+        self.Auth._updateAccountDetails({loginKey: loginKey});
+    });
+
+    self.client.on('error', function (err) {
+        self.emit('error', "Error on %s for SteamUser %s", self.getAccountName(), err);
+    });
+
+    self.Profile = new Profile(self.Tasks, self.community, self.Auth);
+    self.Profile.on('error', function () {
+        self.emit('error', ...arguments);
+    });
+    self.Profile.on('debug', function () {
+        self.emit('debug', ...arguments);
+    });
+
+    self.Profile.displayName = self.displayName;
+    self.Friends = new Friends(self, self.Request);
+    self.Friends.on('error', function () {
+        self.emit('error', ...arguments);
+    });
+    self.Friends.on('debug', function () {
+        self.emit('debug', ...arguments);
+    });
+    self.Trade = new Trade(self.TradeOfferManager, self.Auth, self.Tasks, self.settings);
+    self.Trade.on('error', function () {
+        self.emit('error', ...arguments);
+    });
+    self.Trade.on('debug', function () {
+        self.emit('debug', ...arguments);
+    });
+    self.Community = new Community(self.community, self.Auth);
+    self.Community.on('error', function () {
+        self.emit('error', ...arguments);
+    });
+    self.Community.on('debug', function () {
+        self.emit('debug', ...arguments);
+    });
+
+    if (callback) {
+        return callback();
+    }
+};
 /**
  * Get the account's username, used to login to Steam
  * @returns {String} username
  */
 Bot.prototype.getAccountName = function () {
-    var self = this;
+    let self = this;
     return self.username;
-};
-
-/**
- * Get if the API/account is rate limited by SteamAPI
- * @returns {Boolean} rateLimited
- */
-Bot.prototype.getRateLimited = function () {
-    var self = this;
-    return self.rateLimited;
-};
-
-/**
- * Get if the API/account is rate limited by SteamAPI
- * @returns {Boolean} rateLimited
- */
-Bot.prototype.setRateLimited = function (rateLimited) {
-    var self = this;
-    return self.rateLimited = rateLimited;
 };
 
 
@@ -140,7 +331,7 @@ Bot.prototype.setRateLimited = function (rateLimited) {
  * @param {*|{username: *, sid: *}} chattingUserInfo
  */
 Bot.prototype.setChatting = function (chattingUserInfo) {
-    var self = this;
+    let self = this;
     self.currentChatting = chattingUserInfo;
 };
 
@@ -160,7 +351,7 @@ Bot.prototype.getUserFromAccountID = function (id) {
  * @deprecated
  */
 Bot.prototype.fromIndividualAccountID = function (id) {
-    var self = this;
+    let self = this;
     return self.getUserFromAccountID(id);
 };
 
@@ -179,15 +370,16 @@ Bot.prototype.getUser = function (steamid) {
  * @deprecated
  */
 Bot.prototype.getDisplayName = function () {
-    var self = this;
-    return self.Profile.getDisplayName();
+    let self = this;
+    return self.Profile ? self.Profile.getDisplayName() : self.username;
 };
 
 /**
  * Get the SteamID of the Bot
  */
-Bot.prototype.getSteamID = function(){
-    return self.SteamID;
+Bot.prototype.getSteamID = function () {
+    let self = this;
+    return self.SteamID ? self.SteamID : self.steamid64;
 };
 
 /**
@@ -198,7 +390,7 @@ Bot.prototype.getSteamID = function(){
  * @deprecated
  */
 Bot.prototype.changeName = function (newName, namePrefix, callbackErrorOnly) {
-    var self = this;
+    let self = this;
     self.Profile.changeDisplayName(newName, namePrefix, callbackErrorOnly);
 };
 
@@ -211,7 +403,7 @@ Bot.prototype.changeName = function (newName, namePrefix, callbackErrorOnly) {
  * @deprecated
  */
 Bot.prototype.getInventory = function (appid, contextid, tradableOnly, inventoryCallback) {
-    var self = this;
+    let self = this;
     self.Trade.getInventory(appid, contextid, tradableOnly, inventoryCallback);
 };
 
@@ -225,7 +417,7 @@ Bot.prototype.getInventory = function (appid, contextid, tradableOnly, inventory
  * @deprecated
  */
 Bot.prototype.getUserInventory = function (steamID, appid, contextid, tradableOnly, inventoryCallback) {
-    var self = this;
+    let self = this;
     if (!self.loggedIn) {
         self.Tasks.addToQueue('login', self, self.Trade.getUserInventory, [steamID, appid, contextid, tradableOnly, inventoryCallback]);
     }
@@ -238,7 +430,7 @@ Bot.prototype.getUserInventory = function (steamID, appid, contextid, tradableOn
  * @param {callbackErrorOnly} callbackErrorOnly - A callback returned with possible errors
  */
 Bot.prototype.addPhoneNumber = function (phoneNumber, callbackErrorOnly) {
-    var self = this;
+    let self = this;
     self.store.addPhoneNumber(phoneNumber, true, function (err) {
         callbackErrorOnly(err);
     });
@@ -251,7 +443,7 @@ Bot.prototype.addPhoneNumber = function (phoneNumber, callbackErrorOnly) {
  * @param {callbackErrorOnly} callbackErrorOnly - A callback returned with possible errors
  */
 Bot.prototype.verifyPhoneNumber = function (code, callbackErrorOnly) {
-    var self = this;
+    let self = this;
     self.store.verifyPhoneNumber(code, function (err) {
         if (err) {
             callbackErrorOnly(err);
@@ -270,179 +462,115 @@ Bot.prototype.verifyPhoneNumber = function (code, callbackErrorOnly) {
  * @param {callbackSteamID} callbackSteamID - If encountered error (optional), and return SteamID Object
  */
 Bot.prototype.loggedInAccount = function (cookies, sessionID, callbackSteamID) {
-    var self = this;
-    self.Friends.login(500, 'web');
-    self.logger.log('debug', 'Logged into %j', self.getAccountName());
+    let self = this;
+    if (self.Friends) self.Friends.login(500, 'web');
+    self.emit('debug', 'Logged into %j', self.getAccountName());
+
+    // self.logger.log('debug', );
     if (self.sessionID != sessionID || self.cookies != cookies) {
+        self.emit('debug', 'Updated session cookies for %j', self.getAccountName());
         self.sessionID = sessionID;
         self.cookies = cookies;
     }
 
 
     if (self.cookies) {
-        self.community.setCookies(cookies);
-        self.store.setCookies(cookies);
-        self.TradeOfferManager.setCookies(cookies, function (err) {
+        self.community.setCookies(self.cookies);
+        self.store.setCookies(self.cookies);
+        self.TradeOfferManager.setCookies(self.cookies, function (err) {
+
             self.SteamID = self.TradeOfferManager.steamID;
             if (err) {
-                self.logger.log("debug", "Failed to get API Key - TradeOverflowChecking disabled for %j & getOffers call disabled due to %j", self.getAccountName(), err);
-                if (err.Error == "Access Denied") {
-                    self.api_access = false;
-                    self.logger.log("debug", "%j is a limited account. Check here for more info: https://support.steampowered.com/kb_article.php?ref=3330-IAGK-7663", self.getAccountName());
+                self.emit('debug', 'Failed to get API Key - TradeOverflowChecking disabled for %j & getOffers call disabled due to %j', self.getAccountName(), err);
+                self.api_access = false;
 
+                if (err.Error == "Access Denied") {
+                    self.emit('debug', '%j is a limited account. Check here for more info: https://support.steampowered.com/kb_article.php?ref=3330-IAGK-7663', self.getAccountName());
                 }
             }
             else {
                 self.api_access = true;
+                self.loggedIn = true;
+
                 // We will always fetch the apiKey on login and ensure it is the same as recorded, otherwise we save it.
                 if (!self.hasOwnProperty("apiKey")) {
-                    self.Community.getWebApiKey('localhost', function (err, apiKey) {
+                    self.Community.getWebApiKey(function (err, apiKey) {
                         if (err) {
-                            self.logger.log("debug", "Failed to get apiKey for %j due to %s", self.username, err);
+                            self.emit('debug', 'Failed to get apiKey for %j due to %s', self.getAccountName(), err);
+                            // self.logger.log("debug", "Failed to get apiKey for %j due to %s", self.username, err);
                         } else {
-                            self.logger.log("debug", "Updated apiKey for %s", self.username);
+                            self.emit('debug', 'Updated apiKey for %s', self.getAccountName());
+                            // self.logger.log("debug", "Updated apiKey for %s", self.username);
                             self.apiKey = apiKey;
                             self.Auth._updateAccountDetails({apiKey: self.apiKey});
                         }
                     });
                 }
-                self.Profile.getSteamUser(self.SteamID, function (err, user) {
-                    if (err) {
-                        self.logger.log("debug", "Failed to get display name for ", self.username, err);
-                    } else {
-                        self.logger.log("debug", "Loaded account details for %s", self.username);
-                        self.community_details = user;
-                        self.Profile.displayName = user.name;
-                        self.displayName = user.name;
-                        self.Auth._updateAccountDetails({displayName: user.name});
-                    }
-                });
-
+                if (self.SteamID) {
+                    self.Profile.getSteamUser(self.SteamID, function (err, user) {
+                        if (err) {
+                            self.emit('debug', 'Failed to get display name for %s', self.getAccountName());
+                            // self.logger.log("debug", "Failed to get display name for ", self.username, err);
+                        } else {
+                            self.emit('debug', 'Loaded account details for %s', self.getAccountName());
+                            // self.logger.log("debug", "Loaded account details for %s", self.username);
+                            self.community_details = user;
+                            self.Profile.displayName = user.name;
+                            self.displayName = user.name;
+                            self.Auth._updateAccountDetails({displayName: user.name});
+                        }
+                    });
+                }
             }
+
+
             self.Trade.setAPIAccess(self.api_access);
 
-
-            self.loggedIn = true;
             self.emit('loggedIn', self);
             self.Tasks.processQueue('login', function (err) {
                 if (err) {
-                    self.logger.log('error', err);
+                    self.emit('error', err);
                     if (callbackSteamID)
                         return callbackSteamID(err, self.SteamID);
                 }
-                self.community.on('chatTyping', function (senderID) {
-                    self.emit('chatTyping', senderID);
-                });
-                self.community.on('chatLoggedOn', function () {
-                    self.emit('chatLoggedOn');
-                });
-                self.community.on('chatLogOnFailed', function (err, fatal) {
-                    self.emit('chatLogOnFailed', err, fatal);
-                });
-                self.community.on('chatMessage', function (senderID, message) {
-                    if (self.currentChatting != undefined && senderID == self.currentChatting.sid) {
-                        console.log(("\n" + self.currentChatting.username + ": " + message));
-                    }
-                    self.logger.log("debug", "Received message from %j: %s", senderID, message);
-                    /**
-                     * Emitted when a friend message or chat room message is received.
-                     *
-                     * @event Bot#chatMessage
-                     * @type {object}
-                     * @property {SteamID} senderID - The message sender, as a SteamID object
-                     * @property {String} message - The message text
-                     */
-                    self.emit('chatMessage', senderID, message);
-                });
-                self.community.on('sessionExpired', function (err) {
-                    self.logger.log('debug', "Login session expired due to " + err);
-                    self.emit('sessionExpired', err);
-                });
-                self.TradeOfferManager.on('sentOfferChanged', function (offer, oldState) {
-                    /**
-                     * Emitted when a trade offer changes state (Ex. accepted, pending, escrow, etc...)
-                     *
-                     * @event Bot#offerChanged
-                     * @type {object}
-                     * @property {TradeOffer} offer - The new offer's details
-                     * @property {TradeOffer} oldState - The old offer's details
-                     * @deprecated
-                     */
-                    self.emit('offerChanged', offer, oldState);
-                });
-                self.TradeOfferManager.on('sentOfferChanged', function (offer, oldState) {
-                    /**
-                     * Emitted when a trade offer changes state (Ex. accepted, pending, escrow, etc...)
-                     *
-                     * @event Bot#sentOfferChanged
-                     * @type {object}
-                     * @property {TradeOffer} offer - The new offer's details
-                     * @property {TradeOffer} oldState - The old offer's details
-                     */
-                    self.emit('sentOfferChanged', offer, oldState);
-                });
-                self.TradeOfferManager.on('receivedOfferChanged', function (offer, oldState) {
-                    self.emit('receivedOfferChanged', offer, oldState);
-                });
 
-                self.TradeOfferManager.on('offerList', function (filter, sent, received) {
-                    /**
-                     * Emitted when we fetch the offerList
-                     *
-                     * @event Bot#offerList
-                     * @type {object}
-                     */
-                    self.emit('offerList', filter, sent, received);
-                });
-                self.TradeOfferManager.on('newOffer', function (offer) {
-                    /**
-                     * Emitted when we receive a new trade offer
-                     *
-                     * @event Bot#newOffer
-                     * @type {object}
-                     * @property {TradeOffer} offer - The offer's details
-                     */
-                    self.emit('newOffer', offer);
-                });
+                self.community.removeListener('chatTyping', self.chatTyping);
+                self.community.on('chatTyping', self.chatTyping);
 
-                self.TradeOfferManager.on('realTimeTradeConfirmationRequired', function (offer) {
-                    /**
-                     * Emitted when a trade offer is cancelled
-                     *
-                     * @event Bot#tradeOffers
-                     * @type {object}
-                     * @property {Integer} count - The amount of active trade offers (can be 0).
-                     */
-                    self.emit('realTimeTradeConfirmationRequired', offer);
-                });
-                self.TradeOfferManager.on('realTimeTradeCompleted', function (offer) {
-                    /**
-                     * Emitted when a trade offer is cancelled
-                     *
-                     * @event Bot#tradeOffers
-                     * @type {object}
-                     * @property {Integer} count - The amount of active trade offers (can be 0).
-                     */
-                    self.emit('realTimeTradeCompleted', offer);
-                });
-                self.TradeOfferManager.on('sentOfferCanceled', function (offer) {
-                    /**
-                     * Emitted when a trade offer is cancelled
-                     *
-                     * @event Bot#tradeOffers
-                     * @type {object}
-                     * @property {Integer} count - The amount of active trade offers (can be 0).
-                     */
-                    self.emit('sentOfferCanceled', offer);
-                });
+                self.community.removeListener('chatLoggedOn', self.chatLoggedOn);
+                self.community.on('chatLoggedOn', self.chatLoggedOn);
+
+                self.community.removeListener('chatLogOnFailed', self.chatLogOnFailed);
+                self.community.on('chatLogOnFailed', self.chatLogOnFailed);
+
+                self.community.removeListener('chatMessage', self.chatMessage);
+                self.community.on('chatMessage', self.chatMessage);
+
+                self.community.removeListener('sessionExpired', self.sessionExpired);
+                self.community.on('sessionExpired', self.sessionExpired);
+
+                self.TradeOfferManager.removeListener('sentOfferChanged', self.sentOfferChanged);
+                self.TradeOfferManager.on('sentOfferChanged', self.sentOfferChanged);
+
+                self.TradeOfferManager.removeListener('receivedOfferChanged', self.receivedOfferChanged);
+                self.TradeOfferManager.on('receivedOfferChanged', self.receivedOfferChanged);
+
+                self.TradeOfferManager.removeListener('offerList', self.offerList);
+                self.TradeOfferManager.on('offerList', self.offerList);
+
+                self.TradeOfferManager.removeListener('newOffer', self.newOffer);
+                self.TradeOfferManager.on('newOffer', self.newOffer);
+
+                self.TradeOfferManager.removeListener('realTimeTradeConfirmationRequired', self.realTimeTradeConfirmationRequired);
+                self.TradeOfferManager.on('realTimeTradeConfirmationRequired', self.realTimeTradeConfirmationRequired);
+
+                self.TradeOfferManager.removeListener('realTimeTradeCompleted', self.realTimeTradeCompleted);
+                self.TradeOfferManager.on('realTimeTradeCompleted', self.realTimeTradeCompleted);
+
+                self.TradeOfferManager.removeListener('sentOfferCanceled', self.sentOfferCanceled);
+                self.TradeOfferManager.on('sentOfferCanceled', self.sentOfferCanceled);
 
 
-
-                /**
-                 * Emitted when we fully sign into Steam and all functions are usable.
-                 *
-                 * @event Bot#loggedIn
-                 */
                 if (callbackSteamID)
                     return callbackSteamID(undefined, self.SteamID);
             });
@@ -454,9 +582,8 @@ Bot.prototype.loggedInAccount = function (cookies, sessionID, callbackSteamID) {
 };
 
 
-
 Bot.prototype.hasPhone = function (callback) {
-    var self = this;
+    let self = this;
     self.store.hasPhone(function (err, hasPhone, lastDigits) {
         callback(err, hasPhone, lastDigits);
     });
@@ -469,31 +596,31 @@ Bot.prototype.hasPhone = function (callback) {
  * @param email
  * @param callback
  */
-Bot.prototype.createAccount = function (username, password,  email, callback) {
-    var self = this;
-    self.client.createAccount(username, password, email, function(EResult, steamid){
+Bot.prototype.createAccount = function (username, password, email, callback) {
+    let self = this;
+    self.client.createAccount(username, password, email, function (EResult, steamid) {
         callback(EResult, steamid);
     })
 };
 
 Bot.prototype.setSetting = function (settingName, tempSettingValue) {
-    var self = this;
+    let self = this;
     self.settings[settingName] = tempSettingValue;
 };
 Bot.prototype.getSetting = function (tempSetting) {
-    var self = this;
+    let self = this;
     if (self.settings.hasOwnProperty(tempSetting))
         return self.settings[tempSetting];
     return undefined;
 };
 Bot.prototype.deleteSetting = function (tempSetting) {
-    var self = this;
+    let self = this;
     if (self.settings.hasOwnProperty(tempSetting))
         delete self.settings[tempSetting];
 };
 
 Bot.prototype.logoutAccount = function () {
-    var self = this;
+    let self = this;
     self.Friends.logout();
 
     self.community = new SteamCommunity();

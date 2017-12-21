@@ -3,6 +3,7 @@ Trade.prototype.__proto__ = require('events').EventEmitter.prototype;
 
 /**
  * A class to handle all trade functions to be done on behalf of the bot account
+ * File needs a re-work alongside all error messages need detail.
  * @param trade
  * @param auth
  * @param tasks
@@ -10,7 +11,7 @@ Trade.prototype.__proto__ = require('events').EventEmitter.prototype;
  * @param logger
  * @constructor
  */
-function Trade(trade, auth, tasks, settings, logger) {
+function Trade(trade, auth, tasks, settings) {
     var self = this;
     if (typeof trade != "object" || typeof auth != "object")
         throw Error("TradeOfferManager & AuthHandler must be passed respectively.");
@@ -18,7 +19,7 @@ function Trade(trade, auth, tasks, settings, logger) {
     self.trade = trade;
     self.tasks = tasks;
     self.api_access = false;
-    self.logger = logger;
+
     if (typeof settings != "object")
         self.settings = {
             cancelTradeOnOverflow: true
@@ -38,12 +39,12 @@ Trade.prototype.confirmOutstandingTrades = function (callback) {
     var self = this;
     self.auth.getTimeOffset(function (err, offset, latency) {
         var time = self.auth.getTime(offset);
-
+        console.log(time);
         self.auth.getConfirmations(time, self.auth.generateMobileConfirmationCode(time, "conf"), function (err, confirmations) {
             if (err) {
-                if (self.logger != undefined)
-                    self.logger.log('error', "Failed to confirm outstanding trades, retrying in 5 seconds");
-                setTimeout(self.confirmOutstandingTrades(callback), 5000);
+                self.emit('error', 'Failed to confirm outstanding trades. Due to: ' + err);
+                // setTimeout(self.confirmOutstandingTrades(callback), 5000);
+                return callback(err, []);
             }
             else {
                 if (confirmations.length > 0) {
@@ -61,15 +62,14 @@ Trade.prototype.confirmOutstandingTrades = function (callback) {
                         var time = self.auth.getTime(offset);
                         self.auth.respondToConfirmation(confIds, confKeys, time, self.auth.generateMobileConfirmationCode(time, "allow"), true, function (err) {
                             if (err) {
-                                if (self.logger != undefined)
-                                    self.logger.log('error', "Failed to respond outstanding trade confirmation.");
+                                self.emit('error', 'Failed to respond outstanding trade confirmation. Due to ' + err);
                             } else
-                                return callback(confirmations);
+                                return callback(null, confirmations);
                         });
                     });
 
                 } else {
-                    callback([]);
+                    return callback(null, []);
                 }
             }
         });
@@ -92,8 +92,7 @@ Trade.prototype.createOffer = function (sid, token, callback) {
 
 
     if (self.settings.cancelTradeOnOverflow && self.api_access) {
-        if (self.logger != undefined)
-            self.logger.log('debug', 'Checking for overflow in trades');
+        self.emit('debug', 'Checking for overflow in trades');
         self.trade.getOffers(1, null, function (err, sent, received) {
             if (err)
                 return callback(err, undefined);
@@ -123,25 +122,21 @@ Trade.prototype.createOffer = function (sid, token, callback) {
             }
             if (tradeToCancelDueToPersonalLimit.length >= 0 && self.settings.cancelTradeOnOverflow) {
                 for (var tradeIndex in tradeToCancelDueToPersonalLimit) {
-                    if (self.logger != undefined)
-                        self.logger.log('debug', "Cancelled trade #" + tradeToCancelDueToPersonalLimit[tradeIndex].id + " due to overload in personal trade requests");
+                    self.emit('debug', 'Cancelled trade #' + tradeToCancelDueToPersonalLimit[tradeIndex].id + ' due to overload in personal trade requests');
                     tradeToCancelDueToPersonalLimit[tradeIndex].cancel();
                 }
             }
             if (allTrades.length >= 30 && self.settings.cancelTradeOnOverflow) {
-                if (self.logger != undefined)
-                    self.logger.log('debug', "Cancelled trade #" + tradeToCancelDueToTotalLimit.id + " due to overload in total trade requests");
+                    self.emit('debug', 'Cancelled trade #' + tradeToCancelDueToTotalLimit.id + ' due to overload in total trade requests');
                 tradeToCancelDueToTotalLimit.cancel();
             }
             self.emit('createdOffer', sid);
-            if (self.logger != undefined)
-                self.logger.log('debug', 'Sent trade offer');
+            self.emit('debug', 'Sent trade offer');
             return callback(undefined, self.trade.createOffer(sid, token));
 
         });
     } else {
-        if (self.logger != undefined)
-            self.logger.log('debug', 'Sent trade offer');
+        self.emit('debug', 'Sent trade offer');
         self.emit('createdOffer', sid);
         // Before we create an offer, we will get previous offers and ensure it meets the limitations, to avoid errors.
         return callback(undefined, self.trade.createOffer(sid, token));

@@ -16,4 +16,5 @@ node_modules
 .idea
 # Config files
 private
+config
 
