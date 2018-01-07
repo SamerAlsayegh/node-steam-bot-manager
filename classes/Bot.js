@@ -222,16 +222,17 @@ Bot.prototype.initUser = function (options, callback) {
         callback = options;
         options = {};
     }
+    let allOpts = {};
 
     let requestOptions = {};
-    if (options.hasOwnProperty("request"))
+    if (options.hasOwnProperty("request")) {
         requestOptions = options.request;
+        allOpts.request =  request.defaults(requestOptions);
+    }
 
-    let modifiedRequest = request.defaults(requestOptions);
 
-    self.community = new SteamCommunity({
-        request: modifiedRequest
-    });
+
+    self.community = new SteamCommunity(allOpts);
 
     self.client = new SteamUser();
 
@@ -344,6 +345,14 @@ Bot.prototype.getUserFromAccountID = function (id) {
     return SteamID.fromIndividualAccountID(id);
 };
 
+
+/**
+ * This method simply destroys this instance of the object and recreates it. (Get rid of all data)
+ */
+Bot.prototype.destroyAndRecreate = function (callback) {
+    let self = this;
+    self.emit('recreate', callback);
+};
 
 /**
  * Fetch SteamID Object from the Individual Account ID (i.e 46143802)
