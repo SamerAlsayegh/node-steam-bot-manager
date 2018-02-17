@@ -57,7 +57,7 @@ Profile.prototype.getDisplayName = function () {
 Profile.prototype.changeDisplayName = function (newName, namePrefix, callbackErrorOnly) {
     var self = this;
     if (!self.Auth.loggedIn) {
-        self.TaskManager.addToQueue('login', self, self.changeDisplayName, [newName, namePrefix, callbackErrorOnly]);
+        return callbackErrorOnly("Not Logged In");
     }
     else {
         if (namePrefix == undefined) namePrefix = '';

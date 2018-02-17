@@ -131,15 +131,15 @@ Trade.prototype.createOffer = function (sid, token, callback) {
                 tradeToCancelDueToTotalLimit.cancel();
             }
             self.emit('createdOffer', sid);
-            self.emit('debug', 'Sent trade offer');
-            return callback(undefined, self.trade.createOffer(sid, token));
+            self.emit('debug', 'Created trade offer');
+            return callback(null, self.trade.createOffer(sid, token));
 
         });
     } else {
-        self.emit('debug', 'Sent trade offer');
+        self.emit('debug', 'Created trade offer');
         self.emit('createdOffer', sid);
         // Before we create an offer, we will get previous offers and ensure it meets the limitations, to avoid errors.
-        return callback(undefined, self.trade.createOffer(sid, token));
+        return callback(null, self.trade.createOffer(sid, token));
     }
 };
 
@@ -217,7 +217,7 @@ Trade.prototype.getOfferToken = function (tradeTokenCallback) {
 Trade.prototype.getInventory = function (appid, contextid, tradableOnly, inventoryCallback) {
     var self = this;
     if (!self.auth.loggedIn) {
-        self.tasks.addToQueue('login', self, self.getInventory, [appid, contextid, tradableOnly, inventoryCallback]);
+        return inventoryCallback(new Error("Not Logged In'"));
     }
     else
         self.trade.getInventoryContents(appid, contextid, tradableOnly, inventoryCallback);
@@ -234,7 +234,7 @@ Trade.prototype.getInventory = function (appid, contextid, tradableOnly, invento
 Trade.prototype.getUserInventory = function (steamID, appid, contextid, tradableOnly, inventoryCallback) {
     var self = this;
     if (!self.auth.loggedIn) {
-        self.tasks.addToQueue('login', self, self.getUserInventory, [steamID, appid, contextid, tradableOnly, inventoryCallback]);
+        return inventoryCallback(new Error("Not Logged In'"));
     }
     else
         self.trade.getUserInventoryContents(steamID, appid, contextid, tradableOnly, inventoryCallback);

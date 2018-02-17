@@ -24,6 +24,7 @@ const request = require('request');
  * @constructor
  */
 function Bot(username, password, details, settings) {
+    console.log(username, password);
     var self = this;
     // TODO: Revamp the accountName and username fields... Currently 2 fields exist which are redundant
     // Init all required variables
@@ -252,13 +253,13 @@ Bot.prototype.initUser = function (options, callback) {
     self.Auth.initAuth(self.community, self.store, self.client);
 
     self.loggedIn = false;
-    self.Tasks = new TaskManager();
-    self.Tasks.on('error', function () {
-        self.emit('error', ...arguments);
-    });
-    self.Tasks.on('debug', function () {
-        self.emit('debug', ...arguments);
-    });
+    // self.Tasks = new TaskManager();
+    // self.Tasks.on('error', function () {
+    //     self.emit('error', ...arguments);
+    // });
+    // self.Tasks.on('debug', function () {
+    //     self.emit('debug', ...arguments);
+    // });
 
     self.Request = new Request(self.request);
     self.Request.on('error', function () {
@@ -271,6 +272,15 @@ Bot.prototype.initUser = function (options, callback) {
     self.client.on('loggedOn', function (details, parental) {
         self.emit('loggedInNodeSteam', details);
         self.emit('debug', 'Logged into Steam via SteamClient on %s.', self.getAccountName());
+    });
+
+    self.client.on("steamGuard", function(domain, callback, lastCodeWrong) {
+        if(lastCodeWrong) {
+            self.emit('debug', 'SteamGuard code was incorrect for %s. Retrying in 30 seconds.', self.getAccountName());
+        }
+        setTimeout(function () {
+            callback(self.Auth.generateMobileAuthenticationCode());
+        }, 1000 * 30);
     });
 
     self.client.on('loginKey', function (loginKey) {
@@ -428,7 +438,7 @@ Bot.prototype.getInventory = function (appid, contextid, tradableOnly, inventory
 Bot.prototype.getUserInventory = function (steamID, appid, contextid, tradableOnly, inventoryCallback) {
     let self = this;
     if (!self.loggedIn) {
-        self.Tasks.addToQueue('login', self, self.Trade.getUserInventory, [steamID, appid, contextid, tradableOnly, inventoryCallback]);
+        return inventoryCallback("Not Logged In");
     }
     else
         self.Trade.getUserInventory(steamID, appid, contextid, tradableOnly, inventoryCallback);
@@ -502,19 +512,19 @@ Bot.prototype.loggedInAccount = function (cookies, sessionID, callbackSteamID) {
                 self.loggedIn = true;
 
                 // We will always fetch the apiKey on login and ensure it is the same as recorded, otherwise we save it.
-                if (!self.hasOwnProperty("apiKey")) {
-                    self.Community.getWebApiKey(function (err, apiKey) {
-                        if (err) {
-                            self.emit('debug', 'Failed to get apiKey for %j due to %s', self.getAccountName(), err);
-                            // self.logger.log("debug", "Failed to get apiKey for %j due to %s", self.username, err);
-                        } else {
-                            self.emit('debug', 'Updated apiKey for %s', self.getAccountName());
-                            // self.logger.log("debug", "Updated apiKey for %s", self.username);
-                            self.apiKey = apiKey;
-                            self.Auth._updateAccountDetails({apiKey: self.apiKey});
-                        }
-                    });
-                }
+                // if (!self.hasOwnProperty("apiKey")) {
+                //     self.Community.getWebApiKey(function (err, apiKey) {
+                //         if (err) {
+                //             self.emit('debug', 'Failed to get apiKey for %j due to %s', self.getAccountName(), err);
+                //             // self.logger.log("debug", "Failed to get apiKey for %j due to %s", self.username, err);
+                //         } else {
+                //             self.emit('debug', 'Updated apiKey for %s', self.getAccountName());
+                //             // self.logger.log("debug", "Updated apiKey for %s", self.username);
+                //             self.apiKey = apiKey;
+                //             self.Auth._updateAccountDetails({apiKey: self.apiKey});
+                //         }
+                //     });
+                // }
                 if (self.SteamID) {
                     self.Profile.getSteamUser(self.SteamID, function (err, user) {
                         if (err) {
@@ -536,53 +546,51 @@ Bot.prototype.loggedInAccount = function (cookies, sessionID, callbackSteamID) {
             self.Trade.setAPIAccess(self.api_access);
 
             self.emit('loggedIn', self);
-            self.Tasks.processQueue('login', function (err) {
-                if (err) {
-                    self.emit('error', err);
-                    if (callbackSteamID)
-                        return callbackSteamID(err, self.SteamID);
-                }
-
-                self.community.removeListener('chatTyping', self.chatTyping);
-                self.community.on('chatTyping', self.chatTyping);
-
-                self.community.removeListener('chatLoggedOn', self.chatLoggedOn);
-                self.community.on('chatLoggedOn', self.chatLoggedOn);
-
-                self.community.removeListener('chatLogOnFailed', self.chatLogOnFailed);
-                self.community.on('chatLogOnFailed', self.chatLogOnFailed);
-
-                self.community.removeListener('chatMessage', self.chatMessage);
-                self.community.on('chatMessage', self.chatMessage);
-
-                self.community.removeListener('sessionExpired', self.sessionExpired);
-                self.community.on('sessionExpired', self.sessionExpired);
-
-                self.TradeOfferManager.removeListener('sentOfferChanged', self.sentOfferChanged);
-                self.TradeOfferManager.on('sentOfferChanged', self.sentOfferChanged);
-
-                self.TradeOfferManager.removeListener('receivedOfferChanged', self.receivedOfferChanged);
-                self.TradeOfferManager.on('receivedOfferChanged', self.receivedOfferChanged);
-
-                self.TradeOfferManager.removeListener('offerList', self.offerList);
-                self.TradeOfferManager.on('offerList', self.offerList);
-
-                self.TradeOfferManager.removeListener('newOffer', self.newOffer);
-                self.TradeOfferManager.on('newOffer', self.newOffer);
-
-                self.TradeOfferManager.removeListener('realTimeTradeConfirmationRequired', self.realTimeTradeConfirmationRequired);
-                self.TradeOfferManager.on('realTimeTradeConfirmationRequired', self.realTimeTradeConfirmationRequired);
-
-                self.TradeOfferManager.removeListener('realTimeTradeCompleted', self.realTimeTradeCompleted);
-                self.TradeOfferManager.on('realTimeTradeCompleted', self.realTimeTradeCompleted);
-
-                self.TradeOfferManager.removeListener('sentOfferCanceled', self.sentOfferCanceled);
-                self.TradeOfferManager.on('sentOfferCanceled', self.sentOfferCanceled);
-
-
+            if (err) {
+                self.emit('error', err);
                 if (callbackSteamID)
-                    return callbackSteamID(undefined, self.SteamID);
-            });
+                    return callbackSteamID(err, self.SteamID);
+            }
+
+            self.community.removeListener('chatTyping', self.chatTyping);
+            self.community.on('chatTyping', self.chatTyping);
+
+            self.community.removeListener('chatLoggedOn', self.chatLoggedOn);
+            self.community.on('chatLoggedOn', self.chatLoggedOn);
+
+            self.community.removeListener('chatLogOnFailed', self.chatLogOnFailed);
+            self.community.on('chatLogOnFailed', self.chatLogOnFailed);
+
+            self.community.removeListener('chatMessage', self.chatMessage);
+            self.community.on('chatMessage', self.chatMessage);
+
+            self.community.removeListener('sessionExpired', self.sessionExpired);
+            self.community.on('sessionExpired', self.sessionExpired);
+
+            self.TradeOfferManager.removeListener('sentOfferChanged', self.sentOfferChanged);
+            self.TradeOfferManager.on('sentOfferChanged', self.sentOfferChanged);
+
+            self.TradeOfferManager.removeListener('receivedOfferChanged', self.receivedOfferChanged);
+            self.TradeOfferManager.on('receivedOfferChanged', self.receivedOfferChanged);
+
+            self.TradeOfferManager.removeListener('offerList', self.offerList);
+            self.TradeOfferManager.on('offerList', self.offerList);
+
+            self.TradeOfferManager.removeListener('newOffer', self.newOffer);
+            self.TradeOfferManager.on('newOffer', self.newOffer);
+
+            self.TradeOfferManager.removeListener('realTimeTradeConfirmationRequired', self.realTimeTradeConfirmationRequired);
+            self.TradeOfferManager.on('realTimeTradeConfirmationRequired', self.realTimeTradeConfirmationRequired);
+
+            self.TradeOfferManager.removeListener('realTimeTradeCompleted', self.realTimeTradeCompleted);
+            self.TradeOfferManager.on('realTimeTradeCompleted', self.realTimeTradeCompleted);
+
+            self.TradeOfferManager.removeListener('sentOfferCanceled', self.sentOfferCanceled);
+            self.TradeOfferManager.on('sentOfferCanceled', self.sentOfferCanceled);
+
+
+            if (callbackSteamID)
+                return callbackSteamID(undefined, self.SteamID);
         });
     }
     else

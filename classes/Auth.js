@@ -14,6 +14,7 @@ function Auth(accountDetails) {
     let self = this;
 
     // self.BotAccount = BotAccount;
+    accountDetails.accountName = accountDetails.accountName || accountDetails.username;
     self.accountName = accountDetails.accountName || accountDetails.username;
     // accountDetails.accountName = accountDetails.accountName;
 
