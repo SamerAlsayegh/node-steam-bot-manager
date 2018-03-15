@@ -235,7 +235,9 @@ Bot.prototype.initUser = function (options, callback) {
 
     self.community = new SteamCommunity(allOpts);
 
-    self.client = new SteamUser();
+    self.client = new SteamUser({
+        promptSteamGuardCode: false,
+    });
 
 
     self.TradeOfferManager = new TradeOfferManager({

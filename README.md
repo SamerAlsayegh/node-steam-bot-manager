@@ -107,4 +107,7 @@ The following sponsors help promote further development of this tool.
 ### [Techie.Guru - Your personal tech curator](https://techie.guru)
 [![Techie.Guru](https://i1.wp.com/techie.guru/wp-content/uploads/2017/06/cropped-1-e1497505364696.png)](https://techie.guru)
 
+### [SocialIgnite - Social Media Scheduling](https://portal.socialignite.media)
+[![Techie.Guru](https://portal.socialignite.media/pub/img/logo_indigo.png)](https://portal.socialignite.media)
+
 \* Using this feature means you agree to Steam's API terms found at: [Steam API Terms](http://steamcommunity.com/dev/apiterms)
