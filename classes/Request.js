@@ -24,7 +24,7 @@ Request.prototype.getRequest = function (url, callback) {
         method: "GET",
         json: true
     }, function (err, response, body) {
-        callback(err, body);
+        callback(err, body, response);
     });
 };
 /**

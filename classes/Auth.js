@@ -152,6 +152,7 @@ Auth.prototype.loginAccount = function (details, callbackErrorOnly) {
                 self.sessionid = sessionID;
                 if (privateStore[self.accountName].accountDetails.password  && self.settings.steamClientLogin && !self.client.cellID) {
                     self.client.logOn(loginDetails);
+
                 }
 
                 self.emit('loggedInAccount', cookies, sessionID);

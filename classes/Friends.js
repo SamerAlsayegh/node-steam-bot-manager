@@ -127,7 +127,7 @@ Friends.prototype.login = function (interval, uiMode) {
     interval = interval || 500;
     uiMode = uiMode || 'web';
 
-    self.emit('debug', 'Logged on to chat on %j', self.main.getAccountName());
+    self.emit('debug', 'Logging on to chat on %j', self.main.getAccountName());
     self.main.community.chatLogon(interval, uiMode);
 };
 
@@ -153,10 +153,21 @@ Friends.prototype.logout = function () {
  */
 Friends.prototype.sendMessage = function (recipient, message, type, callbackErrorOnly) {
     var self = this;
-    type = type || 'text';
-    callbackErrorOnly = callbackErrorOnly || function (err) {
-        };
-    self.main.community.chatMessage(recipient, message, type, callbackErrorOnly);
+    if (callbackErrorOnly == null && type != null){
+        callbackErrorOnly = type;
+        type = 1;
+    }
+
+    callbackErrorOnly = callbackErrorOnly || function (err) {};
+    if (self.main.client != null) {
+        console.log("Steaam?", message, type);
+        self.main.client.chatMessage(recipient, message, type);
+    }
+    else{
+        // self.main.community.chatMessage(recipient, message, type, callbackErrorOnly);
+        callbackErrorOnly(new Error("Method requires to be loggedin via Steam on new chat system"))
+    }
+
 };
 
 
