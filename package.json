@@ -1,6 +1,6 @@
 {
   "name": "node-steam-bot-manager",
-  "version": "1.0.57-beta",
+  "version": "1.0.58",
   "description": "A NodeJS Steam Bot Management tool. ",
   "main": "lib/index.js",
   "scripts": {
